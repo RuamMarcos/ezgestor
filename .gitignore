@@ -1,0 +1,46 @@
+.env
+.env.*
+!/.env.example
+!/.env.sample
+
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+.DS_Store
+Thumbs.db
+
+# --- BACKEND (Python / Django) ---
+
+backend/virtual/
+backend/venv/
+
+backend/**/__pycache__/
+backend/**/*.pyc
+
+backend/db.sqlite3
+
+backend/mediafiles/
+
+backend/staticfiles/
+
+*.log
+.coverage
+
+# --- FRONTEND (Node / React / Vite) ---
+
+frontend/node_modules/
+
+frontend/dist/
+
+# Cache do Vite
+frontend/.vite/
+
+# Logs de erro do npm e yarn
+frontend/npm-debug.log*
+frontend/yarn-error.log*
+frontend/yarn.lock
+
+# Relatórios de cobertura de testes
+frontend/coverage/
