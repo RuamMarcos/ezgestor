@@ -1,12 +1,13 @@
 import { StyleSheet } from "react-native";
+import Colors from "../constants/Colors";
 
 export const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#4f46e5',
+    backgroundColor: Colors.primary,
   },
   header: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.transparentWhite,
     padding: 16,
     alignItems: 'center',
     borderBottomLeftRadius: 20,
@@ -23,10 +24,10 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.cardBackground,
     borderRadius: 20,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -36,7 +37,7 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#1f2937',
+    color: Colors.textPrimary,
     marginBottom: 24,
   },
   form: {
@@ -44,21 +45,21 @@ export const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: Colors.border,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    backgroundColor: '#f9fafb',
+    backgroundColor: Colors.background,
   },
   button: {
-    backgroundColor: '#4f46e5',
+    backgroundColor: Colors.primary,
     padding: 18,
     borderRadius: 30,
     alignItems: 'center',
     marginTop: 16,
   },
   buttonText: {
-    color: 'white',
+    color: Colors.white,
     fontSize: 18,
     fontWeight: '600',
   },
@@ -67,11 +68,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginText: {
-    color: '#6b7280',
+    color: Colors.textSecondary,
     fontSize: 16,
   },
   loginLinkText: {
-    color: '#4f46e5',
+    color: Colors.primary,
     fontWeight: '600',
   },
 });
