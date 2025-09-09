@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { aplicarMascaraCnpj, aplicarMascaraTelefone } from "../utils/masks";
 
-// Define a "forma" dos dados do nosso formulário com TypeScript
+
 interface FormData {
   nomeEmpresa: string;
   cnpj: string;
@@ -11,9 +12,7 @@ interface FormData {
   confirmarSenha: string;
 }
 
-// Componente da página de cadastro
 export const PaginaCadastro: React.FC = () => {
-  // Estado para armazenar todos os dados do formulário em um único objeto
   const [formData, setFormData] = useState<FormData>({
     nomeEmpresa: '',
     cnpj: '',
@@ -24,27 +23,6 @@ export const PaginaCadastro: React.FC = () => {
     confirmarSenha: '',
   });
 
-  // Função para aplicar a máscara de CNPJ
-  const aplicarMascaraCnpj = (valor: string): string => {
-    return valor
-      .replace(/\D/g, '')
-      .replace(/^(\d{2})(\d)/, '$1.$2')
-      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-      .replace(/\.(\d{3})(\d)/, '.$1/$2')
-      .replace(/(\d{4})(\d)/, '$1-$2')
-      .slice(0, 18);
-  };
-
-  // Função para aplicar a máscara de Telefone
-  const aplicarMascaraTelefone = (valor: string): string => {
-    return valor
-      .replace(/\D/g, '')
-      .replace(/^(\d{2})(\d)/g, '($1) $2')
-      .replace(/(\d)(\d{4})$/, '$1-$2')
-      .slice(0, 15); 
-  };
-
-  // Função única para lidar com a mudança em qualquer campo do formulário
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
