@@ -16,7 +16,7 @@ export default function RootLayout() {
     <>
       <Stack>
         <Stack.Screen 
-          name="register" 
+          name="(auth)/register" 
           options={{
             title: 'Cadastro',
             headerShown: false 

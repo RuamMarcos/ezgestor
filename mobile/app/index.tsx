@@ -5,7 +5,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bem-vindo ao EzGestor</Text>
-      <Link href="/register" style={styles.link}>
+      <Link href="/(auth)/register" style={styles.link}>
         Ir para Cadastro
       </Link>
     </View>
