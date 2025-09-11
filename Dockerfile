@@ -19,8 +19,8 @@ FROM python:3.11-slim AS backend-builder
 WORKDIR /app
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install dependencies
 COPY backend/requirements.txt .
@@ -35,16 +35,19 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Set environment variables for Gunicorn
-ENV GUNICORN_CMD_ARGS="--workers=2 --threads=4 --worker-class=gthread --bind=0.0.0.0:$PORT"
+ENV GUNICORN_CMD_ARGS="--workers=2 --threads=4 --worker-class=gthread --bind=0.0.0.0:8080"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Copy backend from the backend-builder stage
+# Bring installed Python packages and gunicorn from the builder
+COPY --from=backend-builder /usr/local /usr/local
+
+# Copy backend app code
 COPY --from=backend-builder /app .
 
-# Copy built frontend from the frontend-builder stage to the staticfiles directory
+# Copy built frontend to staticfiles
 COPY --from=frontend-builder /app/frontend/dist /app/staticfiles
 
-# Expose the port Cloud Run will use
 EXPOSE 8080
 
-# Run the application
 CMD exec gunicorn ezgestor_api.wsgi:application $GUNICORN_CMD_ARGS
