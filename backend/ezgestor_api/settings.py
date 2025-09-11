@@ -37,6 +37,10 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
+# Allow all hosts by default in container, override via env ALLOWED_HOSTS
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+
+
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
     if o.strip()
