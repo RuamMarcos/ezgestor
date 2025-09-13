@@ -133,9 +133,23 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-STATIC_URL = 'static/'
+# STATIC_URL should end with a slash and is used by the SPA assets
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
+
+# Where collectstatic puts files (used in production)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Include the built frontend during development or when present
+# This allows manage.py collectstatic to pick up the Vite dist
+FRONTEND_DIST = os.environ.get('FRONTEND_DIST', str(Path(BASE_DIR).parent / 'frontend' / 'dist'))
+if os.path.isdir(FRONTEND_DIST):
+    STATICFILES_DIRS = [FRONTEND_DIST]
+
+# Use WhiteNoise compressed manifest storage in production; fall back in dev
+STATICFILES_STORAGE = os.environ.get(
+    'STATICFILES_STORAGE',
+    'whitenoise.storage.CompressedManifestStaticFilesStorage' if not DEBUG else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

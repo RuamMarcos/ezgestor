@@ -46,7 +46,13 @@ COPY --from=backend-builder /usr/local /usr/local
 COPY --from=backend-builder /app .
 
 # Copy built frontend to staticfiles
-COPY --from=frontend-builder /app/frontend/dist /app/staticfiles
+COPY --from=frontend-builder /app/frontend/dist /app/frontend_dist
+
+# Collect static files (including React build) with Django's collectstatic
+ENV DJANGO_SETTINGS_MODULE=ezgestor_api.settings
+ENV DEBUG=False
+ENV FRONTEND_DIST=/app/frontend_dist
+RUN python manage.py collectstatic --noinput
 
 EXPOSE 8080
 
