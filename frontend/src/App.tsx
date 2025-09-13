@@ -1,11 +1,13 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import { PaginaCadastro } from './pages/RegisterPage';
 
 function App() {
   return (
-    <div className="App">
-      <PaginaCadastro />
-    </div>
+    <Routes>
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
