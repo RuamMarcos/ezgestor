@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,13 +20,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)+(t*2!@+(+)xams#bo-ophq4u%zrmh4(54#bb15uwt3j9y0ef'
+# Use the environment variable if it exists, otherwise fall back to the insecure key for development.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-)+(t*2!@+(+)xams#bo-ophq4u%zrmh4(54#bb15uwt3j9y0ef'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Use the environment variable for DEBUG, defaulting to True for local development.
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if h.strip()
+]
+
+# Allow all hosts by default in container, override via env ALLOWED_HOSTS
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
+    if o.strip()
+]
 
 
 # Application definition
@@ -41,6 +60,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -113,8 +133,23 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+# STATIC_URL should end with a slash and is used by the SPA assets
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
 
-STATIC_URL = 'static/'
+# Where collectstatic puts files (used in production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Include the built frontend during development or when present
+# This allows manage.py collectstatic to pick up the Vite dist
+FRONTEND_DIST = os.environ.get('FRONTEND_DIST', str(Path(BASE_DIR).parent / 'frontend' / 'dist'))
+if os.path.isdir(FRONTEND_DIST):
+    STATICFILES_DIRS = [FRONTEND_DIST]
+
+# Use WhiteNoise compressed manifest storage in production; fall back in dev
+STATICFILES_STORAGE = os.environ.get(
+    'STATICFILES_STORAGE',
+    'whitenoise.storage.CompressedManifestStaticFilesStorage' if not DEBUG else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
