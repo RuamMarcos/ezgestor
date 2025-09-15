@@ -66,14 +66,6 @@ const LandingPage = () => {
                   Sobre
                 </a>
               </li>
-              <li>
-                <a
-                  href="#contato"
-                  className="text-white font-medium hover:text-[#8A5CF5] transition-colors"
-                >
-                  Contato
-                </a>
-              </li>
             </ul>
           </div>
           <div className="hidden md:flex items-center gap-4 ml-auto">
@@ -113,14 +105,9 @@ const LandingPage = () => {
                 Recursos
               </a>
             </li>
-            <li className="mb-4">
+            <li>
               <a href="#sobre" className="text-white font-medium">
                 Sobre
-              </a>
-            </li>
-            <li>
-              <a href="#contato" className="text-white font-medium">
-                Contato
               </a>
             </li>
           </ul>
@@ -269,46 +256,6 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
-
-        <section className="py-20 bg-[#2A2D5C]" id="contato">
-          <div className="container mx-auto px-5">
-            <h2 className="text-4xl font-bold text-center mb-10 text-white">
-              Entre em Contato
-            </h2>
-            <form className="max-w-2xl mx-auto">
-              <div className="mb-5">
-                <input
-                  type="text"
-                  placeholder="Nome Completo"
-                  className="w-full p-4 rounded-lg border border-[#555] bg-[#2c2f5d] text-white placeholder-gray-400"
-                  required
-                />
-              </div>
-              <div className="mb-5">
-                <input
-                  type="text"
-                  placeholder="Assunto"
-                  className="w-full p-4 rounded-lg border border-[#555] bg-[#2c2f5d] text-white placeholder-gray-400"
-                  required
-                />
-              </div>
-              <div className="mb-5">
-                <textarea
-                  rows={5}
-                  placeholder="Mensagem"
-                  className="w-full p-4 rounded-lg border border-[#555] bg-[#2c2f5d] text-white placeholder-gray-400"
-                  required
-                ></textarea>
-              </div>
-              <button
-                type="submit"
-                className="w-full p-4 bg-[#8A5CF5] text-white rounded-lg font-semibold text-lg hover:bg-[#7b4cdb] transition-colors"
-              >
-                Enviar Mensagem
-              </button>
-            </form>
-          </div>
-        </section>
       </main>
 
       <footer className="bg-[#1E1E1E] text-gray-400 pt-16">
@@ -368,7 +315,7 @@ const LandingPage = () => {
           </div>
         </div>
         <div className="container mx-auto px-5 py-5 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center text-sm">
-          <p>&copy; 2024 EzGestor. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} EzGestor. Todos os direitos reservados.</p>
           <div className="mt-4 md:mt-0">
             <a href="#" className="ml-5 hover:text-[#8A5CF5] transition-colors">
               Política de Privacidade
