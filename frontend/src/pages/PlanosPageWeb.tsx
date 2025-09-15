@@ -1,15 +1,10 @@
-// frontend/src/pages/PlanosPage.tsx
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 function PlanosPage() {
   return (
-    // Fundo da página com gradiente escuro
     <div className="relative bg-gray-800 min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-700 opacity-90"></div>
-      
-      {/* Container branco principal */}
       <div className="relative w-full max-w-4xl bg-white shadow-2xl rounded-2xl p-6 sm:p-12">
         
         <div className="text-center">
@@ -18,10 +13,7 @@ function PlanosPage() {
         </div>
         
         <div className="flex justify-center mt-12">
-          {/* Card do Plano Padrão (mais largo) */}
           <div className="w-full max-w-2xl bg-gradient-to-b from-indigo-600 to-purple-800 rounded-2xl p-12 flex flex-col text-white relative overflow-hidden">
-            
-            {/* Banner "Mais Popular" */}
             <div className="absolute top-[-1px] right-[-1px] w-40 h-40 overflow-hidden">
                 <div className="absolute top-[42px] right-[-45px] w-[220px] transform rotate-45 bg-red-500 text-center text-white font-semibold py-1.5">
                     Mais Popular
