@@ -15,10 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from django.http import HttpResponse, HttpResponseNotFound
 from django.conf import settings
 from pathlib import Path
+
+
+
+
 
 
 def spa_200(request):
@@ -42,4 +46,5 @@ urlpatterns = [
     path('', spa_200, name='root'),
     # SPA fallback: let React Router handle client-side routes
     re_path(r'^(?!admin/|api/).*$', spa_200, name='spa-fallback'),
+    path('accounts/', include('accounts.urls')),
 ]

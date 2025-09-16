@@ -47,3 +47,5 @@ frontend/yarn.lock
 
 # Relatórios de cobertura de testes
 frontend/coverage/
+
+.expo
