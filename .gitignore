@@ -10,6 +10,7 @@
 .cursorindexingignore
 .cursorignore
 .specstory
+.cursor/
 
 .DS_Store
 Thumbs.db
