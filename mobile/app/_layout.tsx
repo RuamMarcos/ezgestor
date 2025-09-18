@@ -1,3 +1,4 @@
+// mobile/app/_layout.tsx
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -15,11 +16,25 @@ export default function RootLayout() {
   return (
     <>
       <Stack>
-        <Stack.Screen 
-          name="(auth)/register" 
+        <Stack.Screen
+          name="(auth)/register"
           options={{
             title: 'Cadastro',
-            headerShown: false 
+            headerShown: false
+          }}
+        />
+        <Stack.Screen
+          name="(auth)/plans"
+          options={{
+            title: 'Planos',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(auth)/payment"
+          options={{
+            title: 'Pagamento',
+            headerShown: false,
           }}
         />
       </Stack>
