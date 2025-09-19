@@ -38,10 +38,6 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
-# Allow all hosts by default in container, override via env ALLOWED_HOSTS
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
-
-
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
     if o.strip()
@@ -112,23 +108,6 @@ if database_url:
         conn_max_age=CONN_MAX_AGE,
         conn_health_checks=True,
     )
-else:
-    # Cloud Run + Cloud SQL via Unix socket
-    cloudsql_conn_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME')
-    if cloudsql_conn_name:
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get('MYSQL_DB', ''),
-            'USER': os.environ.get('MYSQL_USER', ''),
-            'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
-            'HOST': '',
-            'PORT': '',
-            'OPTIONS': {
-                'unix_socket': f"/cloudsql/{cloudsql_conn_name}",
-                'charset': 'utf8mb4',
-                'init_command': 'SET sql_mode="STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"',
-            },
-        }
 
 
 # Password validation

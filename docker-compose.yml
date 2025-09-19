@@ -31,7 +31,6 @@ services:
     restart: "no"
 
   cloudsql-proxy:
-    profiles: ["cloudsql"]
     image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.0
     command:
       - "${CLOUD_SQL_CONNECTION_NAME}"
