@@ -3,6 +3,9 @@
 !/.env.example
 !/.env.sample
 
+.secrets/
+secrets/
+
 .vscode/
 .idea/
 *.sublime-project

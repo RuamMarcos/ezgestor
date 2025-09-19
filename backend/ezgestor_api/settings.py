@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,6 +102,33 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Prefer DATABASE_URL when provided (e.g., mysql://user:pass@host:port/dbname?charset=utf8mb4)
+CONN_MAX_AGE = int(os.environ.get('CONN_MAX_AGE', '0') or '0')
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    DATABASES['default'] = dj_database_url.parse(
+        database_url,
+        conn_max_age=CONN_MAX_AGE,
+        conn_health_checks=True,
+    )
+else:
+    # Cloud Run + Cloud SQL via Unix socket
+    cloudsql_conn_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME')
+    if cloudsql_conn_name:
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQL_DB', ''),
+            'USER': os.environ.get('MYSQL_USER', ''),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+            'HOST': '',
+            'PORT': '',
+            'OPTIONS': {
+                'unix_socket': f"/cloudsql/{cloudsql_conn_name}",
+                'charset': 'utf8mb4',
+                'init_command': 'SET sql_mode="STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"',
+            },
+        }
 
 
 # Password validation

@@ -1,26 +1,47 @@
 # docker-compose.yml
 
-# Defines the services (containers) for your application.
+# Default: SQLite (no env required).
+# Optional Cloud SQL: enable with `--profile cloudsql` and supply env vars.
 services:
-  # We'll name our service 'web'.
   web:
-    # Instructions for how to build the image.
     build:
-      # Use the Dockerfile in the current directory ('.').
       context: .
-    # Name the image that will be built.
     image: ezgestor-app:latest
-    # Give the running container a consistent name.
     container_name: ezgestor-container
-    # Map port 8000 on your local machine to port 8080 inside the container.
-    # Your Dockerfile exposes 8080, so we connect to that.
     ports:
       - "8000:8080"
-    # Mount a volume to persist the database file.
     volumes:
-      - db_data:/app/db.sqlite3
+      - db_data:/app/sqlite-data
+    environment:
+      # Default to a persistent SQLite file inside the volume-backed directory
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
+      CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
 
-# Defines the named volumes that can be used by services.
+  migrate:
+    build:
+      context: .
+    image: ezgestor-app:latest
+    command: ["python", "manage.py", "migrate"]
+    environment:
+      # Match the web default so migrations hit the same DB by default
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
+      CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
+    volumes:
+      - db_data:/app/sqlite-data
+    restart: "no"
+
+  cloudsql-proxy:
+    profiles: ["cloudsql"]
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.0
+    command:
+      - "${CLOUD_SQL_CONNECTION_NAME}"
+      - "--address=0.0.0.0"
+      - "--port=3306"
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json
+    volumes:
+      - ./secrets:/secrets:ro
+    # No host port mapping needed; web connects to host cloudsql-proxy:3306 on the Docker network
+
 volumes:
-  # This creates a managed volume named 'db_data' for our database.
   db_data:
