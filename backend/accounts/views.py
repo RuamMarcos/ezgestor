@@ -9,7 +9,8 @@ from .serializers import (
     MyTokenObtainPairSerializer, 
     EmpresaRegistrationSerializer, 
     TeamMemberSerializer,
-    UserProfileSerializer
+    UserProfileSerializer,
+    ChangePasswordSerializer
 )
 from .models import Empresa, Usuario
 from .permissions import IsAdminUser
@@ -29,7 +30,6 @@ class EmpresaRegistrationView(generics.CreateAPIView):
 class TeamMemberCreateView(generics.CreateAPIView):
     serializer_class = TeamMemberSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
-
     def perform_create(self, serializer):
         serializer.save(empresa=self.request.user.empresa)
 
@@ -47,13 +47,35 @@ class LogoutView(APIView):
 
 # View para Visualizar e Editar Perfil
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    """
-    Endpoint para que o usuário logado veja e edite o seu próprio perfil.
-    """
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
-
     def get_object(self):
-        # Retorna o objeto do usuário que está a fazer a requisição
         return self.request.user
+
+# View para Trocar a Senha
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    Endpoint para um usuário alterar a sua própria senha.
+    """
+    serializer_class = ChangePasswordSerializer
+    model = Usuario
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Verificar senha antiga
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Senha antiga incorrecta."]}, status=status.HTTP_400_BAD_REQUEST)
+            # Definir nova senha
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response({"status": "senha alterada com sucesso"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

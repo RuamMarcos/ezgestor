@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.password_validation import validate_password
 from .models import Empresa, Usuario
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -34,7 +35,6 @@ class EmpresaRegistrationSerializer(serializers.ModelSerializer):
             razao_social=validated_data['razao_social'],
             cnpj=validated_data['cnpj']
         )
-
         Usuario.objects.create_user(
             email=validated_data['admin_email'],
             first_name=validated_data['admin_first_name'],
@@ -42,7 +42,7 @@ class EmpresaRegistrationSerializer(serializers.ModelSerializer):
             password=validated_data['admin_password'],
             empresa=empresa,
             nivel_acesso='administrador',
-            is_staff=True # Permite acesso ao admin do Django
+            is_staff=True
         )
         return empresa
 
@@ -58,13 +58,21 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer para ver e editar o perfil do usuário logado.
-    """
+    """Serializer para ver e editar o perfil do usuário logado."""
     nome_fantasia_empresa = serializers.CharField(source='empresa.nome_fantasia', read_only=True)
-
     class Meta:
         model = Usuario
         fields = ['id', 'email', 'first_name', 'last_name', 'nome_fantasia_empresa']
-        read_only_fields = ['email', 'id', 'nome_fantasia_empresa'] # O email não deve ser alterado aqui
+        read_only_fields = ['email', 'id', 'nome_fantasia_empresa']
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer para a troca de senha.
+    """
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
 

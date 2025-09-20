@@ -5,7 +5,8 @@ from .views import (
     EmpresaRegistrationView, 
     TeamMemberCreateView, 
     LogoutView,
-    UserProfileView
+    UserProfileView,
+    ChangePasswordView
 )
 
 urlpatterns = [
@@ -16,6 +17,7 @@ urlpatterns = [
 
     # User Management
     path('profile/', UserProfileView.as_view(), name='user_profile'),
+    path('profile/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('register/', EmpresaRegistrationView.as_view(), name='empresa_register'),
     path('team/add/', TeamMemberCreateView.as_view(), name='team_member_add'),
 ]
