@@ -3,6 +3,9 @@
 !/.env.example
 !/.env.sample
 
+.secrets/
+secrets/
+
 .vscode/
 .idea/
 *.sublime-project
@@ -10,6 +13,7 @@
 .cursorindexingignore
 .cursorignore
 .specstory
+.cursor/
 
 .DS_Store
 Thumbs.db
