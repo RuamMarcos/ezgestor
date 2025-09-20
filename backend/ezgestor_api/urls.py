@@ -29,3 +29,6 @@ urlpatterns = [
     path('', spa_200, name='root'),
     re_path(r'^(?!admin/|accounts/|handler/).*$', spa_200, name='spa-fallback'),
 ]
+
+
+
