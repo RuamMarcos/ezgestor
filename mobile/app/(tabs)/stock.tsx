@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 export default function VendasScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Tela de Vendas</Text>
+      <Text style={styles.text}>Tela de Estoque</Text>
     </View>
   );
 }
