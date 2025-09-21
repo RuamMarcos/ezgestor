@@ -6,3 +6,5 @@ urlpatterns = [
     path('teste/', TesteAPIView.as_view(), name='teste-api'),
     path('', ApiGatewayView.as_view(), name='api_gateway'),
 ]
+
+

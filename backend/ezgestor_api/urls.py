@@ -3,6 +3,8 @@ from django.urls import path, re_path, include
 from django.http import HttpResponse, HttpResponseNotFound
 from django.conf import settings
 from pathlib import Path
+from handler.views import ApiRootView 
+
 
 
 def spa_200(request):
@@ -23,6 +25,7 @@ def spa_200(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('', ApiRootView.as_view(), name='api-root'),
     path('api/', include('handler.urls')),  # <-- Adicionar  rotas de API aqui
     # Outras rotas de API, se houver
     # Rotas do SPA sempre por último:

@@ -5,6 +5,17 @@ from django.contrib.auth.models import User
 from rest_framework import status
 
 
+class ApiRootView(APIView):
+    """
+    Ponto de entrada da API que mostra uma mensagem de boas-vindas.
+    """
+    def get(self, request, format=None):
+        return Response({
+            'status': 'online',
+            'message': 'Bem-vindo à API do EzGestor. A interface de usuário (frontend) está em outro endereço.'
+        }, status=status.HTTP_200_OK)
+
+
 class TesteAPIView(APIView):
     def get(self, request):
         # Simula um retorno de dados em JSON
