@@ -1,12 +1,20 @@
 .env
+venv/
 .env.*
 !/.env.example
 !/.env.sample
+
+.secrets/
+secrets/
 
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
+.cursorindexingignore
+.cursorignore
+.specstory
+.cursor/
 
 .DS_Store
 Thumbs.db
@@ -44,3 +52,5 @@ frontend/yarn.lock
 
 # Relatórios de cobertura de testes
 frontend/coverage/
+
+.expo

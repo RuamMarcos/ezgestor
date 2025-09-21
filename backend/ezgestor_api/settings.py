@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+import dj_database_url
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,14 +22,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)+(t*2!@+(+)xams#bo-ophq4u%zrmh4(54#bb15uwt3j9y0ef'
+# Use the environment variable if it exists, otherwise fall back to the insecure key for development.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-)+(t*2!@+(+)xams#bo-ophq4u%zrmh4(54#bb15uwt3j9y0ef'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Use the environment variable for DEBUG, defaulting to True for local development.
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if h.strip()
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081').split(',')
+    if o.strip()
+]
 
 # Application definition
 
@@ -37,13 +53,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
+    'handler',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist', 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -79,6 +105,16 @@ DATABASES = {
     }
 }
 
+# Prefer DATABASE_URL when provided (e.g., mysql://user:pass@host:port/dbname?charset=utf8mb4)
+CONN_MAX_AGE = int(os.environ.get('CONN_MAX_AGE', '0') or '0')
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    DATABASES['default'] = dj_database_url.parse(
+        database_url,
+        conn_max_age=CONN_MAX_AGE,
+        conn_health_checks=True,
+    )
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -113,10 +149,59 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+# STATIC_URL should end with a slash and is used by the SPA assets
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
 
-STATIC_URL = 'static/'
+# Where collectstatic puts files (used in production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Include the built frontend during development or when present
+# This allows manage.py collectstatic to pick up the Vite dist
+FRONTEND_DIST = os.environ.get('FRONTEND_DIST', str(Path(BASE_DIR).parent / 'frontend' / 'dist'))
+if os.path.isdir(FRONTEND_DIST):
+    STATICFILES_DIRS = [FRONTEND_DIST]
+
+# Use WhiteNoise compressed manifest storage in production; fall back in dev
+STATICFILES_STORAGE = os.environ.get(
+    'STATICFILES_STORAGE',
+    'whitenoise.storage.CompressedManifestStaticFilesStorage' if not DEBUG else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60), # Duração do token de acesso
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),   # Duração do token de atualização
+}
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173", # Corrigido, sem formatação extra
+]
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# CORS configuration (dev: permissive via env; prod: restrictive)
+def _env_flag(name: str, default: str = 'False') -> bool:
+    return os.environ.get(name, default).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+CORS_ALLOW_ALL_ORIGINS = _env_flag('CORS_ALLOW_ALL_ORIGINS', 'False')
+
+if not CORS_ALLOW_ALL_ORIGINS:
+    # Comma-separated list, e.g. "https://example.com,http://localhost:19006"
+    _cors_allowed = [
+        o.strip() for o in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()
+    ]
+    if _cors_allowed:
+        CORS_ALLOWED_ORIGINS = _cors_allowed
+
+
+AUTH_USER_MODEL = 'accounts.Usuario'
