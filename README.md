@@ -88,3 +88,17 @@ As User Stories são descrições breves e objetivas de funcionalidades do siste
 -   **RF10 – Configurações da Conta e da Empresa**: Garantir que os dados da empresa informados no cadastro sejam salvos e estruturados.
     
 -   **RF02 – Dashboard Central**: Apresentar a tela principal (dashboard) estática que o usuário visualizará após o login.
+  
+
+### **Iteração 2️⃣ - Gestão de Produtos e Lançamento de Vendas**
+
+**Valor:** Entregar o núcleo operacional do sistema, permitindo que o usuário gerencie seu catálogo de produtos e realize vendas completas, com baixa automática de estoque e cadastro simplificado de clientes no momento da transação.
+
+**Objetivo:** Como usuário (administrador ou funcionário), desejo gerenciar meus produtos e registrar vendas de forma eficiente, para manter meu estoque atualizado e controlar as operações do dia a dia do meu negócio.
+
+**Requisitos:**
+
+-   **RF04 – Controle de Estoque:** Implementar a interface e a lógica para o usuário gerenciar seu catálogo de produtos (adicionar, editar, visualizar) e garantir que o sistema realize a baixa automática do estoque após cada venda.
+    
+-   **RF03 – Gestão de Vendas:** Desenvolver a tela de Ponto de Venda (PDV), permitindo a seleção de produtos e o registro de novas transações, incluindo o cadastro simplificado de um novo cliente durante o processo.
+
