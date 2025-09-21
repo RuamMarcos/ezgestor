@@ -1,3 +1,4 @@
+// filepath: mobile/styles/registerStyles.ts
 import { StyleSheet } from "react-native";
 import Colors from "../constants/Colors";
 
@@ -5,18 +6,6 @@ export const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: Colors.primary,
-  },
-  header: {
-    backgroundColor: Colors.transparentWhite,
-    padding: 16,
-    alignItems: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    resizeMode: 'contain',
   },
   content: {
     flex: 1,
