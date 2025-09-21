@@ -1,7 +1,9 @@
+import 'react-native-reanimated';
+import 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -13,8 +15,10 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+
         <Stack.Screen 
           name="(auth)/register" 
           options={{
@@ -22,8 +26,11 @@ export default function RootLayout() {
             headerShown: false 
           }}
         />
+
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </GestureHandlerRootView>
   );
 }
