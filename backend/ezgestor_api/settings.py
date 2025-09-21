@@ -38,8 +38,15 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',  # Para o seu frontend web
+    'http://127.0.0.1:5173',
+    'http://localhost:8081',  # Para a aplicação mobile (Expo Go)
+]
+
+# Você já possui o CSRF_TRUSTED_ORIGINS, o que é bom. Apenas para confirmar:
 CSRF_TRUSTED_ORIGINS = [
-    o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
+    o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081').split(',')
     if o.strip()
 ]
 
@@ -53,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'accounts',
     'handler',
     'rest_framework'
@@ -64,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
