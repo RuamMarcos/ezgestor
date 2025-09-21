@@ -24,13 +24,12 @@ def spa_200(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),
-    path('', ApiRootView.as_view(), name='api-root'),
-    path('api/', include('handler.urls')),  # <-- Adicionar  rotas de API aqui
-    # Outras rotas de API, se houver
-    # Rotas do SPA sempre por último:
+    # Namespaced API routes
+    path('api/accounts/', include('accounts.urls')),
+    path('api/handler/', include('handler.urls')),
+    # SPA routes (always last)
     path('', spa_200, name='root'),
-    re_path(r'^(?!admin/|accounts/|handler/).*$', spa_200, name='spa-fallback'),
+    re_path(r'^(?!admin/|api/).*$', spa_200, name='spa-fallback'),
 ]
 
 

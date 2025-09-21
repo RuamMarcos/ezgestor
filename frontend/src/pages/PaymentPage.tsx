@@ -1,8 +1,65 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { aplicarMascaraCartao, aplicarMascaraValidade, aplicarMascaraCvv } from '../utils/masks';
 
 function PagamentoPage() {
   const [paymentMethod, setPaymentMethod] = useState<'boleto' | 'pix' | 'cartao'>('cartao');
+  
+  const [dadosCartao, setDadosCartao] = useState({
+    numero: '',
+    validade: '',
+    cvv: '',
+    nome: ''
+  });
+
+  const handleChangeCartao = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    let valorFormatado = value;
+    if (name === 'numero') {
+      valorFormatado = aplicarMascaraCartao(value);
+    } else if (name === 'validade') {
+      valorFormatado = aplicarMascaraValidade(value);
+    } else if (name === 'cvv') {
+      valorFormatado = aplicarMascaraCvv(value);
+    }
+    
+    setDadosCartao(prevState => ({
+      ...prevState,
+      [name]: valorFormatado,
+    }));
+  };
+
+
+  const handleConfirmarPagamento = async () => {
+    const empresaId = 1;
+    const planoId = 2;
+
+    try {
+      const response = await fetch('../../../backend/accounts/processar-pagamento/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          empresa_id: empresaId,
+          plano_id: planoId,
+          metodo: paymentMethod,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Pagamento confirmado! Você será redirecionado para o dashboard.');
+        window.location.href = '/dashboard';
+      } else {
+        const errorData = await response.json();
+        alert(`Erro ao confirmar pagamento: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Erro de rede:', error);
+      alert('Erro de conexão ao processar o pagamento.');
+    }
+  };
 
   return (
     <div className="relative bg-gray-800 min-h-screen flex items-center justify-center p-4">
@@ -46,21 +103,49 @@ function PagamentoPage() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Número do Cartão</label>
-                  <input type="text" placeholder="0000 0000 0000 0000" className="w-full mt-1 p-3 border border-gray-300 rounded-lg" />
+                  <input 
+                    type="text" 
+                    name="numero"
+                    placeholder="0000 0000 0000 0000" 
+                    className="w-full mt-1 p-3 border border-gray-300 rounded-lg" 
+                    value={dadosCartao.numero}
+                    onChange={handleChangeCartao}
+                  />
                 </div>
                 <div className="flex space-x-4">
                   <div className="w-1/2">
                     <label className="text-sm font-medium text-gray-600">Validade</label>
-                    <input type="text" placeholder="MM/AA" className="w-full mt-1 p-3 border border-gray-300 rounded-lg" />
+                    <input 
+                      type="text" 
+                      name="validade"
+                      placeholder="MM/AA" 
+                      className="w-full mt-1 p-3 border border-gray-300 rounded-lg" 
+                      value={dadosCartao.validade}
+                      onChange={handleChangeCartao}
+                    />
                   </div>
                   <div className="w-1/2">
                     <label className="text-sm font-medium text-gray-600">CVV</label>
-                    <input type="text" placeholder="123" className="w-full mt-1 p-3 border border-gray-300 rounded-lg" />
+                    <input 
+                      type="text" 
+                      name="cvv"
+                      placeholder="123" 
+                      className="w-full mt-1 p-3 border border-gray-300 rounded-lg" 
+                      value={dadosCartao.cvv}
+                      onChange={handleChangeCartao}
+                    />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Nome no Cartão</label>
-                  <input type="text" placeholder="Como está no cartão" className="w-full mt-1 p-3 border border-gray-300 rounded-lg" />
+                  <input 
+                    type="text" 
+                    name="nome"
+                    placeholder="Como está no cartão" 
+                    className="w-full mt-1 p-3 border border-gray-300 rounded-lg" 
+                    value={dadosCartao.nome}
+                    onChange={handleChangeCartao}
+                  />
                 </div>
               </div>
             )}
@@ -88,7 +173,10 @@ function PagamentoPage() {
                     Li e aceito os <a href="#" className="text-indigo-600">Termos de Uso</a> e a <a href="#" className="text-indigo-600">Política de Privacidade</a>.
                 </label>
             </div>
-            <button className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors">
+            <button 
+              onClick={handleConfirmarPagamento}
+              className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors"
+            >
               Finalizar Cadastro
             </button>
             <Link to="/planos" className="w-full block text-center border-2 border-indigo-600 text-indigo-600 font-medium py-3 rounded-lg hover:bg-indigo-50 transition-colors">

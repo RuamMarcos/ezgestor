@@ -174,5 +174,17 @@ class Assinatura(models.Model):
 #     data_lancamento = models.DateField(auto_now_add=True)
 #     categoria = models.CharField(max_length=100)
 
-#     def __str__(self):
-#         return f"{self.tipo.upper()} - {self.valor} ({self.empresa.nome_fantasia})"
+    def __str__(self):
+        return f"{self.tipo.upper()} - {self.valor} ({self.empresa.nome_fantasia})"
+
+
+class Pagamento(models.Model):
+    id_pagamento = models.AutoField(primary_key=True)
+    assinatura = models.ForeignKey(Assinatura, on_delete=models.CASCADE, related_name="pagamentos")
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    data_pagamento = models.DateTimeField(auto_now_add=True)
+    metodo = models.CharField(max_length=50) # ex: 'cartao', 'pix', 'boleto'
+    status = models.CharField(max_length=20, default='confirmado')
+
+    def __str__(self):
+        return f"Pagamento de {self.valor} para {self.assinatura.empresa.nome_fantasia}"

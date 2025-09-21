@@ -15,6 +15,9 @@ function App() {
       <Route path="/dashboard" element={<DashboardPage />}/>
       <Route path="/planos" element={<PlanosPage />} />
       <Route path="/pagamento" element={<PagamentoPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/plans" element={<PlanosPage />} />
+      <Route path="/payment" element={<PagamentoPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
