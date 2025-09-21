@@ -1,6 +1,5 @@
-// mobile/app/(auth)/pagamento.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch, Alert } from 'react-native';
 import { Link } from 'expo-router';
 import Header from '../../components/Header';
 import Colors from '../../constants/Colors';
@@ -31,6 +30,35 @@ export default function PagamentoScreen() {
       <Text style={[styles.paymentTitle, paymentMethod === method && styles.paymentTitleActive]}>{title}</Text>
     </TouchableOpacity>
   );
+
+  const handleConfirmarPagamento = async () => {
+    const empresaId = 1;
+    const planoId = 2; 
+
+    try {
+      const response = await fetch('http://localhost:8000/api/accounts/processar-pagamento/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          empresa_id: empresaId,
+          plano_id: planoId,
+          metodo: paymentMethod,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Pagamento confirmado! Acesso liberado.');
+      } else {
+        const errorData = await response.json();
+        Alert.alert('Erro', `Não foi possível confirmar o pagamento: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Erro de rede:', error);
+      Alert.alert('Erro', 'Erro de conexão ao processar o pagamento.');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -109,7 +137,7 @@ export default function PagamentoScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.confirmButton}>
+          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmarPagamento}>
             <Text style={styles.confirmButtonText}>Finalizar Cadastro</Text>
           </TouchableOpacity>
           <Link href="/(auth)/plans" asChild>

@@ -30,6 +30,37 @@ function PagamentoPage() {
     }));
   };
 
+
+  const handleConfirmarPagamento = async () => {
+    const empresaId = 1;
+    const planoId = 2;
+
+    try {
+      const response = await fetch('../../../backend/accounts/processar-pagamento/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          empresa_id: empresaId,
+          plano_id: planoId,
+          metodo: paymentMethod,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Pagamento confirmado! Você será redirecionado para o dashboard.');
+        window.location.href = '/dashboard';
+      } else {
+        const errorData = await response.json();
+        alert(`Erro ao confirmar pagamento: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Erro de rede:', error);
+      alert('Erro de conexão ao processar o pagamento.');
+    }
+  };
+
   return (
     <div className="relative bg-gray-800 min-h-screen flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-700"></div>
@@ -142,7 +173,10 @@ function PagamentoPage() {
                     Li e aceito os <a href="#" className="text-indigo-600">Termos de Uso</a> e a <a href="#" className="text-indigo-600">Política de Privacidade</a>.
                 </label>
             </div>
-            <button className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors">
+            <button 
+              onClick={handleConfirmarPagamento}
+              className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors"
+            >
               Finalizar Cadastro
             </button>
             <Link to="/planos" className="w-full block text-center border-2 border-indigo-600 text-indigo-600 font-medium py-3 rounded-lg hover:bg-indigo-50 transition-colors">
