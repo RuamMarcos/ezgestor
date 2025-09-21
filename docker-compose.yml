@@ -37,6 +37,7 @@ services:
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
     volumes:
       - db_data:/app/sqlite-data
+      - ./backend:/app
     restart: "no"
 
   cloudsql-proxy:
