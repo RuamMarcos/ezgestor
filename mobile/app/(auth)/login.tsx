@@ -11,8 +11,9 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import api from '../../utils/api';
 import { useRouter } from 'expo-router';
 
 const LoginScreen = () => {
@@ -23,14 +24,15 @@ const LoginScreen = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // <-- LINHA ADICIONADA
 
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
 
+ const handleInputChange = (field: keyof typeof formData, value: string) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+  if (errorMessage) {
+    setErrorMessage(''); // Limpa o erro ao digitar
+  }
+};
   const validateForm = () => {
     if (!formData.email || !formData.password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
@@ -47,37 +49,27 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (!validateForm()) return;
-
     setIsLoading(true);
-
     try {
-      // Simular chamada da API
-      const response = await fetch('https://api.ezgestor.com/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const response = await api.post('/accounts/token/', {
+        email: formData.email,
+        password: formData.password,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
+        const { access, refresh } = response.data;
+        // TODO: Persistir os tokens de forma segura (ex: Expo SecureStore)
+        console.log('Access Token:', access);
+        console.log('Refresh Token:', refresh);
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
-        // Aqui você redirecionaria para a tela principal
-        // navigation.navigate('Dashboard');
-      } else {
-        Alert.alert('Erro', data.message || 'Erro ao fazer login.');
+        router.push('/(tabs)/dashboard');
       }
-    } catch (error) {
-      console.error('Erro na requisição:', error);
-      Alert.alert('Erro', 'Erro de conexão. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
+     } catch (error: any) {
+        console.error('Erro na requisição de login:', error);
+        setErrorMessage('E-mail ou senha incorretos. Tente novamente.');
+      } finally {
+        setIsLoading(false);
+      }
   };
 
 
@@ -138,6 +130,8 @@ const LoginScreen = () => {
               </View>
             </View>
 
+            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
             {/* Continue Button */}
             <TouchableOpacity
               style={[styles.continueButton, isLoading && styles.buttonDisabled]}
@@ -173,6 +167,13 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     flex: 1,
+  },
+  errorText: {
+    color: '#D93448', 
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 15, 
+    fontWeight: '500',
   },
   scrollContent: {
     flexGrow: 1,

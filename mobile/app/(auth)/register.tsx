@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { aplicarMascaraCnpj } from '../../utils/masks';
 import { styles } from '../../styles/registerStyles';
 import Header from '../../components/Header';
-import { API_BASE_URL } from '../../utils/api';
+import api from '../../utils/api';
 import Colors from '../../constants/Colors';
 
 export default function RegisterScreen() {
@@ -34,34 +34,40 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      const [firstName, ...lastNameParts] = formData.admin_first_name.split(' ');
+      const [firstName, ...lastNameParts] = formData.admin_first_name.trim().split(' ');
       const lastName = lastNameParts.join(' ') || firstName;
 
-      const response = await fetch(`${API_BASE_URL}/accounts/register/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome_fantasia: formData.nome_fantasia,
-          razao_social: `${formData.nome_fantasia} LTDA`, // Simples, como no frontend
-          cnpj: formData.cnpj,
-          admin_email: formData.admin_email,
-          admin_first_name: firstName,
-          admin_last_name: lastName,
-          admin_password: formData.admin_password,
-        }),
+      const response = await api.post('/accounts/register/', {
+        nome_fantasia: formData.nome_fantasia,
+        razao_social: `${formData.nome_fantasia} LTDA`,
+        cnpj: formData.cnpj,
+        admin_email: formData.admin_email,
+        admin_first_name: firstName,
+        admin_last_name: lastName,
+        admin_password: formData.admin_password,
       });
 
-      if (response.ok) {
+      if (response.status === 201) {
         Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
         router.push('/(auth)/plans');
       } else {
-        const errorData = await response.json();
-        console.error("Erro do servidor:", errorData);
-        Alert.alert("Erro no Cadastro", "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+        Alert.alert("Erro", `Ocorreu um problema (Status: ${response.status}).`);
       }
-    } catch (error) {
-      console.error("Erro de rede:", error);
-      Alert.alert("Erro de Conexão", "Não foi possível se conectar ao servidor.");
+    } catch (error: any) {
+      // Axios lança um erro para respostas com status 4xx ou 5xx.
+      if (error.response) {
+        // O servidor respondeu com um status de erro
+        console.error("Erro do servidor:", error.response.data);
+        Alert.alert("Erro no Cadastro", "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+      } else if (error.request) {
+        // A requisição foi feita mas não houve resposta
+        console.error("Erro de rede:", error.request);
+        Alert.alert("Erro de Conexão", "Não foi possível se conectar ao servidor.");
+      } else {
+        // Algo aconteceu ao configurar a requisição
+        console.error("Erro:", error.message);
+        Alert.alert("Erro", "Ocorreu um erro inesperado.");
+      }
     } finally {
       setLoading(false);
     }

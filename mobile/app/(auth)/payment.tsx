@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch, Alert } from 'react-native';
-import { Link } from 'expo-router';
 import Header from '../../components/Header';
 import Colors from '../../constants/Colors';
-import { API_BASE_URL } from '../../utils/api';
+import api from '../../utils/api';
+import { Link, useRouter } from 'expo-router';
 
 type PaymentMethod = 'cartao' | 'pix' | 'boleto';
 
@@ -14,6 +14,7 @@ import{
 } from '../../utils/masks';
 
 export default function PagamentoScreen() {
+  const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -33,32 +34,9 @@ export default function PagamentoScreen() {
   );
 
   const handleConfirmarPagamento = async () => {
-    const empresaId = 1;
-    const planoId = 2; 
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/accounts/processar-pagamento/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          empresa_id: empresaId,
-          plano_id: planoId,
-          metodo: paymentMethod,
-        }),
-      });
-
-      if (response.ok) {
-        Alert.alert('Sucesso', 'Pagamento confirmado! Acesso liberado.');
-      } else {
-        const errorData = await response.json();
-        Alert.alert('Erro', `Não foi possível confirmar o pagamento: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error('Erro de rede:', error);
-      Alert.alert('Erro', 'Erro de conexão ao processar o pagamento.');
-    }
+    Alert.alert('Sucesso', 'Cadastro finalizado! Acesso liberado.');
+    
+    router.push('/(tabs)/dashboard');
   };
 
   return (
