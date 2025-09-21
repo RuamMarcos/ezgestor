@@ -78,14 +78,7 @@ export default function RegisterPage() {
                         <li><a href="/#sobre" className="text-white font-medium hover:text-accent transition-colors">Sobre</a></li>
                     </ul>
                 </div>
-                <div className="hidden md:flex items-center gap-4 ml-auto">
-                    <Link to="/login" className="px-5 py-2 border border-white text-white rounded-lg font-medium hover:bg-white hover:text-primary transition-all">
-                        Entrar
-                    </Link>
-                    <Link to="/register" className="px-5 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover transition-all">
-                        Cadastrar
-                    </Link>
-                </div>
+                
             </div>
         </header>
 
