@@ -22,17 +22,21 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+# Install dependencies for mysqlclient (build-time)
+RUN apt-get update && apt-get install -y default-libmysqlclient-dev gcc pkg-config && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the backend code
 COPY backend/ .
-
 # Stage 3: Final Production Image
 FROM python:3.11-slim
 
 WORKDIR /app
+# Install runtime libraries needed by mysqlclient (libmariadb3 provides libmysqlclient-compatible runtime)
+RUN apt-get update && apt-get install -y --no-install-recommends libmariadb3 && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables for Gunicorn
 ENV GUNICORN_CMD_ARGS="--workers=2 --threads=4 --worker-class=gthread --bind=0.0.0.0:8080"
@@ -44,7 +48,6 @@ COPY --from=backend-builder /usr/local /usr/local
 
 # Copy backend app code
 COPY --from=backend-builder /app .
-
 # Copy built frontend to staticfiles
 COPY --from=frontend-builder /app/frontend/dist /app/frontend_dist
 

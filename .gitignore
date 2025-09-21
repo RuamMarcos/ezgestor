@@ -4,6 +4,9 @@ venv/
 !/.env.example
 !/.env.sample
 
+.secrets/
+secrets/
+
 .vscode/
 .idea/
 *.sublime-project
@@ -11,6 +14,7 @@ venv/
 .cursorindexingignore
 .cursorignore
 .specstory
+.cursor/
 
 .DS_Store
 Thumbs.db
