@@ -8,3 +8,4 @@ sqlparse==0.5.3
 whitenoise==6.7.0
 gunicorn==23.0.0
 dj-database-url==2.2.0
+djangorestframework_simplejwt==5.5.1
