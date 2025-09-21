@@ -1,15 +1,17 @@
-from django.shortcuts import render
 from django.http import HttpResponse
-
-def login_view(request):
-    return HttpResponse("Página de Login em construção!")
-
-
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Assinatura, Pagamento, Empresa, Plano
+from datetime import date, timedelta
+from django.db.models import F
 
+def login_view(request):
+    return HttpResponse("Página de Login em construção!")
+
+@method_decorator(csrf_exempt, name='dispatch')
 class ProcessarPagamentoView(APIView):
     def post(self, request, *args, **kwargs):     
         empresa_id = request.data.get('empresa_id')
@@ -20,13 +22,26 @@ class ProcessarPagamentoView(APIView):
             empresa = Empresa.objects.get(id_empresa=empresa_id)
             plano = Plano.objects.get(id_plano=plano_id)
             
+            # --- INÍCIO DA CORREÇÃO ---
+            hoje = date.today()
+            
             assinatura, created = Assinatura.objects.update_or_create(
                 empresa=empresa,
                 defaults={
                     'plano': plano,
-                    'status': 'ativa'
+                    'status': 'ativa',
+                    'data_inicio': hoje,
+                    'data_proximo_pagamento': hoje + timedelta(days=30),
+                    'meses_ativos': 1 if created else F('meses_ativos') # Se for uma nova assinatura
                 }
             )
+
+            # Se a assinatura for atualizada (não criada), você pode querer incrementar os meses ativos
+            if not created:
+                assinatura.meses_ativos += 1
+                assinatura.save()
+
+            # --- FIM DA CORREÇÃO ---
 
             Pagamento.objects.create(
                 assinatura=assinatura,
