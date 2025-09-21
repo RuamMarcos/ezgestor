@@ -23,7 +23,7 @@ def spa_200(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('handler/', include('handler.urls')),  # <-- Adicione suas rotas de API aqui
+    path('api/', include('handler.urls')),  # <-- Adicionar  rotas de API aqui
     # Outras rotas de API, se houver
     # Rotas do SPA sempre por último:
     path('', spa_200, name='root'),
