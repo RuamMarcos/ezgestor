@@ -17,7 +17,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/dashboard");
+      navigate("/payment");
     } catch (err: any) {
       setError("Falha no login. Verifique seu e-mail e senha.");
       console.error(err);
