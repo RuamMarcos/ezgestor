@@ -35,7 +35,7 @@ function PlanosPage() {
               <li className="flex items-center"><span className="text-yellow-400 mr-3 text-2xl">✓</span> Formas de pagamento (PIX/Dinheiro)</li>
             </ul>
 
-            <Link to="/pagamento" className="bg-white text-indigo-700 rounded-full py-4 mt-12 font-bold text-center text-xl hover:bg-gray-200 transition-colors shadow-lg">
+            <Link to="/payment" className="bg-white text-indigo-700 rounded-full py-4 mt-12 font-bold text-center text-xl hover:bg-gray-200 transition-colors shadow-lg">
               Assinar Plano Padrão
             </Link>
           </div>

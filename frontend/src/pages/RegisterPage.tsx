@@ -54,7 +54,7 @@ export default function RegisterPage() {
         admin_last_name: lastName,
         admin_password: formData.admin_password,
       });
-      navigate("/dashboard");
+      navigate("/plans");
     } catch (err: any) {
       setError("Falha no cadastro. Verifique os dados e tente novamente.");
       console.error(err);
