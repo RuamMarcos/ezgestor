@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch
 import { Link } from 'expo-router';
 import Header from '../../components/Header';
 import Colors from '../../constants/Colors';
+import { API_BASE_URL } from '../../utils/api';
 
 type PaymentMethod = 'cartao' | 'pix' | 'boleto';
 
@@ -36,7 +37,7 @@ export default function PagamentoScreen() {
     const planoId = 2; 
 
     try {
-      const response = await fetch('http://localhost:8000/api/accounts/processar-pagamento/', {
+      const response = await fetch(`${API_BASE_URL}/api/accounts/processar-pagamento/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
