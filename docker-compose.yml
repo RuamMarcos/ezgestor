@@ -13,6 +13,11 @@ services:
     volumes:
       - db_data:/app/sqlite-data
     environment:
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
+      # Useful when testing via Expo Web (browser). Add LAN host:port if needed.
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Default to a persistent SQLite file inside the volume-backed directory
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
@@ -21,13 +26,18 @@ services:
     build:
       context: .
     image: ezgestor-app:latest
-    command: ["python", "manage.py", "migrate"]
+    command: ["sh", "-c", "python manage.py makemigrations --noinput && python manage.py migrate --noinput"]
     environment:
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Match the web default so migrations hit the same DB by default
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
     volumes:
       - db_data:/app/sqlite-data
+      - ./backend:/app
     restart: "no"
 
   cloudsql-proxy:
