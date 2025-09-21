@@ -1,32 +1,39 @@
 import { Link } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 
-export default function HomeScreen() {
+export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bem-vindo ao EzGestor</Text>
-      <Link href="/(auth)/register" style={styles.link}>
-        Ir para Cadastro
-      </Link>
+      
+      <View style={styles.buttonContainer}>
+        <Link href="/register" asChild>
+          <Button title="Criar Conta" />
+        </Link>
+      </View>
+      
+      <View style={styles.buttonContainer}>
+        <Link href="/dashboard" asChild>
+          <Button title="Entrar" />
+        </Link>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  container: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  link: {
-    fontSize: 18,
-    color: 'blue',
-    textDecorationLine: 'underline',
-  },
+  buttonContainer: {
+    marginVertical: 10,
+    width: '60%',
+  }
 });
