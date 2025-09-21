@@ -28,7 +28,7 @@ export default function LandingScreen() {
               <Text style={styles.primaryButtonText}>Começar Grátis</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/dashboard" asChild>
+          <Link href="/login" asChild>
             <TouchableOpacity style={styles.secondaryButton}>
               <Text style={styles.secondaryButtonText}>Já tenho conta</Text>
             </TouchableOpacity>

@@ -8,6 +8,8 @@ import secureIcon from "../assets/img/secure-icon.png";
 import interfaceIcon from "../assets/img/interface-icon.png";
 import cashflowIcon from "../assets/img/cashflow-icon.png";
 import aboutBgImage from "../assets/img/new-data-services.jpg";
+import { Link } from 'react-router-dom';
+
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -69,18 +71,18 @@ const LandingPage = () => {
             </ul>
           </div>
           <div className="hidden md:flex items-center gap-4 ml-auto">
-            <a
-              href="#"
+            <Link
+              to="/login"
               className="px-5 py-2 border border-white text-white rounded-lg font-medium hover:bg-white hover:text-[#2A2D5C] transition-all"
             >
               Entrar
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/register"
               className="px-5 py-2 bg-[#8A5CF5] text-white rounded-lg font-medium hover:bg-[#7b4cdb] transition-all"
             >
               Cadastrar
-            </a>
+            </Link>
           </div>
           <div className="md:hidden ml-auto" onClick={handleMenuToggle}>
             <div className="w-6 h-0.5 bg-white mb-1.5"></div>
@@ -129,18 +131,18 @@ const LandingPage = () => {
                 única plataforma.
               </p>
               <div className="flex gap-5 mt-5">
-                <a
-                  href="#"
+                <Link
+                  to="/register"
                   className="px-6 py-2 bg-white text-[#4A4E9D] rounded-lg font-semibold hover:bg-gray-200 transition-colors"
                 >
                   Começar Grátis
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/login"
                   className="px-6 py-2 border border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
                 >
                   Já tenho conta
-                </a>
+                </Link>
               </div>
             </div>
           </div>

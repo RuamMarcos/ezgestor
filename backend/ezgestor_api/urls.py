@@ -3,6 +3,8 @@ from django.urls import path, re_path, include
 from django.http import HttpResponse, HttpResponseNotFound
 from django.conf import settings
 from pathlib import Path
+from handler.views import ApiRootView 
+
 
 
 def spa_200(request):
@@ -29,3 +31,6 @@ urlpatterns = [
     path('', spa_200, name='root'),
     re_path(r'^(?!admin/|api/).*$', spa_200, name='spa-fallback'),
 ]
+
+
+

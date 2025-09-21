@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,13 +53,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'accounts',
     'handler',
-    'rest_framework'
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist', 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -166,6 +170,22 @@ STATICFILES_STORAGE = os.environ.get(
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60), # Duração do token de acesso
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),   # Duração do token de atualização
+}
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173", # Corrigido, sem formatação extra
+]
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -182,3 +202,6 @@ if not CORS_ALLOW_ALL_ORIGINS:
     ]
     if _cors_allowed:
         CORS_ALLOWED_ORIGINS = _cors_allowed
+
+
+AUTH_USER_MODEL = 'accounts.Usuario'

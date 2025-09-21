@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { aplicarMascaraCartao, aplicarMascaraValidade, aplicarMascaraCvv } from '../utils/masks';
 
 function PagamentoPage() {
+  const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<'boleto' | 'pix' | 'cartao'>('cartao');
   
   const [dadosCartao, setDadosCartao] = useState({
@@ -31,34 +32,14 @@ function PagamentoPage() {
   };
 
 
-  const handleConfirmarPagamento = async () => {
-    const empresaId = 1;
-    const planoId = 2;
-
-    try {
-      const response = await fetch('../../../backend/accounts/processar-pagamento/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          empresa_id: empresaId,
-          plano_id: planoId,
-          metodo: paymentMethod,
-        }),
-      });
-
-      if (response.ok) {
-        alert('Pagamento confirmado! Você será redirecionado para o dashboard.');
-        window.location.href = '/dashboard';
-      } else {
-        const errorData = await response.json();
-        alert(`Erro ao confirmar pagamento: ${errorData.error}`);
+  const handleConfirmarPagamento = () => {
+    if (paymentMethod === 'cartao') {
+      if (!dadosCartao.numero || !dadosCartao.validade || !dadosCartao.cvv || !dadosCartao.nome) {
+        alert('Por favor, preencha todos os dados do cartão.');
+        return;
       }
-    } catch (error) {
-      console.error('Erro de rede:', error);
-      alert('Erro de conexão ao processar o pagamento.');
     }
+    navigate('/dashboard');
   };
 
   return (

@@ -1,146 +1,137 @@
+// filepath: mobile/app/(auth)/register.tsx
 import React, { useState } from 'react';
-import { aplicarMascaraCnpj, aplicarMascaraTelefone } from "../../utils/masks";
-import { styles } from "../../styles/registerStyles";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { aplicarMascaraCnpj } from '../../utils/masks';
+import { styles } from '../../styles/registerStyles';
 import Header from '../../components/Header';
+import { API_BASE_URL } from '../../utils/api';
+import Colors from '../../constants/Colors';
 
-import { 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  Alert,
-  View,
-} from 'react-native';
+export default function RegisterScreen() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-interface FormData {
-  nomeEmpresa: string;
-  cnpj: string;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  senha: string;
-  confirmarSenha: string;
-}
-
-export default function Register() {
-  const [formData, setFormData] = useState<FormData>({
-    nomeEmpresa: '',
-    cnpj: '',
-    nomeCompleto: '',
-    email: '',
-    telefone: '',
-    senha: '',
-    confirmarSenha: '',
+  const [formData, setFormData] = useState({
+    nome_fantasia: "",
+    cnpj: "",
+    admin_first_name: "",
+    admin_email: "",
+    admin_password: "",
+    confirmPassword: "",
   });
 
-  const handleChange = (field: keyof FormData, value: string) => {
-    let valorFormatado = value;
-    
-    if (field === 'cnpj') {
-      valorFormatado = aplicarMascaraCnpj(value);
-    } else if (field === 'telefone') {
-      valorFormatado = aplicarMascaraTelefone(value);
-    }
-    
-    setFormData((prev) => ({ ...prev, [field]: valorFormatado }));
+  const handleChange = (name: keyof typeof formData, value: string) => {
+    const formattedValue = name === "cnpj" ? aplicarMascaraCnpj(value) : value;
+    setFormData(prevState => ({ ...prevState, [name]: formattedValue }));
   };
 
-  const handleSubmit = () => {
-    if (formData.senha !== formData.confirmarSenha) {
-      Alert.alert('Erro', 'As senhas não coincidem!');
+  const handleSubmit = async () => {
+    if (formData.admin_password !== formData.confirmPassword) {
+      Alert.alert("Erro", "As senhas não coincidem!");
       return;
     }
-    if (formData.senha.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres!');
-      return;
-    }
+    setLoading(true);
 
-    console.log('Dados enviados:', formData);
-    Alert.alert('Sucesso', 'Conta criada com sucesso!');
+    try {
+      const [firstName, ...lastNameParts] = formData.admin_first_name.split(' ');
+      const lastName = lastNameParts.join(' ') || firstName;
+
+      const response = await fetch(`${API_BASE_URL}/accounts/register/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome_fantasia: formData.nome_fantasia,
+          razao_social: `${formData.nome_fantasia} LTDA`, // Simples, como no frontend
+          cnpj: formData.cnpj,
+          admin_email: formData.admin_email,
+          admin_first_name: firstName,
+          admin_last_name: lastName,
+          admin_password: formData.admin_password,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
+        router.push('/(auth)/plans');
+      } else {
+        const errorData = await response.json();
+        console.error("Erro do servidor:", errorData);
+        Alert.alert("Erro no Cadastro", "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+      }
+    } catch (error) {
+      console.error("Erro de rede:", error);
+      Alert.alert("Erro de Conexão", "Não foi possível se conectar ao servidor.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
       <Header />
-
-      {/* Conteúdo Principal */}
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>Crie sua Conta e Cadastre sua Empresa</Text>
+          <Text style={styles.title}>Crie sua Conta</Text>
           
-          {/* Formulário */}
           <View style={styles.form}>
             <TextInput
               style={styles.input}
-              placeholder="Nome Fantasia da Empresa"
-              placeholderTextColor="#666"
-              value={formData.nomeEmpresa}
-              onChangeText={(value) => handleChange('nomeEmpresa', value)}
+              placeholder="Nome da Empresa"
+              value={formData.nome_fantasia}
+              onChangeText={(v) => handleChange('nome_fantasia', v)}
             />
-            
             <TextInput
               style={styles.input}
-              placeholder="CNPJ (00.000.000/0001-00)"
-              placeholderTextColor="#666"
-              value={formData.cnpj}
-              onChangeText={(value) => handleChange('cnpj', value)}
+              placeholder="CNPJ"
               keyboardType="numeric"
+              value={formData.cnpj}
+              onChangeText={(v) => handleChange('cnpj', v)}
             />
-            
             <TextInput
               style={styles.input}
-              placeholder="Seu Nome Completo (Administrador)"
-              placeholderTextColor="#666"
-              value={formData.nomeCompleto}
-              onChangeText={(value) => handleChange('nomeCompleto', value)}
+              placeholder="Seu Nome Completo"
+              value={formData.admin_first_name}
+              onChangeText={(v) => handleChange('admin_first_name', v)}
             />
-            
             <TextInput
               style={styles.input}
               placeholder="Seu E-mail de Acesso"
-              placeholderTextColor="#666"
-              value={formData.email}
-              onChangeText={(value) => handleChange('email', value)}
               keyboardType="email-address"
               autoCapitalize="none"
+              value={formData.admin_email}
+              onChangeText={(v) => handleChange('admin_email', v)}
             />
-            
             <TextInput
               style={styles.input}
-              placeholder="Telefone / WhatsApp ((00) 00000-0000)"
-              placeholderTextColor="#666"
-              value={formData.telefone}
-              onChangeText={(value) => handleChange('telefone', value)}
-              keyboardType="phone-pad"
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Senha (Mínimo 6 caracteres)"
-              placeholderTextColor="#666"
-              value={formData.senha}
-              onChangeText={(value) => handleChange('senha', value)}
+              placeholder="Senha"
               secureTextEntry
+              value={formData.admin_password}
+              onChangeText={(v) => handleChange('admin_password', v)}
             />
-            
             <TextInput
               style={styles.input}
               placeholder="Confirmar Senha"
-              placeholderTextColor="#666"
-              value={formData.confirmarSenha}
-              onChangeText={(value) => handleChange('confirmarSenha', value)}
               secureTextEntry
+              value={formData.confirmPassword}
+              onChangeText={(v) => handleChange('confirmPassword', v)}
             />
             
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Criar Conta e Avançar</Text>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.buttonText}>Criar Conta e Avançar</Text>
+              )}
             </TouchableOpacity>
           </View>
           
           <View style={styles.loginLink}>
             <Text style={styles.loginText}>
               Já tem uma conta?{' '}
-              <Text style={styles.loginLinkText}>Faça login</Text>
+              <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+                <Text style={styles.loginLinkText}>Faça login</Text>
+              </TouchableOpacity>
             </Text>
           </View>
         </View>
@@ -148,5 +139,3 @@ export default function Register() {
     </ScrollView>
   );
 }
-
-import { Text } from 'react-native';
