@@ -54,14 +54,12 @@ export default function DashboardScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Dashboard</Text>
 
-        {/* Cards de Resumo */}
         <View style={styles.cardsGrid}>
           {data.summary.map((item) => (
             <SummaryCard key={item.id} title={item.title} value={item.value} backgroundColor={item.color} />
           ))}
         </View>
 
-        {/* Cards de Ação */}
         <View style={styles.cardsGrid}>
           {data.actions.map((item) => (
             <ActionCard
@@ -73,7 +71,6 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        {/* Vendas Recentes */}
         <View style={styles.recentSalesContainer}>
           <Text style={styles.title}>Vendas Recentes</Text>
           {data.recentSales.map((sale) => (
