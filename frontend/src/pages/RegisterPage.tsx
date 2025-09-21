@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { aplicarMascaraCnpj} from "../utils/masks";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -25,9 +26,15 @@ export default function RegisterPage() {
   // Handle input change for all fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
+
+    let formattedValue = value;
+    if (name === "cnpj") {
+      formattedValue = aplicarMascaraCnpj(value);
+    }
+
+    setFormData((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: formattedValue,
     }));
   };
 
