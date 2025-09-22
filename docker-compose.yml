@@ -1,7 +1,4 @@
 # docker-compose.yml
-
-# Default: SQLite (no env required).
-# Optional Cloud SQL: enable with `--profile cloudsql` and supply env vars.
 services:
   web:
     build:
