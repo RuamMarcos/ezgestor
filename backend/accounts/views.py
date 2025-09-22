@@ -5,14 +5,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from datetime import date, timedelta #
 from .serializers import (
     MyTokenObtainPairSerializer, 
-    EmpresaRegistrationSerializer, 
+    EmpresaRegistrationSerializer,
+    ProcessarPagamentoSerializer, 
     TeamMemberSerializer,
     UserProfileSerializer,
     ChangePasswordSerializer
 )
-from .models import Empresa, Usuario
+from .models import Empresa, Usuario, Plano, Assinatura, Pagamento 
 from .permissions import IsAdminUser
 
 # View de login (obtenção de token)
@@ -79,3 +81,52 @@ class ChangePasswordView(generics.UpdateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ProcessarPagamentoView(APIView):
+    """
+    Cria a assinatura da empresa e registra o primeiro pagamento.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ProcessarPagamentoSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        plano_id = serializer.validated_data['plano_id']
+        metodo_pagamento = serializer.validated_data['metodo']
+        
+        empresa = request.user.empresa
+        if not empresa:
+            return Response({"detail": "Usuário não associado a uma empresa."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Evita criar múltiplas assinaturas
+        if Assinatura.objects.filter(empresa=empresa).exists():
+            return Response({"detail": "Esta empresa já possui uma assinatura."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            plano = Plano.objects.get(pk=plano_id)
+
+            # Cria a Assinatura
+            assinatura = Assinatura.objects.create(
+                empresa=empresa,
+                plano=plano,
+                data_inicio=date.today(),
+                data_proximo_pagamento=date.today() + timedelta(days=30), # Próximo pagamento em 30 dias
+                status='ativa',
+                meses_ativos=1
+            )
+
+            # Cria o primeiro Pagamento
+            Pagamento.objects.create(
+                assinatura=assinatura,
+                valor=plano.preco_mensal,
+                metodo=metodo_pagamento,
+                status='confirmado'
+            )
+
+            return Response({"status": "Assinatura criada com sucesso!"}, status=status.HTTP_201_CREATED)
+
+        except Plano.DoesNotExist:
+            return Response({"detail": "Plano inválido."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"detail": f"Ocorreu um erro: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

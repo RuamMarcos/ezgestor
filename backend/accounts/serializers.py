@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario
+from .models import Empresa, Usuario, Plano
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -76,3 +76,14 @@ class ChangePasswordSerializer(serializers.Serializer):
         validate_password(value)
         return value
 
+class ProcessarPagamentoSerializer(serializers.Serializer):
+    """
+    Serializer para processar a criação de uma assinatura e o primeiro pagamento.
+    """
+    plano_id = serializers.IntegerField(required=True)
+    metodo = serializers.ChoiceField(choices=['cartao', 'pix', 'boleto'], required=True)
+
+    def validate_plano_id(self, value):
+        if not Plano.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("Plano não encontrado.")
+        return value
