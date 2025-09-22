@@ -10,8 +10,23 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Adicionar campos customizados ao token
         token['first_name'] = user.first_name
         token['email'] = user.email
-        return token
 
+        # Adicionar status da assinatura ao token
+        has_active_subscription = False
+        if user.empresa:
+            try:
+                # Verifica se a empresa tem uma assinatura e se ela está ativa
+                if user.empresa.assinatura and user.empresa.assinatura.status == 'ativa':
+                    has_active_subscription = True
+            except AttributeError:
+                # Caso a empresa ainda não tenha uma assinatura, o atributo não existirá.
+                # Apenas ignora e mantém has_active_subscription como False.
+                pass
+        
+        token['has_active_subscription'] = has_active_subscription
+        
+        return token
+    
 class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer para visualização de dados de usuário."""
     class Meta:

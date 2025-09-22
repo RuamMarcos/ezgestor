@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import api from "../api"; // 👈 usar a instância configurada
+import api from "../api"; 
 
 interface AuthContextType {
   user: any;
-  loading: boolean; 
-  login: (email: string, password: string) => Promise<void>;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>; 
   register: (data: any) => Promise<void>;
   logout: () => void;
 }
@@ -59,15 +59,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await api.post("/accounts/token/", { email, password });
-    localStorage.setItem("access", res.data.access);
-    localStorage.setItem("refresh", res.data.refresh);
-    const decodedToken: any = jwtDecode(res.data.access);
-    setUser(decodedToken); // Define o usuário com os dados do token
+    const response = await api.post('/accounts/token/', { email, password });
+    const { access, refresh } = response.data;
+
+    localStorage.setItem('access', access);
+    localStorage.setItem('refresh', refresh);
+    api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
+    const decodedToken: any = jwtDecode(access);
+    setUser(decodedToken);
+    
+    // Retorna o status da assinatura do payload do token
+    return { hasActiveSubscription: decodedToken.has_active_subscription };
   };
 
   const register = async (data: any) => {
-    await api.post("/accounts/register/", data); // 👈 aqui
+    await api.post("/accounts/register/", data);
   };
 
   const logout = () => {

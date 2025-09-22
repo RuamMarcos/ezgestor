@@ -18,16 +18,23 @@ const Login = () => {
   setLoading(true); 
 
   try {
-    await login(email, password);
-    navigate('/dashboard');
-  } catch (err) {
-    console.error("Falha no login:", err);
-    setError('E-mail ou senha inválidos. Tente novamente.');
-  } finally {
-    setLoading(false); 
-  }
-};
+      // Captura o retorno da função de login
+      const { hasActiveSubscription } = await login(email, password);
 
+      // Decide para onde navegar com base no status da assinatura
+      if (hasActiveSubscription) {
+        navigate('/dashboard');
+      } else {
+        navigate('/plans');
+      }
+
+    } catch (err) {
+      setError('E-mail ou senha inválidos.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-primary-gradient font-sans">
       <header className="fixed w-full top-0 z-50 transition-colors duration-300">
