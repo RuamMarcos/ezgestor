@@ -29,6 +29,18 @@ class EmpresaRegistrationSerializer(serializers.ModelSerializer):
         model = Empresa
         fields = ['id', 'nome_fantasia', 'razao_social', 'cnpj', 'admin_email', 'admin_first_name', 'admin_last_name', 'admin_password']
 
+    def validate_cnpj(self, value):
+        """Verifica se o CNPJ já está em uso."""
+        if Empresa.objects.filter(cnpj=value).exists():
+            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+        return value
+
+    def validate_admin_email(self, value):
+        """Verifica se o e-mail do administrador já está em uso."""
+        if Usuario.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este e-mail já está em uso por outro usuário.")
+        return value
+
     def create(self, validated_data):
         empresa = Empresa.objects.create(
             nome_fantasia=validated_data['nome_fantasia'],

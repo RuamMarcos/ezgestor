@@ -64,8 +64,17 @@ const RegisterPage = () => {
 
     } catch (err: any) {
       console.error("Falha no registro:", err);
-      // Tenta extrair uma mensagem de erro mais específica da resposta da API
-      const errorMessage = err.response?.data?.detail || 'Não foi possível criar a conta. Verifique os dados e tente novamente.';
+      
+      // Lógica aprimorada para extrair erros
+      let errorMessage = 'Não foi possível criar a conta. Verifique os dados e tente novamente.';
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        // Concatena os erros de campo em uma única string
+        const fieldErrors = Object.values(errorData).flat().join(' ');
+        if (fieldErrors) {
+          errorMessage = fieldErrors;
+        }
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);
