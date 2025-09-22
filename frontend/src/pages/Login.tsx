@@ -3,28 +3,30 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function LoginPage() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { login } = useAuth(); 
+  const navigate = useNavigate(); 
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate("/dashboard");
-    } catch (err: any) {
-      setError("Falha no login. Verifique seu e-mail e senha.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setError('');
+  setLoading(true); 
+
+  try {
+    await login(email, password);
+    navigate('/dashboard');
+  } catch (err) {
+    console.error("Falha no login:", err);
+    setError('E-mail ou senha inválidos. Tente novamente.');
+  } finally {
+    setLoading(false); 
+  }
+};
 
   return (
     <div className="min-h-screen bg-primary-gradient font-sans">
@@ -126,4 +128,5 @@ export default function LoginPage() {
   );
 }
 
+export default Login;
 

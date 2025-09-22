@@ -4,67 +4,69 @@ import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { aplicarMascaraCnpj} from "../utils/masks";
 
-export default function RegisterPage() {
+const RegisterPage = () => {
+  // 1. Estados para os campos do formulário
+  const [formData, setFormData] = useState({
+    nome_fantasia: '',
+    cnpj: '',
+    admin_first_name: '',
+    admin_email: '',
+    admin_password: '',
+    confirmPassword: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // 2. Acessa a função de registro e o hook de navegação
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // State for all form fields
-  const [formData, setFormData] = useState({
-    nome_fantasia: "",
-    razao_social: "", 
-    cnpj: "",
-    admin_first_name: "",
-    admin_last_name: "", 
-    admin_email: "",
-    admin_password: "",
-    confirmPassword: "",
-  });
-
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // Handle input change for all fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    let formattedValue = value;
-    if (name === "cnpj") {
-      formattedValue = aplicarMascaraCnpj(value);
+    if (name === 'cnpj') {
+      setFormData({ ...formData, [name]: aplicarMascaraCnpj(value) });
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
-
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: formattedValue,
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
     if (formData.admin_password !== formData.confirmPassword) {
-      setError("As senhas não coincidem!");
+      setError("As senhas não coincidem.");
       return;
     }
-    setError("");
+    
     setLoading(true);
 
     try {
-      // O backend espera admin_last_name e razao_social, vamos preenchê-los.
+      // Prepara os dados para enviar à API
       const [firstName, ...lastNameParts] = formData.admin_first_name.split(' ');
-      const lastName = lastNameParts.join(' ') || firstName; // Caso só tenha um nome
+      const lastName = lastNameParts.join(' ') || firstName;
 
-      await register({
+      const apiData = {
         nome_fantasia: formData.nome_fantasia,
-        razao_social: `${formData.nome_fantasia} LTDA`, // O backend pode ajustar isso
+        razao_social: `${formData.nome_fantasia} LTDA`, // Lógica simples como no backend
         cnpj: formData.cnpj,
         admin_email: formData.admin_email,
         admin_first_name: firstName,
         admin_last_name: lastName,
         admin_password: formData.admin_password,
-      });
-      navigate("/plans");
+      };
+
+      // 3. Chama a função de registro do contexto
+      await register(apiData);
+
+      // 4. Se o registro for bem-sucedido, navega para a página de planos
+      navigate('/plans');
+
     } catch (err: any) {
-      setError("Falha no cadastro. Verifique os dados e tente novamente.");
-      console.error(err);
+      console.error("Falha no registro:", err);
+      // Tenta extrair uma mensagem de erro mais específica da resposta da API
+      const errorMessage = err.response?.data?.detail || 'Não foi possível criar a conta. Verifique os dados e tente novamente.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -231,4 +233,6 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+export default RegisterPage;
 
