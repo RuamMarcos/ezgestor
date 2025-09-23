@@ -4,10 +4,16 @@ import { Link } from 'expo-router';
 import { Pressable, TouchableOpacity } from 'react-native-gesture-handler';
 import Header from '../../components/Header';
 import { styles } from '../../styles/auth/plansSytles';
+import { LinearGradient } from 'expo-linear-gradient';
+import { landingPageColors } from '../../constants/IndexColors';
 
 export default function PlanosScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient
+        colors={[landingPageColors.gradientStart, landingPageColors.gradientEnd]}
+        style={{ flex: 1 }}
+      >
       <Header />
       <View style={styles.content}>
         <View style={styles.card}>
@@ -43,6 +49,7 @@ export default function PlanosScreen() {
           <Text style={styles.footerText}>💡 Cancele a qualquer momento • Sem taxas de cancelamento</Text>
         </View>
       </View>
+      </LinearGradient>
     </ScrollView>
   );
 }

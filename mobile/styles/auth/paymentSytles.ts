@@ -4,7 +4,7 @@ import Colors from '../../constants/Colors';
 export const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: Colors.primary,
+  backgroundColor: 'transparent',
   },
   content: {
     padding: 20,
@@ -105,9 +105,19 @@ export const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     gap: 12,
+    width: '100%',
   },
   inputHalf: {
     flex: 1,
+    minWidth: 0,
+  },
+  inputTwoThirds: {
+    flex: 2,
+    minWidth: 0,
+  },
+  inputOneThird: {
+    flex: 1,
+    minWidth: 0,
   },
   infoBox: {
     padding: 16,

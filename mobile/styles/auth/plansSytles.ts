@@ -4,7 +4,7 @@ import Colors from '../../constants/Colors';
 export const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: Colors.primary,
+  backgroundColor: 'transparent',
   },
   content: {
     padding: 20,

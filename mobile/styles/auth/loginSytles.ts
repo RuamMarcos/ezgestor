@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+  backgroundColor: 'transparent',
   },
   keyboardView: {
     flex: 1,
@@ -48,7 +48,8 @@ export const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 30,
+  marginBottom: 30,
+  textAlign: 'center',
   },
   inputContainer: {
     marginBottom: 20,

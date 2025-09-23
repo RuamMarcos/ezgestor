@@ -1,4 +1,3 @@
-// filepath: mobile/app/(auth)/register.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -7,6 +6,8 @@ import { styles } from '../../styles/auth/registerStyles';
 import Header from '../../components/Header';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext'; 
+import { LinearGradient } from 'expo-linear-gradient';
+import { landingPageColors } from '../../constants/IndexColors';
 
 
 export default function RegisterScreen() {
@@ -55,20 +56,32 @@ export default function RegisterScreen() {
       Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
       router.push('/(auth)/plans');
     } catch (error: any) {
-      // Axios lança um erro para respostas com status 4xx ou 5xx.
-      if (error.response) {
-        // O servidor respondeu com um status de erro
+      let errorMessage = "Ocorreu um erro inesperado.";
+      const errorTitle = "Erro no Cadastro";
+
+      if (error.response && error.response.data) {
+        // O servidor respondeu com um status de erro e dados
         console.error("Erro do servidor:", error.response.data);
-        Alert.alert("Erro no Cadastro", "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+        const errorData = error.response.data;
+        
+        // Concatena todas as mensagens de erro dos campos em uma única string
+        const fieldErrors = Object.values(errorData).flat().join(' ');
+        if (fieldErrors) {
+          errorMessage = fieldErrors;
+        } else {
+          errorMessage = "Não foi possível criar a conta. Verifique os dados e tente novamente.";
+        }
       } else if (error.request) {
         // A requisição foi feita mas não houve resposta
         console.error("Erro de rede:", error.request);
-        Alert.alert("Erro de Conexão", "Não foi possível se conectar ao servidor.");
+        errorMessage = "Não foi possível se conectar ao servidor. Verifique sua conexão com a internet.";
       } else {
         // Algo aconteceu ao configurar a requisição
         console.error("Erro:", error.message);
-        Alert.alert("Erro", "Ocorreu um erro inesperado.");
+        errorMessage = error.message;
       }
+      
+      Alert.alert(errorTitle, errorMessage);
     } finally {
       setLoading(false);
     }
@@ -76,6 +89,10 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient
+        colors={[landingPageColors.gradientStart, landingPageColors.gradientEnd]}
+        style={{ flex: 1 }}
+      >
       <Header />
       <View style={styles.content}>
         <View style={styles.card}>
@@ -143,6 +160,7 @@ export default function RegisterScreen() {
           </View>
         </View>
       </View>
+      </LinearGradient>
     </ScrollView>
   );
 }

@@ -4,6 +4,8 @@ import Header from '../../components/Header';
 import api from '../../utils/api';
 import { Link, useRouter } from 'expo-router';
 import { styles } from '../../styles/auth/paymentSytles';
+import { LinearGradient } from 'expo-linear-gradient';
+import { landingPageColors } from '../../constants/IndexColors';
 
 type PaymentMethod = 'cartao' | 'pix' | 'boleto';
 
@@ -68,6 +70,10 @@ export default function PagamentoScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient
+        colors={[landingPageColors.gradientStart, landingPageColors.gradientEnd]}
+        style={{ flex: 1 }}
+      >
       <Header />
       <View style={styles.content}>
         <View style={styles.card}>
@@ -93,23 +99,26 @@ export default function PagamentoScreen() {
                 placeholder="Número do Cartão" 
                 keyboardType="numeric" 
                 value={numeroCartao}
-                onChangeText={(text) => setNumeroCartao(aplicarMascaraCartao(text))} // 2. Aplica a máscara
+                maxLength={19}
+                onChangeText={(text) => setNumeroCartao(aplicarMascaraCartao(text))}
               />
               <View style={styles.inputRow}>
                 <TextInput 
-                  style={[styles.input, styles.inputHalf]} 
+                  style={[styles.input, styles.inputTwoThirds]} 
                   placeholder="Validade (MM/AA)" 
                   keyboardType="numeric" 
                   value={validade}
-                  onChangeText={(text) => setValidade(aplicarMascaraValidade(text))} // 2. Aplica a máscara
+                  maxLength={5}
+                  onChangeText={(text) => setValidade(aplicarMascaraValidade(text))}
                 />
                 <TextInput 
-                  style={[styles.input, styles.inputHalf]} 
+                  style={[styles.input, styles.inputOneThird]} 
                   placeholder="CVV" 
                   keyboardType="numeric" 
                   secureTextEntry 
                   value={cvv}
-                  onChangeText={(text) => setCvv(aplicarMascaraCvv(text))} // 2. Aplica a máscara
+                  maxLength={4}
+                  onChangeText={(text) => setCvv(aplicarMascaraCvv(text))}
                 />
               </View>
               <TextInput 
@@ -153,6 +162,7 @@ export default function PagamentoScreen() {
           </Link>
         </View>
       </View>
+      </LinearGradient>
     </ScrollView>
   );
 }

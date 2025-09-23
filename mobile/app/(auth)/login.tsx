@@ -15,6 +15,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { styles } from '../../styles/auth/loginSytles';
+import Header from '../../components/Header';
+import { LinearGradient } from 'expo-linear-gradient';
+import { landingPageColors } from '../../constants/IndexColors';
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -79,7 +82,12 @@ const LoginScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4A4E9D" barStyle="light-content" />
-      
+      <LinearGradient
+        colors={[landingPageColors.gradientStart, landingPageColors.gradientEnd]}
+        style={{ flex: 1 }}
+      >
+      <Header />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -88,10 +96,7 @@ const LoginScreen = () => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.logoText}>EzGestor</Text>
-          </View>
+          {/* Header removido em favor do componente Header com logo */}
 
           {/* Login Form */}
           <View style={styles.formContainer}>
@@ -155,6 +160,7 @@ const LoginScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+  </LinearGradient>
     </SafeAreaView>
   );
 };
