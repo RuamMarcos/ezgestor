@@ -9,9 +9,7 @@ def create_initial_plans(sender, **kwargs):
     from .models import Plano
     
     planos = [
-        {'nome': 'economico', 'preco_mensal': 19.99},
         {'nome': 'padrao', 'preco_mensal': 29.99},
-        {'nome': 'avancado', 'preco_mensal': 49.99},
     ]
 
     for plano_data in planos:

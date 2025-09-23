@@ -42,8 +42,7 @@ function PagamentoPage() {
     }
     
     try {
-      // O ID do plano padrão é 2, conforme a migration 0001_initial.py
-      const planoId = 2; 
+      const planoId = 1; 
       
       await api.post('/accounts/payment/process/', {
         plano_id: planoId,
