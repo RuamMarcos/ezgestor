@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { aplicarMascaraCnpj } from '../../utils/masks';
-import { styles } from '../../styles/registerStyles';
+import { styles } from '../../styles/auth/registerStyles';
 import Header from '../../components/Header';
-import api from '../../utils/api';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext'; 
 

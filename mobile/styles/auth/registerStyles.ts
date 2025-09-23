@@ -1,6 +1,6 @@
 // filepath: mobile/styles/registerStyles.ts
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
+import Colors from "../../constants/Colors";
 
 export const styles = StyleSheet.create({
   container: {
@@ -16,11 +16,12 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.cardBackground,
     borderRadius: 20,
     padding: 24,
+    elevation: 5,
+    // Sombra para iOS
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
   title: {
     fontSize: 24,

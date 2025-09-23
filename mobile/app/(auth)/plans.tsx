@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { Pressable, TouchableOpacity } from 'react-native-gesture-handler';
 import Header from '../../components/Header';
-import Colors from '../../constants/Colors';
+import { styles } from '../../styles/auth/plansSytles';
 
 export default function PlanosScreen() {
   return (
@@ -47,99 +47,3 @@ export default function PlanosScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: Colors.primary,
-  },
-  content: {
-    padding: 20,
-  },
-  card: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 10,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: Colors.textSecondary,
-    marginBottom: 24,
-  },
-  planCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  planTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  planPrice: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: Colors.white,
-    marginVertical: 12,
-  },
-  featuresList: {
-    alignSelf: 'stretch',
-    marginVertical: 20,
-  },
-  featureItem: {
-    color: Colors.white,
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  subscribeButton: {
-    backgroundColor: Colors.white,
-    borderRadius: 30,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  subscribeButtonText: {
-    color: Colors.primary,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  footerText: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: Colors.textSecondary,
-    fontSize: 12,
-  },
-  popularBanner: {
-    position: 'absolute',
-    top: 20,
-    right: -45,
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 50,
-    paddingVertical: 5,
-    transform: [{ rotate: '45deg' }],
-  },
-  popularText: {
-    color: Colors.white,
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-});
