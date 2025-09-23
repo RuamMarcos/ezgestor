@@ -34,9 +34,36 @@ export default function PagamentoScreen() {
   );
 
   const handleConfirmarPagamento = async () => {
-    Alert.alert('Sucesso', 'Cadastro finalizado! Acesso liberado.');
-    
-    router.push('/(tabs)/dashboard');
+    if (!termsAccepted) {
+      Alert.alert('Atenção', 'Você precisa aceitar os Termos de Uso e a Política de Privacidade.');
+      return;
+    }
+
+    if (paymentMethod === 'cartao') {
+      if (!numeroCartao || !validade || !cvv || !nomeCartao) {
+        Alert.alert('Atenção', 'Por favor, preencha todos os dados do cartão.');
+        return;
+      }
+    }
+
+    try {
+      // O ID do plano padrão é 1, conforme cadastrado no admin.
+      const planoId = 1;
+
+      await api.post('/accounts/payment/process/', {
+        plano_id: planoId,
+        metodo: paymentMethod,
+      });
+
+      // Se a requisição for bem-sucedida, avisa o usuário e navega para o dashboard
+      Alert.alert('Sucesso', 'Cadastro finalizado! Seu acesso ao sistema foi liberado.');
+      router.push('/(tabs)/dashboard');
+
+    } catch (error: any) {
+      console.error("Erro ao processar pagamento:", error);
+      const errorMessage = error.response?.data?.detail || 'Não foi possível finalizar a assinatura. Tente novamente.';
+      Alert.alert("Erro no Pagamento", errorMessage);
+    }
   };
 
   return (

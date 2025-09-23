@@ -15,22 +15,24 @@ import {
 } from 'react-native';
 import api from '../../utils/api';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginScreen = () => {
-    const router = useRouter();
+  const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(''); // <-- LINHA ADICIONADA
+  const [errorMessage, setErrorMessage] = useState(''); 
 
 
  const handleInputChange = (field: keyof typeof formData, value: string) => {
   setFormData(prev => ({ ...prev, [field]: value }));
   if (errorMessage) {
-    setErrorMessage(''); // Limpa o erro ao digitar
+    setErrorMessage('');
   }
 };
   const validateForm = () => {
@@ -50,26 +52,24 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     if (!validateForm()) return;
     setIsLoading(true);
-    try {
-      const response = await api.post('/accounts/token/', {
-        email: formData.email,
-        password: formData.password,
-      });
+    setErrorMessage('');
 
-      if (response.status === 200) {
-        const { access, refresh } = response.data;
-        // TODO: Persistir os tokens de forma segura (ex: Expo SecureStore)
-        console.log('Access Token:', access);
-        console.log('Refresh Token:', refresh);
-        Alert.alert('Sucesso', 'Login realizado com sucesso!');
-        router.push('/(tabs)/dashboard');
+    try {
+      // Chama a função de login do contexto e aguarda o retorno
+      const { hasActiveSubscription } = await login(formData.email, formData.password);
+
+      // Navega com base no status da assinatura
+      if (hasActiveSubscription) {
+        router.replace('/(tabs)/dashboard');
+      } else {
+        router.replace('/(auth)/plans');
       }
-     } catch (error: any) {
-        console.error('Erro na requisição de login:', error);
-        setErrorMessage('E-mail ou senha incorretos. Tente novamente.');
-      } finally {
-        setIsLoading(false);
-      }
+    } catch (error: any) {
+      console.error('Erro na requisição de login:', error);
+      setErrorMessage('E-mail ou senha incorretos. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 

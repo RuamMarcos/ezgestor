@@ -7,9 +7,12 @@ import { styles } from '../../styles/registerStyles';
 import Header from '../../components/Header';
 import api from '../../utils/api';
 import Colors from '../../constants/Colors';
+import { useAuth } from '../../context/AuthContext'; 
+
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { register } = useAuth(); 
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -37,7 +40,7 @@ export default function RegisterScreen() {
       const [firstName, ...lastNameParts] = formData.admin_first_name.trim().split(' ');
       const lastName = lastNameParts.join(' ') || firstName;
 
-      const response = await api.post('/accounts/register/', {
+      const apiData = {
         nome_fantasia: formData.nome_fantasia,
         razao_social: `${formData.nome_fantasia} LTDA`,
         cnpj: formData.cnpj,
@@ -45,14 +48,13 @@ export default function RegisterScreen() {
         admin_first_name: firstName,
         admin_last_name: lastName,
         admin_password: formData.admin_password,
-      });
+      };
 
-      if (response.status === 201) {
-        Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
-        router.push('/(auth)/plans');
-      } else {
-        Alert.alert("Erro", `Ocorreu um problema (Status: ${response.status}).`);
-      }
+      // 3. Chamar a função register do contexto
+      await register(apiData);
+
+      Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
+      router.push('/(auth)/plans');
     } catch (error: any) {
       // Axios lança um erro para respostas com status 4xx ou 5xx.
       if (error.response) {
