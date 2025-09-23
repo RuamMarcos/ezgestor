@@ -55,6 +55,7 @@ COPY --from=frontend-builder /app/frontend/dist /app/frontend_dist
 ENV DJANGO_SETTINGS_MODULE=ezgestor_api.settings
 ENV DEBUG=False
 ENV FRONTEND_DIST=/app/frontend_dist
+ENV STATICFILES_STORAGE=whitenoise.storage.CompressedStaticFilesStorage
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8080
