@@ -74,7 +74,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const register = async (data: any) => {
-    await api.post("/accounts/register/", data);
+    try {
+      // Mantém a chamada de registro como está
+      await api.post("/accounts/register/", data);
+
+      // Após o registro bem-sucedido, faz o login automaticamente
+      await login(data.admin_email, data.admin_password);
+
+    } catch (error) {
+      console.error("Falha no registro ou login automático:", error);
+      // Re-lança o erro para que a página de registro possa tratá-lo
+      throw error;
+    }
   };
 
   const logout = () => {
