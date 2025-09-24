@@ -37,6 +37,10 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>;
   register: (data: any) => Promise<void>;
   logout: () => void;
+  // Marca a assinatura como ativa no cliente (uso após sucesso do pagamento)
+  markSubscriptionActive: () => void;
+  // Refaz consulta no servidor para sincronizar assinatura/usuário
+  refreshFromServer: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -55,7 +59,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (decodedToken.exp * 1000 > Date.now()) {
             api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
             setUser(decodedToken);
-            setHasActiveSubscription(decodedToken.has_active_subscription); // Set subscription status
+            setHasActiveSubscription(!!decodedToken.has_active_subscription);
+            try {
+              await refreshFromServer();
+            } catch (err) {
+              console.warn('Falha ao sincronizar perfil após carregar token', err);
+            }
           } else {
             await logout();
           }
@@ -70,12 +79,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadUserFromStorage();
   }, []);
 
+  const refreshFromServer = async () => {
+    try {
+      const resp = await api.get('/accounts/profile/');
+      const profile = resp.data || {};
+      if (typeof profile.has_active_subscription === 'boolean') {
+        setHasActiveSubscription(profile.has_active_subscription);
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/accounts/token/', { email, password });
       const { access, refresh } = response.data;
 
-      // CORREÇÃO: Usar o storage multiplataforma em vez do SecureStore direto
       await storage.setItem('access', access);
       await storage.setItem('refresh', refresh);
 
@@ -83,7 +103,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const decodedToken: any = jwtDecode(access);
       setUser(decodedToken);
-      setHasActiveSubscription(decodedToken.has_active_subscription); // Set subscription status
+      setHasActiveSubscription(!!decodedToken.has_active_subscription);
+
+      try { await refreshFromServer(); } catch {}
 
       return { hasActiveSubscription: decodedToken.has_active_subscription };
     } catch (error) {
@@ -111,7 +133,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, hasActiveSubscription, login, register, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      hasActiveSubscription,
+      login,
+      register,
+      logout,
+      markSubscriptionActive: () => setHasActiveSubscription(true),
+      refreshFromServer,
+    }}>
       {children}
     </AuthContext.Provider>
   );

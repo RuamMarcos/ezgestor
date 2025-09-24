@@ -87,10 +87,22 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer para ver e editar o perfil do usuário logado."""
     nome_fantasia_empresa = serializers.CharField(source='empresa.nome_fantasia', read_only=True)
+    has_active_subscription = serializers.SerializerMethodField()
+
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'first_name', 'last_name', 'nome_fantasia_empresa']
-        read_only_fields = ['email', 'id', 'nome_fantasia_empresa']
+        fields = [
+            'id', 'email', 'first_name', 'last_name',
+            'nome_fantasia_empresa', 'has_active_subscription'
+        ]
+        read_only_fields = ['email', 'id', 'nome_fantasia_empresa', 'has_active_subscription']
+
+    def get_has_active_subscription(self, obj):
+        try:
+            assinatura = getattr(getattr(obj, 'empresa', None), 'assinatura', None)
+            return bool(assinatura and getattr(assinatura, 'status', None) == 'ativa')
+        except Exception:
+            return False
 
 class ChangePasswordSerializer(serializers.Serializer):
     """

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch
 import Header from '../../components/Header';
 import api from '../../utils/api';
 import { Link, useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 import { styles } from '../../styles/auth/paymentSytles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { landingPageColors } from '../../constants/IndexColors';
@@ -17,6 +18,7 @@ import{
 
 export default function PagamentoScreen() {
   const router = useRouter();
+  const { markSubscriptionActive, refreshFromServer } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -57,7 +59,8 @@ export default function PagamentoScreen() {
         metodo: paymentMethod,
       });
 
-      // Se a requisição for bem-sucedida, avisa o usuário e navega para o dashboard
+    markSubscriptionActive();
+  try { await refreshFromServer(); } catch {}
       Alert.alert('Sucesso', 'Cadastro finalizado! Seu acesso ao sistema foi liberado.');
       router.push('/(tabs)/dashboard');
 
