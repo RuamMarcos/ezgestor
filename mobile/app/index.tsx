@@ -15,7 +15,8 @@ export default function LandingScreen() {
       >
         <Image 
           source={require('../assets/images/white-logo.png')} 
-          style={styles.logo} 
+          style={styles.logo}
+          resizeMode="contain"
         />
 
         <Text style={styles.slogan}>

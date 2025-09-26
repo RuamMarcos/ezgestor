@@ -10,7 +10,8 @@ export default function Header({ logo }: HeaderProps) {
     <View style={styles.header}>
       <Image 
         source={logo || require('../assets/images/logo.png')} 
-        style={styles.logo} 
+        style={styles.logo}
+        resizeMode="contain"
       />
     </View>
   );
@@ -27,6 +28,5 @@ const styles = StyleSheet.create({
   logo: {
     width: 80,
     height: 80,
-    resizeMode: 'contain',
   },
 });

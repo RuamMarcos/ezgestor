@@ -6,7 +6,8 @@ from .views import (
     TeamMemberCreateView, 
     LogoutView,
     UserProfileView,
-    ChangePasswordView
+    ChangePasswordView,
+    ProcessarPagamentoView
 )
 
 urlpatterns = [
@@ -20,5 +21,6 @@ urlpatterns = [
     path('profile/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('register/', EmpresaRegistrationView.as_view(), name='empresa_register'),
     path('team/add/', TeamMemberCreateView.as_view(), name='team_member_add'),
+    path('payment/process/', ProcessarPagamentoView.as_view(), name='processar_pagamento'),
 ]
 
