@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario
+from .models import Empresa, Usuario, Plano
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -10,8 +10,23 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Adicionar campos customizados ao token
         token['first_name'] = user.first_name
         token['email'] = user.email
-        return token
 
+        # Adicionar status da assinatura ao token
+        has_active_subscription = False
+        if user.empresa:
+            try:
+                # Verifica se a empresa tem uma assinatura e se ela está ativa
+                if user.empresa.assinatura and user.empresa.assinatura.status == 'ativa':
+                    has_active_subscription = True
+            except AttributeError:
+                # Caso a empresa ainda não tenha uma assinatura, o atributo não existirá.
+                # Apenas ignora e mantém has_active_subscription como False.
+                pass
+        
+        token['has_active_subscription'] = has_active_subscription
+        
+        return token
+    
 class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer para visualização de dados de usuário."""
     class Meta:
@@ -28,6 +43,18 @@ class EmpresaRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Empresa
         fields = ['id', 'nome_fantasia', 'razao_social', 'cnpj', 'admin_email', 'admin_first_name', 'admin_last_name', 'admin_password']
+
+    def validate_cnpj(self, value):
+        """Verifica se o CNPJ já está em uso."""
+        if Empresa.objects.filter(cnpj=value).exists():
+            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+        return value
+
+    def validate_admin_email(self, value):
+        """Verifica se o e-mail do administrador já está em uso."""
+        if Usuario.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este e-mail já está em uso por outro usuário.")
+        return value
 
     def create(self, validated_data):
         empresa = Empresa.objects.create(
@@ -60,10 +87,22 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer para ver e editar o perfil do usuário logado."""
     nome_fantasia_empresa = serializers.CharField(source='empresa.nome_fantasia', read_only=True)
+    has_active_subscription = serializers.SerializerMethodField()
+
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'first_name', 'last_name', 'nome_fantasia_empresa']
-        read_only_fields = ['email', 'id', 'nome_fantasia_empresa']
+        fields = [
+            'id', 'email', 'first_name', 'last_name',
+            'nome_fantasia_empresa', 'has_active_subscription'
+        ]
+        read_only_fields = ['email', 'id', 'nome_fantasia_empresa', 'has_active_subscription']
+
+    def get_has_active_subscription(self, obj):
+        try:
+            assinatura = getattr(getattr(obj, 'empresa', None), 'assinatura', None)
+            return bool(assinatura and getattr(assinatura, 'status', None) == 'ativa')
+        except Exception:
+            return False
 
 class ChangePasswordSerializer(serializers.Serializer):
     """
@@ -76,3 +115,14 @@ class ChangePasswordSerializer(serializers.Serializer):
         validate_password(value)
         return value
 
+class ProcessarPagamentoSerializer(serializers.Serializer):
+    """
+    Serializer para processar a criação de uma assinatura e o primeiro pagamento.
+    """
+    plano_id = serializers.IntegerField(required=True)
+    metodo = serializers.ChoiceField(choices=['cartao', 'pix', 'boleto'], required=True)
+
+    def validate_plano_id(self, value):
+        if not Plano.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("Plano não encontrado.")
+        return value

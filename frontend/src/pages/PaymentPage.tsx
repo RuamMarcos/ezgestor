@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { aplicarMascaraCartao, aplicarMascaraValidade, aplicarMascaraCvv } from '../utils/masks';
+import api from '../api';
 
 function PagamentoPage() {
   const navigate = useNavigate();
@@ -32,14 +33,29 @@ function PagamentoPage() {
   };
 
 
-  const handleConfirmarPagamento = () => {
+  const handleConfirmarPagamento = async () => { 
     if (paymentMethod === 'cartao') {
       if (!dadosCartao.numero || !dadosCartao.validade || !dadosCartao.cvv || !dadosCartao.nome) {
         alert('Por favor, preencha todos os dados do cartão.');
         return;
       }
     }
-    navigate('/dashboard');
+    
+    try {
+      const planoId = 1; 
+      
+      await api.post('/accounts/payment/process/', {
+        plano_id: planoId,
+        metodo: paymentMethod,
+      });
+
+      // Se a requisição for bem-sucedida, navega para o dashboard
+      navigate('/dashboard');
+
+    } catch (error) {
+      console.error("Erro ao processar pagamento:", error);
+      alert("Não foi possível finalizar a assinatura. Tente novamente.");
+    }
   };
 
   return (

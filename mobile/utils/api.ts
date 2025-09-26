@@ -1,46 +1,62 @@
+import axios from 'axios';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-type DeviceHostResolution = {
-  host: string | null;
-  scheme: 'http' | 'https';
-  port: number | null;
-};
-
-function resolveDevHost(): DeviceHostResolution {
+// Função para obter o IP do host de desenvolvimento
+function getHostIp() {
   try {
-    const expoConfig = (Constants as any)?.expoConfig ?? (Constants as any)?.manifest2 ?? {};
-    // Expo Router SDK 49/50+: expoConfig.hostUri or debuggerHost are common
-    const hostUri: string | undefined = expoConfig.hostUri || expoConfig.debuggerHost || (Constants as any)?.manifest?.debuggerHost;
-    if (hostUri && typeof hostUri === 'string') {
-      const host = hostUri.split(':')[0];
-      // Default to 8000 for the backend (mapped by Docker Desktop)
-      return { host, scheme: 'http', port: 8000 };
+    // A propriedade `expoConfig.hostUri` é a forma mais moderna e confiável
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (hostUri) {
+      return hostUri.split(':')[0];
     }
-  } catch {}
-  return { host: null, scheme: 'http', port: 8000 };
+    const manifest = Constants.manifest;
+    if (manifest && typeof manifest.debuggerHost === 'string') {
+      return manifest.debuggerHost.split(':')[0];
+    }
+  } catch (e) {
+    console.error("Erro ao obter o IP do host:", e);
+  }
+  // Se tudo falhar, retorna nulo
+  return null;
 }
 
-export function getApiBaseUrl(): string {
-  // Highest priority: explicit public URL (prod or tunnel)
-  const explicit = process.env.EXPO_PUBLIC_API_URL;
-  if (explicit) return explicit.replace(/\/$/, '');
-
-  // Web environment
+// Determina a URL base da API
+function getApiBaseUrl() {
+  // Forma segura de verificar se está no ambiente web
   if (typeof window !== 'undefined' && window.location) {
-    const host = window.location.hostname;
-    const port = 8000; // Docker Desktop mapping
-    return `http://${host}:${port}`;
+    return `http://${window.location.hostname}:8000`;
   }
 
-  // Native dev: derive from Expo dev server host
-  const { host, scheme, port } = resolveDevHost();
-  if (host) {
-    return `${scheme}://${host}:${port ?? 8000}`;
+  // Para nativo (iOS/Android), tenta obter o IP do host
+  const hostIp = getHostIp();
+  if (hostIp) {
+    return `http://${hostIp}:8000`;
   }
 
-  // Fallback to localhost (works with ADB reverse in emulator)
-  return 'http://localhost:8000';
+  // Fallback final para emuladores Android que mapeiam localhost
+  return 'http://10.0.2.2:8000';
 }
 
-export const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = getApiBaseUrl();
 
+const api = axios.create({
+  baseURL: `${API_BASE_URL}/api`, // Adiciona o /api ao final da URL base
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Interceptor para debug (muito útil para ver as requisições saindo)
+api.interceptors.request.use(
+  (config) => {
+    console.log(`Fazendo requisição para: ${config.baseURL}${config.url}`);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export default api;

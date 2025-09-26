@@ -1,11 +1,10 @@
-// filepath: mobile/styles/registerStyles.ts
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
+import Colors from "../../constants/Colors";
 
 export const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: Colors.primary,
+  backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
@@ -16,11 +15,11 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.cardBackground,
     borderRadius: 20,
     padding: 24,
+    elevation: 5,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
   title: {
     fontSize: 24,
@@ -41,16 +40,22 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   button: {
-    backgroundColor: Colors.primary,
-    padding: 18,
-    borderRadius: 30,
+    backgroundColor: '#4A4E9D',
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 20,
+    elevation: 8,
+  // Sombra para iOS
+  shadowColor: Colors.primary,
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
   },
   buttonText: {
     color: Colors.white,
-    fontSize: 18,
-    fontWeight: '600',
+  fontSize: 18,
+  fontWeight: 'bold',
   },
   loginLink: {
     marginTop: 24,

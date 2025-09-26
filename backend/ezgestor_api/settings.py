@@ -34,13 +34,17 @@ SECRET_KEY = os.environ.get(
 # Use the environment variable for DEBUG, defaulting to True for local development.
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
+# ALLOWED_HOSTS configuration
 ALLOWED_HOSTS = [
     h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
     if h.strip()
 ]
 
+# Permite hosts de rede privada (importante para mobile)
+ALLOWED_HOSTS.extend(['10.0.2.2', 'localhost', '127.0.0.1', '::1'])
+
 CSRF_TRUSTED_ORIGINS = [
-    o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081').split(',')
+    o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://127.0.0.1:8081').split(',')
     if o.strip()
 ]
 
@@ -53,24 +57,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',
     'handler',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist', 
-    'estoque',
+    'rest_framework_simplejwt.token_blacklist',
+    'accounts.apps.AccountsConfig',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Deve estar no topo
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -182,27 +183,52 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),   # Duração do token de atualização
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173", # Corrigido, sem formatação extra
-]
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-# CORS configuration (dev: permissive via env; prod: restrictive)
+# CORS Configuration
 def _env_flag(name: str, default: str = 'False') -> bool:
     return os.environ.get(name, default).strip().lower() in {'1', 'true', 'yes', 'on'}
 
-CORS_ALLOW_ALL_ORIGINS = _env_flag('CORS_ALLOW_ALL_ORIGINS', 'False')
+# Configuração principal do CORS
+CORS_ALLOW_ALL_ORIGINS = _env_flag('CORS_ALLOW_ALL_ORIGINS', 'false') 
 
+# Se não for permitir todas as origens, use a lista específica
 if not CORS_ALLOW_ALL_ORIGINS:
-    # Comma-separated list, e.g. "https://example.com,http://localhost:19006"
-    _cors_allowed = [
-        o.strip() for o in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
     ]
-    if _cors_allowed:
-        CORS_ALLOWED_ORIGINS = _cors_allowed
+else:
+    # Se estiver permitindo todas as origens, limpe a lista específica
+    CORS_ALLOWED_ORIGINS = []
 
+# Headers e métodos permitidos
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Adicione também estas configurações para maior compatibilidade
+CORS_ALLOW_PRIVATE_NETWORK = True  # Importante para desenvolvimento local
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.Usuario'

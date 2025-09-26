@@ -1,15 +1,18 @@
-// filepath: mobile/app/(auth)/register.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { aplicarMascaraCnpj } from '../../utils/masks';
-import { styles } from '../../styles/registerStyles';
+import { styles } from '../../styles/auth/registerStyles';
 import Header from '../../components/Header';
-import { API_BASE_URL } from '../../utils/api';
 import Colors from '../../constants/Colors';
+import { useAuth } from '../../context/AuthContext'; 
+import { LinearGradient } from 'expo-linear-gradient';
+import { landingPageColors } from '../../constants/IndexColors';
+
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { register } = useAuth(); 
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -34,34 +37,51 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      const [firstName, ...lastNameParts] = formData.admin_first_name.split(' ');
+      const [firstName, ...lastNameParts] = formData.admin_first_name.trim().split(' ');
       const lastName = lastNameParts.join(' ') || firstName;
 
-      const response = await fetch(`${API_BASE_URL}/accounts/register/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome_fantasia: formData.nome_fantasia,
-          razao_social: `${formData.nome_fantasia} LTDA`, // Simples, como no frontend
-          cnpj: formData.cnpj,
-          admin_email: formData.admin_email,
-          admin_first_name: firstName,
-          admin_last_name: lastName,
-          admin_password: formData.admin_password,
-        }),
-      });
+      const apiData = {
+        nome_fantasia: formData.nome_fantasia,
+        razao_social: `${formData.nome_fantasia} LTDA`,
+        cnpj: formData.cnpj,
+        admin_email: formData.admin_email,
+        admin_first_name: firstName,
+        admin_last_name: lastName,
+        admin_password: formData.admin_password,
+      };
 
-      if (response.ok) {
-        Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
-        router.push('/(auth)/plans');
+      // 3. Chamar a função register do contexto
+      await register(apiData);
+
+      Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
+      router.push('/(auth)/plans');
+    } catch (error: any) {
+      let errorMessage = "Ocorreu um erro inesperado.";
+      const errorTitle = "Erro no Cadastro";
+
+      if (error.response && error.response.data) {
+        // O servidor respondeu com um status de erro e dados
+        console.error("Erro do servidor:", error.response.data);
+        const errorData = error.response.data;
+        
+        // Concatena todas as mensagens de erro dos campos em uma única string
+        const fieldErrors = Object.values(errorData).flat().join(' ');
+        if (fieldErrors) {
+          errorMessage = fieldErrors;
+        } else {
+          errorMessage = "Não foi possível criar a conta. Verifique os dados e tente novamente.";
+        }
+      } else if (error.request) {
+        // A requisição foi feita mas não houve resposta
+        console.error("Erro de rede:", error.request);
+        errorMessage = "Não foi possível se conectar ao servidor. Verifique sua conexão com a internet.";
       } else {
-        const errorData = await response.json();
-        console.error("Erro do servidor:", errorData);
-        Alert.alert("Erro no Cadastro", "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+        // Algo aconteceu ao configurar a requisição
+        console.error("Erro:", error.message);
+        errorMessage = error.message;
       }
-    } catch (error) {
-      console.error("Erro de rede:", error);
-      Alert.alert("Erro de Conexão", "Não foi possível se conectar ao servidor.");
+      
+      Alert.alert(errorTitle, errorMessage);
     } finally {
       setLoading(false);
     }
@@ -69,6 +89,10 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient
+        colors={[landingPageColors.gradientStart, landingPageColors.gradientEnd]}
+        style={{ flex: 1 }}
+      >
       <Header />
       <View style={styles.content}>
         <View style={styles.card}>
@@ -136,6 +160,7 @@ export default function RegisterScreen() {
           </View>
         </View>
       </View>
+      </LinearGradient>
     </ScrollView>
   );
 }
