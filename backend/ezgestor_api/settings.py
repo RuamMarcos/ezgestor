@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'handler',
     'estoque',
+    'vendas',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework',
