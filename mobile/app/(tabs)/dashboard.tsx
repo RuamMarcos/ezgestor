@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, ScrollView, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, View, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { styles } from '../../styles/dashboard/dashboard';
 
-import DashboardHeader from '@/components/dashboard/Header';
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';
 import { DashboardColors } from '@/constants/DashboardColors';
@@ -33,6 +31,7 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Simula o carregamento dos dados
       setTimeout(() => {
         setData(MOCK_DATA);
       }, 1000);
@@ -42,48 +41,49 @@ export default function DashboardScreen() {
 
   if (!data) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={DashboardColors.headerBlue} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <DashboardHeader />
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Dashboard</Text>
+    <ScrollView 
+      style={styles.safeArea} 
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.title}>Dashboard</Text>
 
-        <View style={styles.cardsGrid}>
-          {data.summary.map((item) => (
-            <SummaryCard key={item.id} title={item.title} value={item.value} backgroundColor={item.color} />
-          ))}
-        </View>
+      <View style={styles.cardsGrid}>
+        {data.summary.map((item) => (
+          <SummaryCard key={item.id} title={item.title} value={item.value} backgroundColor={item.color} />
+        ))}
+      </View>
 
-        <View style={styles.cardsGrid}>
-          {data.actions.map((item) => (
-            <ActionCard
-              key={item.id}
-              label={item.label}
-              iconName={item.iconName}
-              onPress={item.onPress}
-            />
-          ))}
-        </View>
+      <View style={styles.cardsGrid}>
+        {data.actions.map((item) => (
+          <ActionCard
+            key={item.id}
+            label={item.label}
+            iconName={item.iconName}
+            onPress={item.onPress}
+          />
+        ))}
+      </View>
 
-        <View style={styles.recentSalesContainer}>
-          <Text style={styles.title}>Vendas Recentes</Text>
-          {data.recentSales.map((sale) => (
-            <View key={sale.id} style={styles.saleItem}>
-              <View>
-                <Text style={styles.saleCustomer}>{sale.customer}</Text>
-                <Text style={styles.saleProduct}>{sale.product}</Text>
-              </View>
-              <Text style={styles.saleAmount}>{sale.amount}</Text>
+      <View style={styles.recentSalesContainer}>
+        <Text style={styles.title}>Vendas Recentes</Text>
+        {data.recentSales.map((sale) => (
+          <View key={sale.id} style={styles.saleItem}>
+            <View>
+              <Text style={styles.saleCustomer}>{sale.customer}</Text>
+              <Text style={styles.saleProduct}>{sale.product}</Text>
             </View>
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            <Text style={styles.saleAmount}>{sale.amount}</Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
