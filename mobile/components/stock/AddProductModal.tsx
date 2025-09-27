@@ -1,7 +1,7 @@
 // mobile/components/stock/AddProductModal.tsx
 import React, { useState } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import type { Product } from '../../services/stockService';
+import type { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/AddProductModalStyles';
 
 interface ModalProps {

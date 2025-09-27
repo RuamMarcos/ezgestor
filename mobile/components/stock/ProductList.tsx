@@ -1,8 +1,8 @@
 // mobile/components/stock/ProductList.tsx
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
-import type { Product } from '../../services/stockService';
-import { styles } from '../../styles/stock/ProductListSyles';
+import type { Product } from '../../services/StockService';
+import { styles } from '../../styles/stock/ProductListStyles';
 
 interface ProductListProps {
   products: Product[];

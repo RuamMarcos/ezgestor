@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
-import { styles } from '../../styles/dashboard/dashboard';
+import { styles } from '../../styles/dashboard/DashboardStyles';
 
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';

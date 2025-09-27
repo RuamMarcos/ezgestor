@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { aplicarMascaraCnpj } from '../../utils/masks';
-import { styles } from '../../styles/auth/registerStyles';
+import { styles } from '../../styles/auth/RegisterStyles';
 import Header from '../../components/shared/AuthHeader';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext'; 

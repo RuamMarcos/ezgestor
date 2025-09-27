@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, View } from 'react-native';
-import { getProducts, createProduct } from '../../services/stockService';
-import type { Product } from '../../services/stockService';
+import { getProducts, createProduct } from '../../services/StockService';
+import type { Product } from '../../services/StockService';
 import ProductList from '../../components/stock/ProductList';
 import AddProductModal from '../../components/stock/AddProductModal';
 import { DashboardColors } from '@/constants/DashboardColors';
-import { styles } from '../../styles/stock/Stock';
+import { styles } from '../../styles/stock/StockStyles';
 
 export default function StockScreen() {
     const [products, setProducts] = useState<Product[]>([]);

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from '../../styles/auth/loginSytles';
+import { styles } from '../../styles/auth/LoginStyles';
 import Header from '../../components/shared/AuthHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { landingPageColors } from '../../constants/IndexColors';

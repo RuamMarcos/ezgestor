@@ -4,7 +4,7 @@ import Header from '../../components/shared/AuthHeader';
 import api from '../../utils/api';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from '../../styles/auth/paymentSytles';
+import { styles } from '../../styles/auth/PaymentStyles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { landingPageColors } from '../../constants/IndexColors';
 
