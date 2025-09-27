@@ -29,17 +29,21 @@ export default function StockScreen() {
         }
     };
 
-    const handleAddProduct = async (newProduct: Product) => {
-        try {
-            await createProduct(newProduct);
-            setIsModalOpen(false);
-            await fetchProducts(); // Recarrega a lista
-            Alert.alert("Sucesso", "Produto adicionado!");
-        } catch (error) {
-            console.error("Erro ao adicionar produto:", error);
-            Alert.alert("Erro", "Falha ao adicionar produto.");
+const handleAddProduct = async (newProduct: Product) => {
+    try {
+        await createProduct(newProduct);
+        setIsModalOpen(false);
+        await fetchProducts(); // Recarrega a lista
+        Alert.alert("Sucesso", "Produto adicionado!");
+    } catch (error: any) {
+        console.error("Erro ao adicionar produto:", error);
+        let message = "Falha ao adicionar produto.";
+        if (error.response?.data?.codigo_do_produto) {
+            message = error.response.data.codigo_do_produto[0];
         }
-    };
+        Alert.alert("Erro", message);
+    }
+};
     
     if (loading) {
         return (

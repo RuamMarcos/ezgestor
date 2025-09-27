@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext'; // 1. Importar o hook de autenticação
-import { styles } from '../../styles/shared/AppHeaderStyles'; // Importar estilos existentes
+import { useAuth } from '../../context/AuthContext';
+import { styles } from '../../styles/shared/AppHeaderStyles'; 
 
 export default function DashboardHeader() {
   const [isDropdownVisible, setDropdownVisible] = useState(false);

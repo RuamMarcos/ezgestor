@@ -27,16 +27,20 @@ function StockPage() {
   };
   
   const handleAddProduct = async (newProduct: Product) => {
-    try {
-      await createProduct(newProduct);
-      setIsModalOpen(false);
-      fetchProducts(); // Atualiza a lista após adicionar
-      alert("Produto adicionado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao adicionar produto:", error);
-      alert("Falha ao adicionar produto. Verifique os dados e tente novamente.");
+  try {
+    await createProduct(newProduct);
+    setIsModalOpen(false);
+    fetchProducts(); // Atualiza a lista após adicionar
+    alert("Produto adicionado com sucesso!");
+  } catch (error: any) {
+    console.error("Erro ao adicionar produto:", error);
+    let message = "Falha ao adicionar produto. Verifique os dados e tente novamente.";
+    if (error.response?.data?.codigo_do_produto) {
+      message = error.response.data.codigo_do_produto[0];
     }
-  };
+    alert(message);
+  }
+};
 
   return (
     <div className="container mx-auto">

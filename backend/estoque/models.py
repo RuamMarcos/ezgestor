@@ -17,3 +17,6 @@ class Produto(models.Model):
     @property
     def em_baixo_estoque(self):
         return self.quantidade_estoque <= self.quantidade_minima_estoque
+
+    class Meta:
+        unique_together = ('empresa', 'codigo_do_produto')
