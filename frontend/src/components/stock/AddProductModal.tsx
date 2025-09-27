@@ -1,0 +1,94 @@
+import { useState } from 'react';
+import type { Product } from '../../services/stockService';
+
+interface ModalProps {
+  onClose: () => void;
+  onSave: (product: Product) => void;
+}
+
+type FormDataState = Omit<Product, 'quantidade_estoque' | 'quantidade_minima_estoque'> & {
+  quantidade_estoque: number | '';
+  quantidade_minima_estoque: number | '';
+};
+
+
+function AddProductModal({ onClose, onSave }: ModalProps) {
+  const [formData, setFormData] = useState<FormDataState>({
+    nome: '',
+    codigo_do_produto: '',
+    preco_venda: '',
+    preco_custo: '',
+    quantidade_estoque: '',
+    quantidade_minima_estoque: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const productData: Product = {
+      ...formData,
+      preco_venda: parseFloat(String(formData.preco_venda)) || 0,
+      preco_custo: formData.preco_custo ? parseFloat(String(formData.preco_custo)) : undefined,
+      quantidade_estoque: parseInt(String(formData.quantidade_estoque), 10) || 0,
+      quantidade_minima_estoque: parseInt(String(formData.quantidade_minima_estoque), 10) || 0,
+    };
+    onSave(productData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
+        <h2 className="text-2xl font-bold mb-6">Adicionar Novo Produto</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex gap-4">
+            <input
+              type="text" name="nome" placeholder="Nome do Produto"
+              value={formData.nome} onChange={handleChange} required
+              className="w-2/3 px-4 py-2 border rounded-lg"
+            />
+            <input
+              type="text" name="codigo_do_produto" placeholder="Código/SKU"
+              value={formData.codigo_do_produto} onChange={handleChange}
+              className="w-1/3 px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div className="flex gap-4">
+            <input
+              type="number" name="preco_venda" placeholder="Preço de Venda"
+              value={formData.preco_venda} onChange={handleChange} required
+              className="w-1/2 px-4 py-2 border rounded-lg" step="0.01"
+            />
+            <input
+              type="number" name="preco_custo" placeholder="Preço de Custo (Opcional)"
+              value={formData.preco_custo} onChange={handleChange}
+              className="w-1/2 px-4 py-2 border rounded-lg" step="0.01"
+            />
+          </div>
+          <div className="flex gap-4">
+             <input
+              type="number" name="quantidade_estoque" placeholder="Qtd. em Estoque"
+              value={formData.quantidade_estoque} onChange={handleChange} required
+              className="w-1/2 px-4 py-2 border rounded-lg"
+            />
+            <input
+              type="number" name="quantidade_minima_estoque" placeholder="Qtd. Mínima"
+              value={formData.quantidade_minima_estoque} onChange={handleChange} required
+              className="w-1/2 px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div className="flex justify-end gap-4 pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
+            <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default AddProductModal;

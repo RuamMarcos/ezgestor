@@ -6,29 +6,34 @@ import PaymentPage from './pages/PaymentPage';
 import Login from "./pages/Login";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './layouts/DashboardLayout'; 
+import StockPage from './pages/StockPage'; 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rotas Públicas */}
+        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/plans" element={<PlansPage />} />
         <Route path="/payment" element={<PaymentPage />} />
 
-        {/* Rotas Protegidas */}
-        <Route
-          path="/dashboard"
+        {/* Protected Routes with the new Layout */}
+        <Route 
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <DashboardLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/stock" element={<StockPage />} />
+          {/* Other protected routes will go here */}
+        </Route>
 
-        {/* Rota de fallback */}
+        {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
