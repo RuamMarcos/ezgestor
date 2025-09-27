@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityInd
 import { useRouter } from 'expo-router';
 import { aplicarMascaraCnpj } from '../../utils/masks';
 import { styles } from '../../styles/auth/registerStyles';
-import Header from '../../components/Header';
+import Header from '../../components/shared/AuthHeader';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext'; 
 import { LinearGradient } from 'expo-linear-gradient';

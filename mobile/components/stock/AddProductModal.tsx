@@ -1,8 +1,8 @@
 // mobile/components/stock/AddProductModal.tsx
 import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import type { Product } from '../../services/stockService';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { styles } from '../../styles/stock/AddProductModalStyles';
 
 interface ModalProps {
   visible: boolean;
@@ -113,58 +113,3 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
   );
 }
 
-// ... (os styles continuam os mesmos)
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '90%',
-    maxHeight: '80%',
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 20,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 15,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  button: {
-    flex: 1,
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f1f1f1',
-    marginRight: 10,
-  },
-  saveButton: {
-    backgroundColor: DashboardColors.headerBlue,
-  },
-  cancelButtonText: {
-    fontWeight: 'bold',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-});

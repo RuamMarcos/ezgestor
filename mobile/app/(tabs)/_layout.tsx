@@ -5,12 +5,11 @@ import { DashboardColors } from '@/constants/DashboardColors';
 import { View, Text, StyleSheet } from 'react-native';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DashboardHeader from '@/components/dashboard/Header'; // 1. Importar o Header
+import DashboardHeader from '@/components/shared/AppHeader';
 
 export default function TabLayout() {
   return (
     <ProtectedRoute>
-      {/* 2. Envolvemos tudo em uma SafeAreaView para garantir que o conteúdo não sobreponha a status bar */}
       <SafeAreaView style={{ flex: 1, backgroundColor: DashboardColors.background }}>
         <DashboardHeader />
         <Tabs
@@ -28,7 +27,6 @@ export default function TabLayout() {
             },
           }}
         >
-          {/* As Tabs.Screen continuam as mesmas */}
           <Tabs.Screen
             name="dashboard"
             options={{

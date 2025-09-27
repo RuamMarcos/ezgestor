@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch, Alert } from 'react-native';
-import Header from '../../components/Header';
+import Header from '../../components/shared/AuthHeader';
 import api from '../../utils/api';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
