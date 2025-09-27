@@ -64,4 +64,8 @@ export const styles = StyleSheet.create({
     marginTop: 50,
     color: DashboardColors.grayText,
   },
+  editButton: {
+    marginLeft: 10,
+    padding: 5,
+},
 });

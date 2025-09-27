@@ -44,6 +44,12 @@ const handleAddProduct = async (newProduct: Product) => {
         Alert.alert("Erro", message);
     }
 };
+
+    // Função placeholder para a edição
+    const handleEditProduct = (product: Product) => {
+        Alert.alert("Editar Produto", `Você selecionou para editar: ${product.nome}`);
+    };
+    
     
     if (loading) {
         return (
@@ -62,7 +68,7 @@ const handleAddProduct = async (newProduct: Product) => {
                 </TouchableOpacity>
             </View>
             
-            <ProductList products={products} />
+            <ProductList products={products} onEditProduct={handleEditProduct} />
 
             <AddProductModal 
                 visible={isModalOpen}
