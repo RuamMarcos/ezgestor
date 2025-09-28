@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DashboardColors } from '@/constants/DashboardColors';
-import { styles, cardWidth } from '../../styles/dashboard/ActionCard';
+import { styles, cardWidth } from '../../styles/dashboard/ActionCardStyles';
 
 type ActionCardProps = {
   label: string;

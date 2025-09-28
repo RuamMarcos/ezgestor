@@ -1,8 +1,10 @@
 // filepath: mobile/app/_layout.tsx
+import 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AuthProvider } from '../context/AuthContext'; 
+import { AuthProvider } from '../context/AuthContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -14,7 +16,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -23,6 +25,6 @@ export default function RootLayout() {
         </Stack>
       </AuthProvider>
       <StatusBar style="auto" />
-    </>
+    </GestureHandlerRootView>
   );
 }

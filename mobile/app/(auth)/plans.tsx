@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { Pressable, TouchableOpacity } from 'react-native-gesture-handler';
-import Header from '../../components/Header';
-import { styles } from '../../styles/auth/plansSytles';
+import Header from '../../components/shared/AuthHeader';
+import { styles } from '../../styles/auth/PlansStyles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { landingPageColors } from '../../constants/IndexColors';
 

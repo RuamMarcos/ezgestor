@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { styles, cardWidth } from '../../styles/dashboard/SummaryCard';
+import { styles, cardWidth } from '../../styles/dashboard/SummaryCardStyles';
 
 type SummaryCardProps = {
   title: string;

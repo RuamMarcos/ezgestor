@@ -1,7 +1,8 @@
 import type { Product } from '../../services/stockService';
 
 interface ProductTableProps {
-  products: Product[];
+  produtos: Product[];
+  onDeleteProduct: (productId: number) => void; 
 }
 
 const formatCurrency = (value: number | string | undefined): string => {
@@ -10,7 +11,7 @@ const formatCurrency = (value: number | string | undefined): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
 };
 
-function ProductTable({ products }: ProductTableProps) {
+function ProductTable({ produtos, onDeleteProduct }: ProductTableProps) {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
@@ -25,14 +26,14 @@ function ProductTable({ products }: ProductTableProps) {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {products.map((product) => (
-            <tr key={product.id_produto}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.nome}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.codigo_do_produto || 'N/A'}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.preco_venda)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.quantidade_estoque}</td>
+          {produtos.map((produto) => (
+            <tr key={produto.id_produto}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{produto.nome}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{produto.codigo_do_produto || 'N/A'}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(produto.preco_venda)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{produto.quantidade_estoque}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {product.em_baixo_estoque ? (
+                {produto.em_baixo_estoque ? (
                   <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                     Baixo
                   </span>
@@ -42,8 +43,15 @@ function ProductTable({ products }: ProductTableProps) {
                   </span>
                 )}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                 <button className="text-indigo-600 hover:text-indigo-900">Editar</button>
+                {/* Botão de Excluir */}
+                <button 
+                  onClick={() => onDeleteProduct(produto.id_produto!)} 
+                  className="text-red-600 hover:text-red-900"
+                >
+                  Excluir
+                </button>
               </td>
             </tr>
           ))}
