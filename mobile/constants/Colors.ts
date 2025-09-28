@@ -4,7 +4,8 @@ const Colors = {
   background: '#f9fafb', 
   cardBackground: 'white', 
   textPrimary: '#1f2937',
-  textSecondary: '#6b7280', 
+  textSecondary: '#6b7280',
+  placeholder: '#9ca3af', // Cor adicionada para placeholders
   border: '#e5e7eb', 
   shadow: '#000', 
   white: '#ffffff', 

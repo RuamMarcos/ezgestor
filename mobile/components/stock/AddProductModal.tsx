@@ -1,6 +1,7 @@
 // mobile/components/stock/AddProductModal.tsx
 import React, { useState } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import Colors from '../../constants/Colors';
 import type { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/AddProductModalStyles';
 
@@ -61,18 +62,21 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Nome do Produto *"
+              placeholderTextColor={Colors.placeholder}
               value={formData.nome}
               onChangeText={(text) => handleChange('nome', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Código/SKU"
+              placeholderTextColor={Colors.placeholder}
               value={formData.codigo_do_produto}
               onChangeText={(text) => handleChange('codigo_do_produto', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Preço de Venda *"
+              placeholderTextColor={Colors.placeholder}
               keyboardType="numeric"
               value={formData.preco_venda}
               onChangeText={(text) => handleChange('preco_venda', text)}
@@ -80,6 +84,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Preço de Custo"
+              placeholderTextColor={Colors.placeholder}
               keyboardType="numeric"
               value={formData.preco_custo}
               onChangeText={(text) => handleChange('preco_custo', text)}
@@ -87,6 +92,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Qtd. em Estoque"
+              placeholderTextColor={Colors.placeholder}
               keyboardType="numeric"
               value={formData.quantidade_estoque}
               onChangeText={(text) => handleChange('quantidade_estoque', text)}
@@ -94,6 +100,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Qtd. Mínima"
+              placeholderTextColor={Colors.placeholder}
               keyboardType="numeric"
               value={formData.quantidade_minima_estoque}
               onChangeText={(text) => handleChange('quantidade_minima_estoque', text)}

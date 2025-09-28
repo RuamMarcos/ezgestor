@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { styles } from '../../styles/auth/PaymentStyles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { landingPageColors } from '../../constants/IndexColors';
+import Colors from '../../constants/Colors';
 
 type PaymentMethod = 'cartao' | 'pix' | 'boleto';
 
@@ -100,6 +101,7 @@ export default function PagamentoScreen() {
               <TextInput 
                 style={styles.input} 
                 placeholder="Número do Cartão" 
+                placeholderTextColor={Colors.placeholder}
                 keyboardType="numeric" 
                 value={numeroCartao}
                 maxLength={19}
@@ -109,6 +111,7 @@ export default function PagamentoScreen() {
                 <TextInput 
                   style={[styles.input, styles.inputTwoThirds]} 
                   placeholder="Validade (MM/AA)" 
+                  placeholderTextColor={Colors.placeholder}
                   keyboardType="numeric" 
                   value={validade}
                   maxLength={5}
@@ -117,6 +120,7 @@ export default function PagamentoScreen() {
                 <TextInput 
                   style={[styles.input, styles.inputOneThird]} 
                   placeholder="CVV" 
+                  placeholderTextColor={Colors.placeholder}
                   keyboardType="numeric" 
                   secureTextEntry 
                   value={cvv}
@@ -127,6 +131,7 @@ export default function PagamentoScreen() {
               <TextInput 
                 style={styles.input} 
                 placeholder="Nome no Cartão" 
+                placeholderTextColor={Colors.placeholder}
                 value={nomeCartao}
                 onChangeText={setNomeCartao}
               />
