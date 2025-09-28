@@ -20,3 +20,7 @@ export const createProduct = async (productData: Product): Promise<Product> => {
   const response = await api.post('/estoque/produtos/', productData);
   return response.data;
 };
+
+export const deleteProduct = async (productId: number): Promise<void> => {
+  await api.delete(`/estoque/produtos/${productId}/`);
+};

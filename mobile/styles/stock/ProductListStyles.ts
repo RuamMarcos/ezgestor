@@ -68,4 +68,12 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
     padding: 5,
 },
+actionsContainer: {
+    flexDirection: 'row',
+    marginLeft: 10,
+  },
+  actionButton: {
+    padding: 5,
+    marginLeft: 5,
+  },
 });
