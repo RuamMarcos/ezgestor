@@ -41,7 +41,7 @@ ALLOWED_HOSTS = [
 ]
 
 # Permite hosts de rede privada (importante para mobile)
-ALLOWED_HOSTS.extend(['10.0.2.2', 'localhost', '127.0.0.1', '::1'])
+ALLOWED_HOSTS.extend(['10.0.2.2', 'localhost', '127.0.0.1', '::1', '192.168.10.104'])
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://127.0.0.1:8081').split(',')
@@ -189,7 +189,8 @@ def _env_flag(name: str, default: str = 'False') -> bool:
     return os.environ.get(name, default).strip().lower() in {'1', 'true', 'yes', 'on'}
 
 # Configuração principal do CORS
-CORS_ALLOW_ALL_ORIGINS = _env_flag('CORS_ALLOW_ALL_ORIGINS', 'false') 
+# Para desenvolvimento, permita todas as origens da rede local
+CORS_ALLOW_ALL_ORIGINS = _env_flag('CORS_ALLOW_ALL_ORIGINS', 'true') 
 
 # Se não for permitir todas as origens, use a lista específica
 if not CORS_ALLOW_ALL_ORIGINS:
@@ -200,7 +201,6 @@ if not CORS_ALLOW_ALL_ORIGINS:
         "http://127.0.0.1:8081",
     ]
 else:
-    # Se estiver permitindo todas as origens, limpe a lista específica
     CORS_ALLOWED_ORIGINS = []
 
 # Headers e métodos permitidos
