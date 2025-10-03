@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout'; 
 import StockPage from './pages/StockPage'; 
+import SalesPage from './pages/SalesPage';
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/stock" element={<StockPage />} />
-          {/* Other protected routes will go here */}
+          <Route path="/vendas" element={<SalesPage />} />
         </Route>
 
         {/* Fallback Route */}

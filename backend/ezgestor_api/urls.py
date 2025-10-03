@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
     path('api/handler/', include('handler.urls')),
     path('api/estoque/', include('estoque.urls')),
+    path('api/vendas/', include('vendas.urls')),
     # SPA routes (always last)
     path('', spa_200, name='root'),
     re_path(r'^(?!admin/|api/).*$', spa_200, name='spa-fallback'),
