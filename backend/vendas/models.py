@@ -20,7 +20,8 @@ class Venda(models.Model):
     data_venda = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Venda de {self.produto.nome} por {self.vendedor.username if self.vendedor else 'N/A'}"
+        vendedor_str = self.vendedor.email if self.vendedor else 'N/A'
+        return f"Venda de {self.produto.nome} por {vendedor_str}"
 
     class Meta:
         ordering = ['-data_venda']

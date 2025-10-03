@@ -3,7 +3,8 @@ from .models import Venda
 
 @admin.register(Venda)
 class VendaAdmin(admin.ModelAdmin):
-    list_display = ('id_venda', 'produto', 'vendedor', 'quantidade', 'preco_total', 'data_venda')
+    save_as = True
+    list_display = ('id_venda', 'produto', 'quantidade', 'preco_total', 'vendedor', 'data_venda')
     search_fields = ('produto__nome', 'vendedor__username')
     list_filter = ('data_venda', 'vendedor')
     ordering = ('-data_venda',)
@@ -18,7 +19,7 @@ class VendaAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Filtra o dropdown de 'produto' para mostrar apenas os da empresa do usuário."""
         if db_field.name == "produto":
-            if not request.user.is_superuser:
+            if hasattr(request.user, 'empresa') and request.user.empresa:
                 kwargs["queryset"] = db_field.related_model.objects.filter(
                     empresa=request.user.empresa
                 )
