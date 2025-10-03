@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import api from '../api'; 
+import React, { useState, useEffect } from 'react';
+import api from '../api';
 
 interface Venda {
   id_venda: number;
@@ -12,48 +12,27 @@ interface Venda {
 export default function SalesPage() {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // CORREÇÃO 1: Adicionado valor inicial `null` e ajustado o tipo.
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  // CORREÇÃO 2: Trocado `HTMLDivElement` por `HTMLLIElement`.
-  const lastSaleElementRef = useCallback((node: HTMLLIElement) => {
-    if (isLoading) return;
-    if (observer.current) observer.current.disconnect();
-
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prevPage => prevPage + 1);
-      }
-    });
-
-    if (node) observer.current.observe(node);
-  }, [isLoading, hasMore]);
-
-
-  const fetchSales = async (isNewSearch: boolean) => {
+  const fetchSales = async (page: number) => {
     if (isLoading) return;
     setIsLoading(true);
     setError(null);
-    
-    const currentPage = isNewSearch ? 1 : page;
 
     try {
       const response = await api.get('/vendas/', {
         params: {
           search: searchTerm,
-          page: currentPage,
+          page: page,
         },
       });
 
       const data = response.data;
-      
-      setVendas(prevVendas => isNewSearch ? data.results : [...prevVendas, ...data.results]);
-      setHasMore(data.next !== null);
+      setVendas(data.results);
+      setTotalPages(Math.ceil(data.count / 10)); // Assumindo 10 itens por página
     } catch (err: any) {
       setError('Falha ao buscar vendas. Tente novamente mais tarde.');
     } finally {
@@ -62,26 +41,31 @@ export default function SalesPage() {
   };
 
   useEffect(() => {
-    setVendas([]);
-    setPage(1);
-    setHasMore(true);
-    fetchSales(true);
-  }, [searchTerm]);
+    const handler = setTimeout(() => {
+      setCurrentPage(1);
+      fetchSales(1);
+    }, 500); // Debounce para a pesquisa
 
-  useEffect(() => {
-    if (page > 1) {
-      fetchSales(false);
-    }
-  }, [page]);
-
-
-  useEffect(() => {
-    const handler = setTimeout(() => {}, 500); 
     return () => {
       clearTimeout(handler);
     };
   }, [searchTerm]);
 
+  useEffect(() => {
+    fetchSales(currentPage);
+  }, [currentPage]);
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -117,9 +101,8 @@ export default function SalesPage() {
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <ul className="divide-y divide-gray-200">
-          {vendas.map((venda, index) => (
+          {vendas.map((venda) => (
             <li
-              ref={index === vendas.length - 1 ? lastSaleElementRef : null}
               key={venda.id_venda}
               className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
             >
@@ -135,14 +118,34 @@ export default function SalesPage() {
             </li>
           ))}
         </ul>
-        
+
         {isLoading && (
-          <div className="p-6 text-center text-gray-500">Carregando mais vendas...</div>
+          <div className="p-6 text-center text-gray-500">Carregando...</div>
         )}
-        {!isLoading && !hasMore && vendas.length > 0 && (
-          <div className="p-6 text-center text-gray-400">Você chegou ao fim da lista.</div>
+
+        {!isLoading && vendas.length > 0 && (
+          <div className="p-4 flex justify-center items-center space-x-4">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <span className="text-gray-700">
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50"
+            >
+              Próximo
+            </button>
+          </div>
         )}
-        {!isLoading && vendas.length === 0 && (
+
+        {!isLoading && !vendas.length && (
           <div className="p-10 text-center text-gray-500">
             <h3 className="text-xl font-semibold">Nenhuma venda encontrada</h3>
             <p>Tente ajustar os termos da sua busca ou realize uma nova venda.</p>

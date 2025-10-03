@@ -1,12 +1,28 @@
 from rest_framework import viewsets, permissions, filters
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
 from .models import Venda
 from .serializers import VendaSerializer
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 15
+    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+class CustomSearchFilter(filters.SearchFilter):
+    def filter_queryset(self, request, queryset, view):
+        search_terms = self.get_search_terms(request)
+        if not search_terms:
+            return queryset
+
+        # Constrói uma consulta que busca por nome do produto OU primeiro/último nome do vendedor
+        query = Q()
+        for term in search_terms:
+            query |= Q(produto__nome__icontains=term) | \
+                     Q(vendedor__first_name__icontains=term) | \
+                     Q(vendedor__last_name__icontains=term)
+        
+        return queryset.filter(query).distinct()
 
 class VendaViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -19,8 +35,10 @@ class VendaViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     
-    # Filtros de pesquisa
-    filter_backends = [filters.SearchFilter]
+    # Usa o filtro de busca customizado
+    filter_backends = [CustomSearchFilter]
+    # Os search_fields não são mais necessários aqui, pois a lógica está no CustomSearchFilter
+    # mas podemos mantê-los para referência ou outros backends de filtro.
     search_fields = ['produto__nome', 'vendedor__username']
 
     def get_queryset(self):
