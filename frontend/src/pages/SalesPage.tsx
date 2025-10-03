@@ -20,7 +20,7 @@ export default function SalesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSales = async (page: number) => {
+  const fetchSales = async (page: number, search: string) => {
     if (isLoading) return;
     setIsLoading(true);
     setError(null);
@@ -28,7 +28,7 @@ export default function SalesPage() {
     try {
       const response = await api.get('/vendas/', {
         params: {
-          search: searchTerm,
+          search: search,
           page: page,
         },
       });
@@ -45,18 +45,18 @@ export default function SalesPage() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setCurrentPage(1);
-      fetchSales(1);
+      fetchSales(currentPage, searchTerm);
     }, 500);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm]);
+  }, [searchTerm, currentPage]); 
 
-  useEffect(() => {
-    fetchSales(currentPage);
-  }, [currentPage]);
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1); 
+  };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
@@ -79,7 +79,7 @@ export default function SalesPage() {
           type="text"
           placeholder="Pesquisar por produto ou vendedor..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
         />
       </div>
@@ -111,7 +111,8 @@ export default function SalesPage() {
           </div>
         )}
         {error && (
-            <div className="p-10 text-center text-red-600">{error}</div>
+            <div className="p-10 text-center text-red-600">{error}
+            </div>
         )}
       </div>
     </div>

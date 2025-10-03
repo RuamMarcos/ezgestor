@@ -18,6 +18,6 @@ class VendaSerializer(serializers.ModelSerializer):
 
     def get_nome_vendedor(self, obj):
         
-        if obj.vendedor:
-            return f"{obj.vendedor.first_name or ''} {obj.vendedor.last_name or ''}".strip()
+        if obj.vendedor and obj.vendedor.first_name:
+            return obj.vendedor.first_name
         return "Vendedor não informado"
