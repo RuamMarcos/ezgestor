@@ -1,5 +1,5 @@
 // app/(tabs)/sales.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -7,12 +7,12 @@ import {
   TextInput, 
   FlatList, 
   ActivityIndicator,
-  SafeAreaView
+  SafeAreaView,
+  TouchableOpacity,
+  Button
 } from 'react-native';
-// Importe a sua instância configurada do Axios
 import api from '../../utils/api'; 
 
-// A interface Venda continua a mesma
 interface Venda {
   id_venda: number;
   nome_produto: string;
@@ -24,43 +24,31 @@ interface Venda {
 export default function VendasScreen() {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [busca, setBusca] = useState('');
-  const [pagina, setPagina] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Função para buscar os dados usando a instância do 'api'
-  const buscarVendas = async (novaBusca = false) => {
-    if (loading || (!hasMore && !novaBusca)) return;
+  const buscarVendas = async (page: number) => {
+    if (loading) return;
 
     setLoading(true);
     setError(null);
-    
-    const paginaAtual = novaBusca ? 1 : pagina;
-    if (novaBusca) {
-      setVendas([]);
-    }
 
     try {
-      // Usamos 'api.get' e ele já inclui o token de autorização!
       const response = await api.get('/vendas/', {
         params: {
           search: busca,
-          page: paginaAtual,
+          page: page,
         },
       });
 
       const data = response.data;
       
-      setVendas(prevVendas => novaBusca ? data.results : [...prevVendas, ...data.results]);
-      setHasMore(data.next !== null);
-
-      if (data.next !== null) {
-          setPagina(paginaAtual + 1);
-      }
+      setVendas(data.results);
+      setTotalPages(Math.ceil(data.count / 10));
 
     } catch (e: any) {
-      // O Axios encapsula os erros de forma um pouco diferente
       const errorMessage = e.response?.data?.detail || e.message || 'Ocorreu um erro.';
       setError(errorMessage);
     } finally {
@@ -68,34 +56,27 @@ export default function VendasScreen() {
     }
   };
 
-  // Efeito para buscar os dados quando o componente é montado
-  useEffect(() => {
-    buscarVendas(true);
-  }, []);
-
-  // Efeito para realizar uma nova busca com debounce
   useEffect(() => {
     const handler = setTimeout(() => {
-        setHasMore(true);
-        setPagina(1);
-        buscarVendas(true);
-    }, 500);
+        setCurrentPage(1); 
+        buscarVendas(1);
+    }, 500); 
 
     return () => {
       clearTimeout(handler);
     };
   }, [busca]);
 
+  useEffect(() => {
+    buscarVendas(currentPage);
+  }, [currentPage]);
 
-  // Função para formatar a data que vem da API
+
   const formatarData = (dataString: string) => {
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-  // O restante do componente (renderItemVenda, renderFooter, JSX, styles) permanece exatamente o mesmo...
-
-  // Componente que renderiza cada item da lista de vendas
   const renderItemVenda = ({ item }: { item: Venda }) => (
     <View style={styles.itemVendaContainer}>
       <View>
@@ -106,11 +87,33 @@ export default function VendasScreen() {
     </View>
   );
 
-  // Componente a ser exibido no rodapé da lista (indicador de carregamento)
-  const renderFooter = () => {
-    if (!loading) return null;
-    return <ActivityIndicator style={{ marginVertical: 20 }} size="large" color="#0000ff" />;
-  };
+  const renderPagination = () => {
+    if (loading || vendas.length === 0) return null;
+
+    return (
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+          onPress={() => setCurrentPage(p => p - 1)}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.paginationButtonText}>Anterior</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationText}>
+          {currentPage} de {totalPages}
+        </Text>
+
+        <TouchableOpacity
+          style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
+          onPress={() => setCurrentPage(p => p + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.paginationButtonText}>Próximo</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -126,17 +129,19 @@ export default function VendasScreen() {
         
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <FlatList
-          data={vendas}
-          renderItem={renderItemVenda}
-          keyExtractor={(item) => item.id_venda.toString()}
-          onEndReached={() => buscarVendas()}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-          ListEmptyComponent={
-            !loading ? <Text style={styles.textoVazio}>Nenhuma venda encontrada.</Text> : null
-          }
-        />
+        {loading && vendas.length === 0 ? (
+            <ActivityIndicator style={{ marginTop: 50 }} size="large" color="#0000ff" />
+        ) : (
+            <FlatList
+              data={vendas}
+              renderItem={renderItemVenda}
+              keyExtractor={(item) => item.id_venda.toString()}
+              ListFooterComponent={renderPagination}
+              ListEmptyComponent={
+                !loading ? <Text style={styles.textoVazio}>Nenhuma venda encontrada.</Text> : null
+              }
+            />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -199,5 +204,29 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     marginBottom: 10,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  paginationButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#007BFF',
+    borderRadius: 8,
+  },
+  paginationButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
+  },
+  paginationText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });
