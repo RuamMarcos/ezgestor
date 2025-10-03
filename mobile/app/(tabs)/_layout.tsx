@@ -19,12 +19,18 @@ export default function TabLayout() {
             tabBarActiveTintColor: DashboardColors.headerBlue,
             tabBarInactiveTintColor: DashboardColors.grayText,
             tabBarStyle: {
-              height: 95,
-              backgroundColor: DashboardColors.background,
-              borderTopWidth: 0,
-              elevation: 0,
-              paddingBottom: 15,
-            },
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 0,
+            height: 70,
+            paddingBottom: 10,
+            paddingTop: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 5,
+            overflow: 'hidden',
+          },
           }}
         >
           <Tabs.Screen
