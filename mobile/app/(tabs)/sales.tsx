@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  FlatList, 
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
   ActivityIndicator,
   TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import api from '../../utils/api'; 
+import api from '../../utils/api';
 import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
 import { styles } from '../../styles/sales/salesStyles';
@@ -45,8 +45,9 @@ export default function VendasScreen() {
       });
 
       const data = response.data;
-      
-      setVendas(page === 1 ? data.results : [...vendas, ...data.results]);
+
+      // CORREÇÃO: Sempre substitui os dados em vez de concatenar
+      setVendas(data.results);
       setTotalPages(Math.ceil(data.count / 10));
 
     } catch (e: any) {
@@ -59,9 +60,9 @@ export default function VendasScreen() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-        setCurrentPage(1); 
-        buscarVendas(1, busca);
-    }, 500); 
+      setCurrentPage(1);
+      buscarVendas(1, busca);
+    }, 500);
 
     return () => {
       clearTimeout(handler);
@@ -69,19 +70,23 @@ export default function VendasScreen() {
   }, [busca]);
 
   useEffect(() => {
-    if (currentPage > 1) {
-        buscarVendas(currentPage, busca);
-    }
+    // CORREÇÃO: Remove a condição e sempre busca quando a página muda
+    buscarVendas(currentPage, busca);
   }, [currentPage]);
 
   const renderPagination = () => {
-    if (loading || vendas.length === 0) return null;
+    if (loading || totalPages <= 1) return null;
 
     return (
       <View style={styles.paginationContainer}>
         <TouchableOpacity
           style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-          onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
+          // CORREÇÃO: Simplifica a lógica de navegação
+          onPress={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1);
+            }
+          }}
           disabled={currentPage === 1}
         >
           <Text style={styles.paginationButtonText}>Anterior</Text>
@@ -93,7 +98,12 @@ export default function VendasScreen() {
 
         <TouchableOpacity
           style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
-          onPress={() => setCurrentPage(p => p + 1)}
+          // CORREÇÃO: Simplifica a lógica de navegação
+          onPress={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1);
+            }
+          }}
           disabled={currentPage === totalPages}
         >
           <Text style={styles.paginationButtonText}>Próximo</Text>
@@ -115,25 +125,25 @@ export default function VendasScreen() {
             placeholderTextColor={DashboardColors.grayText}
           />
         </View>
-        
+
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {loading && currentPage === 1 ? (
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
+          <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
         ) : (
-            <FlatList
-              data={vendas}
-              renderItem={({ item }) => <SaleListItem item={item} />}
-              keyExtractor={(item) => item.id_venda.toString()}
-              ListFooterComponent={renderPagination}
-              ListEmptyComponent={
-                !loading ? (
-                  <View style={styles.emptyListContainer}>
-                    <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
-                  </View>
-                ) : null
-              }
-            />
+          <FlatList
+            data={vendas}
+            renderItem={({ item }) => <SaleListItem item={item} />}
+            keyExtractor={(item) => item.id_venda.toString()}
+            ListFooterComponent={renderPagination}
+            ListEmptyComponent={
+              !loading ? (
+                <View style={styles.emptyListContainer}>
+                  <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
+                </View>
+              ) : null
+            }
+          />
         )}
       </View>
     </SafeAreaView>

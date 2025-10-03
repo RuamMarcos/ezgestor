@@ -54,6 +54,10 @@ export const styles = StyleSheet.create({
     backgroundColor: DashboardColors.headerBlue,
     borderRadius: 8,
   },
+  paginationButtonDisabled: {
+    backgroundColor: DashboardColors.lightGray,
+    opacity: 0.7,
+  },
   paginationButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
