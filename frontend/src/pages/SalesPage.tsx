@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import SalesHeader from '../components/sales/SalesHeader';
+import SalesListItem from '../components/sales/SalesListItem';
+import SalesPagination from '../components/sales/SalesPagination';
 
 interface Venda {
   id_venda: number;
@@ -32,7 +35,7 @@ export default function SalesPage() {
 
       const data = response.data;
       setVendas(data.results);
-      setTotalPages(Math.ceil(data.count / 10)); // Assumindo 10 itens por página
+      setTotalPages(Math.ceil(data.count / 10));
     } catch (err: any) {
       setError('Falha ao buscar vendas. Tente novamente mais tarde.');
     } finally {
@@ -44,7 +47,7 @@ export default function SalesPage() {
     const handler = setTimeout(() => {
       setCurrentPage(1);
       fetchSales(1);
-    }, 500); // Debounce para a pesquisa
+    }, 500);
 
     return () => {
       clearTimeout(handler);
@@ -67,27 +70,9 @@ export default function SalesPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
-  
-  const formatCurrency = (value: string) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(parseFloat(value));
-  };
-
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Histórico de Vendas</h1>
-        <p className="text-gray-500 mt-1">Pesquise e visualize todas as vendas registradas.</p>
-      </header>
+      <SalesHeader />
 
       <div className="mb-6">
         <input
@@ -102,20 +87,7 @@ export default function SalesPage() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <ul className="divide-y divide-gray-200">
           {vendas.map((venda) => (
-            <li
-              key={venda.id_venda}
-              className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
-            >
-              <div>
-                <p className="font-semibold text-gray-900">{venda.nome_produto}</p>
-                <p className="text-sm text-gray-500">
-                  Vendido por {venda.nome_vendedor} em {formatDate(venda.data_venda)}
-                </p>
-              </div>
-              <p className="text-lg font-bold text-blue-600">
-                {formatCurrency(venda.preco_total)}
-              </p>
-            </li>
+            <SalesListItem key={venda.id_venda} venda={venda} />
           ))}
         </ul>
 
@@ -124,25 +96,12 @@ export default function SalesPage() {
         )}
 
         {!isLoading && vendas.length > 0 && (
-          <div className="p-4 flex justify-center items-center space-x-4">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <span className="text-gray-700">
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50"
-            >
-              Próximo
-            </button>
-          </div>
+          <SalesPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevPage={handlePrevPage}
+            onNextPage={handleNextPage}
+          />
         )}
 
         {!isLoading && !vendas.length && (

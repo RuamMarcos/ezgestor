@@ -15,7 +15,7 @@ class CustomSearchFilter(filters.SearchFilter):
         if not search_terms:
             return queryset
 
-        # Constrói uma consulta que busca por nome do produto OU primeiro/último nome do vendedor
+        # Constrói uma consulta que busca por nome do produto ou primeiro/último nome do vendedor
         query = Q()
         for term in search_terms:
             query |= Q(produto__nome__icontains=term) | \
@@ -27,18 +27,13 @@ class CustomSearchFilter(filters.SearchFilter):
 class VendaViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint que permite visualizar as vendas.
-    Suporta pesquisa por nome do produto ou nome do vendedor.
-    Ex: /api/vendas/?search=Camiseta
     """
     queryset = Venda.objects.select_related('produto', 'vendedor').all()
     serializer_class = VendaSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     
-    # Usa o filtro de busca customizado
     filter_backends = [CustomSearchFilter]
-    # Os search_fields não são mais necessários aqui, pois a lógica está no CustomSearchFilter
-    # mas podemos mantê-los para referência ou outros backends de filtro.
     search_fields = ['produto__nome', 'vendedor__username']
 
     def get_queryset(self):

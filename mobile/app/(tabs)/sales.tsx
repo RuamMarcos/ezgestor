@@ -1,17 +1,18 @@
-// app/(tabs)/sales.tsx
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, 
   TextInput, 
   FlatList, 
   ActivityIndicator,
-  SafeAreaView,
-  TouchableOpacity,
-  Button
+  TouchableOpacity
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../utils/api'; 
+import SalesHeader from '@/components/sales/SalesHeader';
+import SaleListItem from '@/components/sales/SaleListItem';
+import { styles } from '../../styles/sales/salesStyles';
+import { DashboardColors } from '@/constants/DashboardColors';
 
 interface Venda {
   id_venda: number;
@@ -29,7 +30,7 @@ export default function VendasScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const buscarVendas = async (page: number) => {
+  const buscarVendas = async (page: number, searchTerm: string) => {
     if (loading) return;
 
     setLoading(true);
@@ -38,14 +39,14 @@ export default function VendasScreen() {
     try {
       const response = await api.get('/vendas/', {
         params: {
-          search: busca,
+          search: searchTerm,
           page: page,
         },
       });
 
       const data = response.data;
       
-      setVendas(data.results);
+      setVendas(page === 1 ? data.results : [...vendas, ...data.results]);
       setTotalPages(Math.ceil(data.count / 10));
 
     } catch (e: any) {
@@ -59,7 +60,7 @@ export default function VendasScreen() {
   useEffect(() => {
     const handler = setTimeout(() => {
         setCurrentPage(1); 
-        buscarVendas(1);
+        buscarVendas(1, busca);
     }, 500); 
 
     return () => {
@@ -68,24 +69,10 @@ export default function VendasScreen() {
   }, [busca]);
 
   useEffect(() => {
-    buscarVendas(currentPage);
+    if (currentPage > 1) {
+        buscarVendas(currentPage, busca);
+    }
   }, [currentPage]);
-
-
-  const formatarData = (dataString: string) => {
-    const data = new Date(dataString);
-    return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
-  const renderItemVenda = ({ item }: { item: Venda }) => (
-    <View style={styles.itemVendaContainer}>
-      <View>
-        <Text style={styles.nomeProduto}>{item.nome_produto}</Text>
-        <Text style={styles.detalheVenda}>Vendedor: {item.nome_vendedor} - {formatarData(item.data_venda)}</Text>
-      </View>
-      <Text style={styles.precoVenda}>R$ {parseFloat(item.preco_total).toFixed(2).replace('.', ',')}</Text>
-    </View>
-  );
 
   const renderPagination = () => {
     if (loading || vendas.length === 0) return null;
@@ -94,7 +81,7 @@ export default function VendasScreen() {
       <View style={styles.paginationContainer}>
         <TouchableOpacity
           style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-          onPress={() => setCurrentPage(p => p - 1)}
+          onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
           disabled={currentPage === 1}
         >
           <Text style={styles.paginationButtonText}>Anterior</Text>
@@ -117,28 +104,34 @@ export default function VendasScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <SalesHeader />
       <View style={styles.container}>
-        <Text style={styles.titulo}>Vendas</Text>
-        
-        <TextInput
-          style={styles.barraBusca}
-          placeholder="Pesquisar por produto ou vendedor..."
-          value={busca}
-          onChangeText={setBusca}
-        />
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar por produto ou vendedor..."
+            value={busca}
+            onChangeText={setBusca}
+            placeholderTextColor={DashboardColors.grayText}
+          />
+        </View>
         
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        {loading && vendas.length === 0 ? (
-            <ActivityIndicator style={{ marginTop: 50 }} size="large" color="#0000ff" />
+        {loading && currentPage === 1 ? (
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
         ) : (
             <FlatList
               data={vendas}
-              renderItem={renderItemVenda}
+              renderItem={({ item }) => <SaleListItem item={item} />}
               keyExtractor={(item) => item.id_venda.toString()}
               ListFooterComponent={renderPagination}
               ListEmptyComponent={
-                !loading ? <Text style={styles.textoVazio}>Nenhuma venda encontrada.</Text> : null
+                !loading ? (
+                  <View style={styles.emptyListContainer}>
+                    <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
+                  </View>
+                ) : null
               }
             />
         )}
@@ -146,87 +139,3 @@ export default function VendasScreen() {
     </SafeAreaView>
   );
 }
-
-// Estilos
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  barraBusca: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
-    fontSize: 16,
-  },
-  itemVendaContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-  },
-  nomeProduto: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  detalheVenda: {
-    fontSize: 14,
-    color: '#666',
-  },
-  precoVenda: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007BFF',
-  },
-  textoVazio: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-    color: '#666',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  paginationButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#007BFF',
-    borderRadius: 8,
-  },
-  paginationButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  disabledButton: {
-    backgroundColor: '#A9A9A9',
-  },
-  paginationText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  }
-});
