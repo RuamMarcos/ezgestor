@@ -28,6 +28,7 @@ interface AddSaleModalProps {
 
 export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleModalProps) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [productSearch, setProductSearch] = useState('');
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('1');
@@ -124,6 +125,16 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
     }
   };
 
+  const filteredProducts = products.filter((p) => {
+    const q = productSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      p.nome.toLowerCase().includes(q) ||
+      (p.codigo_do_produto ?? '').toLowerCase().includes(q)
+    );
+  });
+  const hasQuery = productSearch.trim().length > 0;
+
   const calculateTotal = (): number => {
     if (!selectedProduct) return 0;
     const price = toNumber(selectedProduct.preco_venda);
@@ -147,7 +158,6 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
       setError(`Quantidade máxima disponível: ${selectedProduct.quantidade_estoque}`);
       return;
     }
-
     setLoading(true);
     setError(null);
 
@@ -238,33 +248,45 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                 </View>
               ) : (
                 <View style={styles.pickerContainer}>
-                  <ScrollView style={styles.productList}>
-                    <TouchableOpacity
-                      style={[
-                        styles.productOption,
-                        selectedProductId === null && styles.selectedProductOption
-                      ]}
-                      onPress={() => setSelectedProductId(null)}
-                    >
-                      <Text style={styles.productOptionText}>
-                        {products.length === 0 ? 'Nenhum produto disponível' : 'Selecione um produto'}
-                      </Text>
-                    </TouchableOpacity>
-                    {products.map((product: Product) => (
+                  <TextInput
+                    style={{ paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderColor: '#f0f0f0' }}
+                    placeholder="Buscar por nome ou código..."
+                    value={productSearch}
+                    onChangeText={setProductSearch}
+                  />
+                  {!hasQuery ? (
+                    <View style={{ padding: 16 }}>
+                      <Text style={styles.helperText}>Digite para buscar produtos...</Text>
+                    </View>
+                  ) : (
+                    <ScrollView style={styles.productList}>
                       <TouchableOpacity
-                        key={product.id_produto}
                         style={[
                           styles.productOption,
-                          selectedProductId === product.id_produto && styles.selectedProductOption
+                          selectedProductId === null && styles.selectedProductOption
                         ]}
-                        onPress={() => setSelectedProductId(product.id_produto)}
+                        onPress={() => setSelectedProductId(null)}
                       >
                         <Text style={styles.productOptionText}>
-                          {product.nome} - {formatCurrency(product.preco_venda)} (Est: {toNumber(product.quantidade_estoque)})
+                          {filteredProducts.length === 0 ? 'Nenhum produto encontrado' : 'Selecione um produto'}
                         </Text>
                       </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+                      {filteredProducts.map((product: Product) => (
+                        <TouchableOpacity
+                          key={product.id_produto}
+                          style={[
+                            styles.productOption,
+                            selectedProductId === product.id_produto && styles.selectedProductOption
+                          ]}
+                          onPress={() => setSelectedProductId(product.id_produto)}
+                        >
+                          <Text style={styles.productOptionText}>
+                            {product.nome} - {formatCurrency(product.preco_venda)} (Est: {toNumber(product.quantidade_estoque)})
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  )}
                 </View>
               )}
 
