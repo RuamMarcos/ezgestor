@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../utils/api';
 import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
+import AddSaleModal from '@/components/sales/AddSaleModal';
 import { styles } from '../../styles/sales/salesStyles';
 import { DashboardColors } from '@/constants/DashboardColors';
 
@@ -29,6 +30,7 @@ export default function VendasScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const buscarVendas = async (page: number, searchTerm: string) => {
     if (loading) return;
@@ -74,6 +76,11 @@ export default function VendasScreen() {
     buscarVendas(currentPage, busca);
   }, [currentPage]);
 
+  const handleSaleAdded = () => {
+    // Refresh the sales list after adding a new sale
+    buscarVendas(currentPage, busca);
+  };
+
   const renderPagination = () => {
     if (loading || totalPages <= 1) return null;
 
@@ -114,7 +121,16 @@ export default function VendasScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <SalesHeader />
+      <View style={styles.headerContainer}>
+        <SalesHeader />
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.addButtonText}>Nova Venda</Text>
+        </TouchableOpacity>
+      </View>
+      
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <TextInput
@@ -146,6 +162,12 @@ export default function VendasScreen() {
           />
         )}
       </View>
+
+      <AddSaleModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSaleAdded={handleSaleAdded}
+      />
     </SafeAreaView>
   );
 }

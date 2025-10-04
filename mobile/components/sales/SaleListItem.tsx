@@ -7,6 +7,7 @@ interface Venda {
   nome_vendedor: string;
   preco_total: string;
   data_venda: string;
+  pago?: boolean;
 }
 
 interface SaleListItemProps {
@@ -33,6 +34,11 @@ const SaleListItem = ({ item }: SaleListItemProps) => {
         <Text style={styles.saleDetail}>
           Vendido por {item.nome_vendedor} em {formatarData(item.data_venda)}
         </Text>
+        <View style={styles.badgeRow}>
+          <View style={styles.paidBadge}>
+            <Text style={styles.paidBadgeText}>● Pago</Text>
+          </View>
+        </View>
       </View>
       <Text style={styles.price}>{formatCurrency(item.preco_total)}</Text>
     </View>

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import Footer from '../components/Footer';
 import StatCard from '../components/StatCard';
+import AddSaleModal from '../components/AddSaleModal';
 
 // Tipos para os dados do dashboard
 interface Sale {
@@ -33,6 +35,12 @@ const staticDashboardData: DashboardData = {
 
 function DashboardPage() {
   const [data] = useState<DashboardData>(staticDashboardData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSaleAdded = () => {
+    // Aqui você pode atualizar os dados do dashboard após uma nova venda
+    console.log('Nova venda adicionada - atualizando dashboard');
+  };
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -79,7 +87,10 @@ function DashboardPage() {
       </div>
 
       <div className="flex flex-wrap gap-4">
-        <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg"
+        >
           Nova Venda
         </button>
         <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
@@ -104,6 +115,14 @@ function DashboardPage() {
           ))}
         </div>
       </div>
+
+      <AddSaleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSaleAdded={handleSaleAdded}
+      />
+      
+      <Footer />
     </div>
   );
 }

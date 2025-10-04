@@ -6,6 +6,25 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: DashboardColors.background,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: DashboardColors.background,
+  },
+  addButton: {
+    backgroundColor: DashboardColors.headerBlue,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
   },
@@ -61,14 +80,14 @@ export const styles = StyleSheet.create({
   paginationButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   disabledButton: {
     backgroundColor: DashboardColors.lightGray,
   },
   paginationText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: DashboardColors.darkText,
   },
   loadingIndicator: {
