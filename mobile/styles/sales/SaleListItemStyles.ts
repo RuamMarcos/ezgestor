@@ -25,6 +25,38 @@ export const styles = StyleSheet.create({
     color: DashboardColors.grayText,
     marginTop: 4,
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  paidBadge: {
+    backgroundColor: 'rgba(40, 167, 69, 0.08)',
+    borderWidth: 1,
+    borderColor: DashboardColors.green,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  paidBadgeText: {
+    color: DashboardColors.green,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  quantityBadge: {
+    backgroundColor: 'rgba(253, 126, 20, 0.1)',
+    borderWidth: 1,
+    borderColor: DashboardColors.orange,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 999,
+    marginLeft: 8,
+  },
+  quantityBadgeText: {
+    color: DashboardColors.orange,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   price: {
     fontSize: 16,
     fontWeight: 'bold',

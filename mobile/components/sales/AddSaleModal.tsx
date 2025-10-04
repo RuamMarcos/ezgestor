@@ -31,6 +31,9 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('1');
+  const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +76,9 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
     setSelectedProductId(null);
     setSelectedProduct(null);
     setQuantity('1');
+    setClientName('');
+    setClientPhone('');
+    setClientEmail('');
     setError(null);
   };
 
@@ -146,15 +152,20 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
     setError(null);
 
     try {
-      console.log('Enviando venda:', {
+      const payload: any = {
         produto_id: selectedProduct.id_produto,
         quantidade: quantityNum,
-      });
-      
-      await api.post('/vendas/', {
-        produto_id: selectedProduct.id_produto,
-        quantidade: quantityNum,
-      });
+      };
+
+      const nome = clientName.trim();
+      const telefone = clientPhone.trim();
+      const email = clientEmail.trim();
+      if (nome) payload.cliente_nome = nome;
+      if (telefone) payload.cliente_telefone = telefone;
+      if (email) payload.cliente_email = email;
+
+      console.log('Enviando venda:', payload);
+      await api.post('/vendas/', payload);
 
       Alert.alert('Sucesso', 'Venda registrada com sucesso!');
       onSaleAdded();
@@ -276,6 +287,32 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                     Máximo disponível: {selectedProduct.quantidade_estoque}
                   </Text>
 
+                  {/* Dados do cliente (opcionais) */}
+                  <Text style={styles.label}>Cliente (opcional)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={clientName}
+                    onChangeText={setClientName}
+                    placeholder="Nome do cliente"
+                  />
+                  <View style={{ height: 8 }} />
+                  <TextInput
+                    style={styles.input}
+                    value={clientPhone}
+                    onChangeText={setClientPhone}
+                    keyboardType="phone-pad"
+                    placeholder="Telefone"
+                  />
+                  <View style={{ height: 8 }} />
+                  <TextInput
+                    style={styles.input}
+                    value={clientEmail}
+                    onChangeText={setClientEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    placeholder="E-mail"
+                  />
+
                   <View style={styles.summaryContainer}>
                     <View style={styles.summaryRow}>
                       <Text style={styles.summaryLabel}>Preço unitário:</Text>
@@ -372,10 +409,9 @@ const styles = {
     fontSize: 14,
   },
   formContainer: {
-    flexDirection: 'row' as 'row',
-    justifyContent: 'space-between' as 'space-between',
-    alignItems: 'center' as 'center',
-    gap: 12,
+    flexDirection: 'column' as 'column',
+    justifyContent: 'flex-start' as 'flex-start',
+    alignItems: 'stretch' as 'stretch',
     marginTop: 12,
     fontSize: 16,
     fontWeight: '600' as '600',
