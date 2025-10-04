@@ -8,11 +8,11 @@ export const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16, 
   },
   searchContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-    backgroundColor: DashboardColors.background,
+    marginBottom: 16,
   },
   searchInput: {
     height: 50,
@@ -61,14 +61,14 @@ export const styles = StyleSheet.create({
   paginationButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   disabledButton: {
     backgroundColor: DashboardColors.lightGray,
   },
   paginationText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: DashboardColors.darkText,
   },
   loadingIndicator: {

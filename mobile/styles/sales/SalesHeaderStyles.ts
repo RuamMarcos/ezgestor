@@ -3,14 +3,27 @@ import { DashboardColors } from '@/constants/DashboardColors';
 
 export const styles = StyleSheet.create({
   headerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     backgroundColor: DashboardColors.background,
   },
-  headerTitle: {
-    fontSize: 28,
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: DashboardColors.darkText,
+  },
+  addButton: {
+    backgroundColor: DashboardColors.headerBlue,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });

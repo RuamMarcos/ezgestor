@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
         backgroundColor: DashboardColors.headerBlue,
         paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 20,
+        borderRadius: 8,
     },
     addButtonText: {
         color: 'white',

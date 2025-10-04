@@ -13,7 +13,7 @@ type ActionCardProps = {
 export default function ActionCard({ label, iconName, onPress }: ActionCardProps) {
   return (
     <TouchableOpacity style={[styles.cardContainer, { width: cardWidth }]} onPress={onPress}>
-      <MaterialCommunityIcons name={iconName} size={28} color={DashboardColors.grayText} />
+  <MaterialCommunityIcons name={iconName} size={28} color={DashboardColors.grayText} />
       <Text style={styles.labelText}>{label}</Text>
     </TouchableOpacity>
   );

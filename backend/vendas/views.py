@@ -1,22 +1,30 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from .models import Venda
-from .serializers import VendaSerializer
+from .serializers import VendaSerializer, VendaCreateSerializer
+from estoque.models import Produto
+from estoque.serializers import ProdutoSerializer
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-class VendaViewSet(viewsets.ReadOnlyModelViewSet):
+class VendaViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para listar e visualizar vendas.
+    ViewSet para listar, visualizar e criar vendas.
     A busca pode ser feita por nome do produto ou email do vendedor.
     """
-    serializer_class = VendaSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return VendaCreateSerializer
+        return VendaSerializer
 
     def get_queryset(self):
         """
@@ -34,3 +42,16 @@ class VendaViewSet(viewsets.ReadOnlyModelViewSet):
             ).distinct()
 
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def produtos_disponiveis(self, request):
+        """
+        Retorna produtos disponíveis para venda (com estoque > 0)
+        """
+        produtos = Produto.objects.filter(
+            empresa=request.user.empresa,
+            quantidade_estoque__gt=0
+        ).order_by('nome')
+        
+        serializer = ProdutoSerializer(produtos, many=True)
+        return Response(serializer.data)

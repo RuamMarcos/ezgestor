@@ -1,11 +1,18 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/sales/SalesHeaderStyles';
 
-const SalesHeader = () => {
+interface SalesHeaderProps {
+  onAddSale: () => void;
+}
+
+const SalesHeader = ({ onAddSale }: SalesHeaderProps) => {
   return (
     <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>Histórico de Vendas</Text>
+      <Text style={styles.title}>Vendas</Text>
+      <TouchableOpacity style={styles.addButton} onPress={onAddSale}>
+        <Text style={styles.addButtonText}>Nova Venda</Text>
+      </TouchableOpacity>
     </View>
   );
 };

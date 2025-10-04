@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../utils/api';
 import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
+import AddSaleModal from '@/components/sales/AddSaleModal';
 import { styles } from '../../styles/sales/salesStyles';
 import { DashboardColors } from '@/constants/DashboardColors';
 
@@ -20,6 +21,7 @@ interface Venda {
   nome_vendedor: string;
   preco_total: string;
   data_venda: string;
+  pago: boolean;
 }
 
 export default function VendasScreen() {
@@ -29,6 +31,7 @@ export default function VendasScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const buscarVendas = async (page: number, searchTerm: string) => {
     if (loading) return;
@@ -56,6 +59,11 @@ export default function VendasScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaleAdded = () => {
+    setModalVisible(false);
+    buscarVendas(1, busca); // Recarrega as vendas
   };
 
   useEffect(() => {
@@ -114,7 +122,7 @@ export default function VendasScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <SalesHeader />
+      <SalesHeader onAddSale={() => setModalVisible(true)} />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <TextInput
@@ -125,27 +133,32 @@ export default function VendasScreen() {
             placeholderTextColor={DashboardColors.grayText}
           />
         </View>
-
+        
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {loading && currentPage === 1 ? (
-          <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
         ) : (
-          <FlatList
-            data={vendas}
-            renderItem={({ item }) => <SaleListItem item={item} />}
-            keyExtractor={(item) => item.id_venda.toString()}
-            ListFooterComponent={renderPagination}
-            ListEmptyComponent={
-              !loading ? (
-                <View style={styles.emptyListContainer}>
-                  <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
-                </View>
-              ) : null
-            }
-          />
+            <FlatList
+              data={vendas}
+              renderItem={({ item }) => <SaleListItem item={item} />}
+              keyExtractor={(item) => item.id_venda.toString()}
+              ListFooterComponent={renderPagination}
+              ListEmptyComponent={
+                !loading ? (
+                  <View style={styles.emptyListContainer}>
+                    <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
+                  </View>
+                ) : null
+              }
+            />
         )}
       </View>
+      <AddSaleModal 
+        visible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        onSaleAdded={handleSaleAdded}
+      />
     </SafeAreaView>
   );
 }

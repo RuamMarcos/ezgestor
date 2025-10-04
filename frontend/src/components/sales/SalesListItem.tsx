@@ -6,6 +6,8 @@ interface Venda {
   nome_vendedor: string;
   preco_total: string;
   data_venda: string;
+  pago?: boolean;
+  quantidade?: number;
 }
 
 interface SalesListItemProps {
@@ -38,6 +40,18 @@ const SalesListItem = ({ venda }: SalesListItemProps) => {
         <p className="text-sm text-gray-500">
           Vendido por {venda.nome_vendedor} em {formatDate(venda.data_venda)}
         </p>
+        <div className="flex items-center gap-2 mt-1">
+          {venda.pago !== false && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              ● Pago
+            </span>
+          )}
+          {typeof venda.quantidade === 'number' && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+              {venda.quantidade} {venda.quantidade === 1 ? 'unidade' : 'unidades'}
+            </span>
+          )}
+        </div>
       </div>
       <p className="text-lg font-bold text-blue-600">
         {formatCurrency(venda.preco_total)}

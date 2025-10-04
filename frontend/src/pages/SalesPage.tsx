@@ -3,6 +3,7 @@ import api from '../api';
 import SalesHeader from '../components/sales/SalesHeader';
 import SalesListItem from '../components/sales/SalesListItem';
 import SalesPagination from '../components/sales/SalesPagination';
+import AddSaleModal from '../components/sales/AddSaleModal';
 
 interface Venda {
   id_venda: number;
@@ -19,6 +20,7 @@ export default function SalesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchSales = async (page: number, search: string) => {
     if (isLoading) return;
@@ -70,9 +72,22 @@ export default function SalesPage() {
     }
   };
 
+  const handleSaleAdded = () => {
+    // Refresh the sales list after adding a new sale
+    fetchSales(currentPage, searchTerm);
+  };
+
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <SalesHeader />
+      <div className="flex justify-between items-center mb-6">
+        <SalesHeader />
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors shadow"
+        >
+          Nova Venda
+        </button>
+      </div>
 
       <div className="mb-6">
         <input
@@ -110,11 +125,19 @@ export default function SalesPage() {
             <p>Tente ajustar os termos da sua busca ou realize uma nova venda.</p>
           </div>
         )}
+        
         {error && (
-            <div className="p-10 text-center text-red-600">{error}
-            </div>
+          <div className="p-10 text-center text-red-600">{error}</div>
         )}
       </div>
+
+      {isModalOpen && (
+        <AddSaleModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSaleAdded={handleSaleAdded}
+        />
+      )}
     </div>
   );
 }
