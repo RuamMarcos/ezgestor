@@ -3,7 +3,7 @@ import api from '../api';
 import SalesHeader from '../components/sales/SalesHeader';
 import SalesListItem from '../components/sales/SalesListItem';
 import SalesPagination from '../components/sales/SalesPagination';
-import AddSaleModal from '../components/AddSaleModal';
+import AddSaleModal from '../components/sales/AddSaleModal';
 
 interface Venda {
   id_venda: number;

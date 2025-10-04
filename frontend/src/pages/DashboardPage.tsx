@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Footer from '../components/Footer';
 import StatCard from '../components/StatCard';
-import AddSaleModal from '../components/AddSaleModal';
+import AddSaleModal from '../components/sales/AddSaleModal';
 
 // Tipos para os dados do dashboard
 interface Sale {
