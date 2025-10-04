@@ -21,6 +21,7 @@ interface Venda {
   nome_vendedor: string;
   preco_total: string;
   data_venda: string;
+  pago: boolean;
 }
 
 export default function VendasScreen() {
@@ -30,7 +31,7 @@ export default function VendasScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const buscarVendas = async (page: number, searchTerm: string) => {
     if (loading) return;
@@ -60,6 +61,11 @@ export default function VendasScreen() {
     }
   };
 
+  const handleSaleAdded = () => {
+    setModalVisible(false);
+    buscarVendas(1, busca); // Recarrega as vendas
+  };
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setCurrentPage(1);
@@ -75,11 +81,6 @@ export default function VendasScreen() {
     // CORREÇÃO: Remove a condição e sempre busca quando a página muda
     buscarVendas(currentPage, busca);
   }, [currentPage]);
-
-  const handleSaleAdded = () => {
-    // Refresh the sales list after adding a new sale
-    buscarVendas(currentPage, busca);
-  };
 
   const renderPagination = () => {
     if (loading || totalPages <= 1) return null;
@@ -121,16 +122,7 @@ export default function VendasScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerContainer}>
-        <SalesHeader />
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Text style={styles.addButtonText}>Nova Venda</Text>
-        </TouchableOpacity>
-      </View>
-      
+      <SalesHeader onAddSale={() => setModalVisible(true)} />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <TextInput
@@ -141,30 +133,29 @@ export default function VendasScreen() {
             placeholderTextColor={DashboardColors.grayText}
           />
         </View>
-
+        
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {loading && currentPage === 1 ? (
-          <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
         ) : (
-          <FlatList
-            data={vendas}
-            renderItem={({ item }) => <SaleListItem item={item} />}
-            keyExtractor={(item) => item.id_venda.toString()}
-            ListFooterComponent={renderPagination}
-            ListEmptyComponent={
-              !loading ? (
-                <View style={styles.emptyListContainer}>
-                  <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
-                </View>
-              ) : null
-            }
-          />
+            <FlatList
+              data={vendas}
+              renderItem={({ item }) => <SaleListItem item={item} />}
+              keyExtractor={(item) => item.id_venda.toString()}
+              ListFooterComponent={renderPagination}
+              ListEmptyComponent={
+                !loading ? (
+                  <View style={styles.emptyListContainer}>
+                    <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
+                  </View>
+                ) : null
+              }
+            />
         )}
       </View>
-
-      <AddSaleModal
-        visible={modalVisible}
+      <AddSaleModal 
+        visible={isModalVisible}
         onClose={() => setModalVisible(false)}
         onSaleAdded={handleSaleAdded}
       />

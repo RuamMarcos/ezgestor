@@ -4,7 +4,6 @@ import { styles } from '../../styles/dashboard/DashboardStyles';
 
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';
-import SimpleAddSaleModal from '@/components/sales/SimpleAddSaleModal';
 import { DashboardColors } from '@/constants/DashboardColors';
 
 export default function DashboardScreen() {
@@ -97,11 +96,6 @@ export default function DashboardScreen() {
         ))}
       </View>
 
-      <SimpleAddSaleModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSaleAdded={handleSaleAdded}
-      />
     </ScrollView>
   );
 }

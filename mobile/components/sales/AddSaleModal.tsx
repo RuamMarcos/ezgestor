@@ -290,6 +290,32 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                 </View>
               )}
 
+              {/* Dados do cliente (opcionais) */}
+              <Text style={styles.label}>Cliente (opcional)</Text>
+              <TextInput
+                style={styles.input}
+                value={clientName}
+                onChangeText={setClientName}
+                placeholder="Nome do cliente"
+              />
+              <View style={{ height: 8 }} />
+              <TextInput
+                style={styles.input}
+                value={clientPhone}
+                onChangeText={setClientPhone}
+                keyboardType="phone-pad"
+                placeholder="Telefone"
+              />
+              <View style={{ height: 8 }} />
+              <TextInput
+                style={styles.input}
+                value={clientEmail}
+                onChangeText={setClientEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                placeholder="E-mail"
+              />
+
               {selectedProduct && (
                 <>
                   <Text style={styles.label}>Quantidade</Text>
@@ -308,32 +334,6 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                   <Text style={styles.helperText}>
                     Máximo disponível: {selectedProduct.quantidade_estoque}
                   </Text>
-
-                  {/* Dados do cliente (opcionais) */}
-                  <Text style={styles.label}>Cliente (opcional)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={clientName}
-                    onChangeText={setClientName}
-                    placeholder="Nome do cliente"
-                  />
-                  <View style={{ height: 8 }} />
-                  <TextInput
-                    style={styles.input}
-                    value={clientPhone}
-                    onChangeText={setClientPhone}
-                    keyboardType="phone-pad"
-                    placeholder="Telefone"
-                  />
-                  <View style={{ height: 8 }} />
-                  <TextInput
-                    style={styles.input}
-                    value={clientEmail}
-                    onChangeText={setClientEmail}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    placeholder="E-mail"
-                  />
 
                   <View style={styles.summaryContainer}>
                     <View style={styles.summaryRow}>
