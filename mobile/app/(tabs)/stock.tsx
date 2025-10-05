@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
 import { useFocusEffect} from '@react-navigation/native';
-import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct } from '../../services/StockService'; // Importe addStockToProduct
+import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct, quickAddProduct } from '../../services/StockService'; // Importe addStockToProduct
 import ProductList from '../../components/stock/ProductList';
 import AddProductModal from '../../components/stock/AddProductModal';
 import EditProductModal from '../../components/stock/EditProductModal';
 import QuickAddProductModal from '../../components/stock/QuickAddProductModal'; // Importe o novo modal
+import QuickAddModal from '../../components/stock/QuickAddModal';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '../../styles/stock/StockStyles';
 import Svg, { Path } from 'react-native-svg';
@@ -29,6 +30,7 @@ export default function StockScreen() {
     // Modal para editar produto
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
     
     // Animação do spinner
     const spinValue = useRef(new Animated.Value(0)).current;
@@ -164,6 +166,22 @@ export default function StockScreen() {
       setSelectedProduct(product);
       setIsQuickAddProductModalOpen(true);
     };
+
+    const handleQuickAddSave = async (quickAddValue: string) => {
+        if (!quickAddValue || !quickAddValue.includes(':')) {
+            Alert.alert("Erro", "Formato inválido. Use 'código:quantidade'.");
+            return;
+        }
+        try {
+            await quickAddProduct(quickAddValue);
+            setIsQuickAddModalOpen(false);
+            await fetchProducts(currentPage, busca);
+            Alert.alert("Sucesso", "Estoque atualizado com sucesso!");
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.detail || "Produto não encontrado ou formato inválido.";
+            Alert.alert(`Erro: ${errorMessage}`);
+        }
+      };
   
     // Função para salvar a quantidade de estoque
     const handleQuickAddProductSave = async (productId: number, quantity: number) => {
@@ -182,9 +200,14 @@ export default function StockScreen() {
         <View style={styles.container}>
             <View style={styles.pageHeader}>
                 <Text style={styles.title}>Estoque</Text>
+                <View style={{flexDirection: 'row'}}>
+                <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
+                    <Text style={styles.addButtonText}>Entrada Rápida</Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
                     <Text style={styles.addButtonText}>Adicionar</Text>
                 </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.searchContainer}>
@@ -277,6 +300,11 @@ export default function StockScreen() {
                     </Animated.View>
                 </View>
             )}
+             <QuickAddModal
+                visible={isQuickAddModalOpen}
+                onClose={() => setIsQuickAddModalOpen(false)}
+                onSave={handleQuickAddSave}
+            />
 
             <EditProductModal
                 visible={isEditModalOpen}

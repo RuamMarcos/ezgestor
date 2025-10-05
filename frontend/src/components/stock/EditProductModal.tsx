@@ -1,5 +1,3 @@
-// frontend/src/components/stock/EditProductModal.tsx
-
 import { useState, useEffect } from 'react';
 import type { Product } from '../../services/stockService';
 
@@ -31,7 +29,6 @@ function EditProductModal({ product, onClose, onSave }: ModalProps) {
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
         <h2 className="text-2xl font-bold mb-6">Editar Produto</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Campos do formulário preenchidos com os dados do produto */}
           <div className="flex gap-4">
             <input
               type="text" name="nome" placeholder="Nome do Produto"
@@ -40,11 +37,34 @@ function EditProductModal({ product, onClose, onSave }: ModalProps) {
             />
             <input
               type="text" name="codigo_do_produto" placeholder="Código/SKU"
-              value={formData.codigo_do_produto} onChange={handleChange}
+              value={formData.codigo_do_produto || ''} onChange={handleChange}
               className="w-1/3 px-4 py-2 border rounded-lg"
             />
           </div>
-          {/* ... outros campos ... */}
+          <div className="flex gap-4">
+            <input
+              type="number" name="preco_venda" placeholder="Preço de Venda"
+              value={formData.preco_venda} onChange={handleChange} required
+              className="w-1/2 px-4 py-2 border rounded-lg" step="0.01"
+            />
+            <input
+              type="number" name="preco_custo" placeholder="Preço de Custo (Opcional)"
+              value={formData.preco_custo || ''} onChange={handleChange}
+              className="w-1/2 px-4 py-2 border rounded-lg" step="0.01"
+            />
+          </div>
+          <div className="flex gap-4">
+             <input
+              type="number" name="quantidade_estoque" placeholder="Qtd. em Estoque"
+              value={formData.quantidade_estoque} onChange={handleChange} required
+              className="w-1/2 px-4 py-2 border rounded-lg"
+            />
+            <input
+              type="number" name="quantidade_minima_estoque" placeholder="Qtd. Mínima"
+              value={formData.quantidade_minima_estoque} onChange={handleChange} required
+              className="w-1/2 px-4 py-2 border rounded-lg"
+            />
+          </div>
           <div className="flex justify-end gap-4 pt-4">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
             <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg">Salvar</button>
