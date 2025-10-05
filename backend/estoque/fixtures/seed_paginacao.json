@@ -1,0 +1,681 @@
+[
+  {
+    "model": "accounts.empresa",
+    "pk": 1000,
+    "fields": {
+      "nome_fantasia": "Empresa Paginação",
+      "razao_social": "Empresa Paginação LTDA",
+      "cnpj": "99.999.999/0001-99",
+      "data_cadastro": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.usuario",
+    "pk": 1000,
+    "fields": {
+      "password": "pbkdf2_sha256$720000$2GoetH4aCbEvRoz5ICkP5q$KHURKtE2zOHn7yCMVUSOSueKnRoQP6ygZcs6TAZR/bU=",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Admin",
+      "last_name": "Paginação",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2025-01-01T00:00:00Z",
+      "email": "paginacao@example.com",
+      "nivel_acesso": "administrador",
+      "empresa": 1000,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1001,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-001",
+      "nome": "Produto 01",
+      "preco_venda": "10.00",
+      "preco_custo": "5.00",
+      "quantidade_estoque": 10,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1002,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-002",
+      "nome": "Produto 02",
+      "preco_venda": "11.00",
+      "preco_custo": "5.50",
+      "quantidade_estoque": 11,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1003,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-003",
+      "nome": "Produto 03",
+      "preco_venda": "12.00",
+      "preco_custo": "6.00",
+      "quantidade_estoque": 12,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1004,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-004",
+      "nome": "Produto 04",
+      "preco_venda": "13.00",
+      "preco_custo": "6.50",
+      "quantidade_estoque": 13,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1005,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-005",
+      "nome": "Produto 05",
+      "preco_venda": "14.00",
+      "preco_custo": "7.00",
+      "quantidade_estoque": 14,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1006,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-006",
+      "nome": "Produto 06",
+      "preco_venda": "15.00",
+      "preco_custo": "7.50",
+      "quantidade_estoque": 15,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1007,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-007",
+      "nome": "Produto 07",
+      "preco_venda": "16.00",
+      "preco_custo": "8.00",
+      "quantidade_estoque": 16,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1008,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-008",
+      "nome": "Produto 08",
+      "preco_venda": "17.00",
+      "preco_custo": "8.50",
+      "quantidade_estoque": 17,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1009,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-009",
+      "nome": "Produto 09",
+      "preco_venda": "18.00",
+      "preco_custo": "9.00",
+      "quantidade_estoque": 18,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1010,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-010",
+      "nome": "Produto 10",
+      "preco_venda": "19.00",
+      "preco_custo": "9.50",
+      "quantidade_estoque": 19,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1011,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-011",
+      "nome": "Produto 11",
+      "preco_venda": "20.00",
+      "preco_custo": "10.00",
+      "quantidade_estoque": 20,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1012,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-012",
+      "nome": "Produto 12",
+      "preco_venda": "21.00",
+      "preco_custo": "10.50",
+      "quantidade_estoque": 21,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1013,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-013",
+      "nome": "Produto 13",
+      "preco_venda": "22.00",
+      "preco_custo": "11.00",
+      "quantidade_estoque": 22,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1014,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-014",
+      "nome": "Produto 14",
+      "preco_venda": "23.00",
+      "preco_custo": "11.50",
+      "quantidade_estoque": 23,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1015,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-015",
+      "nome": "Produto 15",
+      "preco_venda": "24.00",
+      "preco_custo": "12.00",
+      "quantidade_estoque": 24,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1016,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-016",
+      "nome": "Produto 16",
+      "preco_venda": "25.00",
+      "preco_custo": "12.50",
+      "quantidade_estoque": 25,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1017,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-017",
+      "nome": "Produto 17",
+      "preco_venda": "26.00",
+      "preco_custo": "13.00",
+      "quantidade_estoque": 2,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1018,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-018",
+      "nome": "Produto 18",
+      "preco_venda": "27.00",
+      "preco_custo": "13.50",
+      "quantidade_estoque": 3,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1019,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-019",
+      "nome": "Produto 19",
+      "preco_venda": "28.00",
+      "preco_custo": "14.00",
+      "quantidade_estoque": 4,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1020,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-020",
+      "nome": "Produto 20",
+      "preco_venda": "29.00",
+      "preco_custo": "14.50",
+      "quantidade_estoque": 5,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1021,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-021",
+      "nome": "Produto 21",
+      "preco_venda": "30.00",
+      "preco_custo": "15.00",
+      "quantidade_estoque": 6,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1022,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-022",
+      "nome": "Produto 22",
+      "preco_venda": "31.00",
+      "preco_custo": "15.50",
+      "quantidade_estoque": 7,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1023,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-023",
+      "nome": "Produto 23",
+      "preco_venda": "32.00",
+      "preco_custo": "16.00",
+      "quantidade_estoque": 8,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1024,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-024",
+      "nome": "Produto 24",
+      "preco_venda": "33.00",
+      "preco_custo": "16.50",
+      "quantidade_estoque": 9,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1025,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-025",
+      "nome": "Produto 25",
+      "preco_venda": "34.00",
+      "preco_custo": "17.00",
+      "quantidade_estoque": 10,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1026,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-026",
+      "nome": "Produto 26",
+      "preco_venda": "35.00",
+      "preco_custo": "17.50",
+      "quantidade_estoque": 11,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1027,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-027",
+      "nome": "Produto 27",
+      "preco_venda": "36.00",
+      "preco_custo": "18.00",
+      "quantidade_estoque": 12,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1028,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-028",
+      "nome": "Produto 28",
+      "preco_venda": "37.00",
+      "preco_custo": "18.50",
+      "quantidade_estoque": 13,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1029,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-029",
+      "nome": "Produto 29",
+      "preco_venda": "38.00",
+      "preco_custo": "19.00",
+      "quantidade_estoque": 14,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1030,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-030",
+      "nome": "Produto 30",
+      "preco_venda": "39.00",
+      "preco_custo": "19.50",
+      "quantidade_estoque": 15,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1031,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-031",
+      "nome": "Produto 31",
+      "preco_venda": "40.00",
+      "preco_custo": "20.00",
+      "quantidade_estoque": 16,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1032,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-032",
+      "nome": "Produto 32",
+      "preco_venda": "41.00",
+      "preco_custo": "20.50",
+      "quantidade_estoque": 17,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1033,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-033",
+      "nome": "Produto 33",
+      "preco_venda": "42.00",
+      "preco_custo": "21.00",
+      "quantidade_estoque": 18,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1034,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-034",
+      "nome": "Produto 34",
+      "preco_venda": "43.00",
+      "preco_custo": "21.50",
+      "quantidade_estoque": 19,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1035,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-035",
+      "nome": "Produto 35",
+      "preco_venda": "44.00",
+      "preco_custo": "22.00",
+      "quantidade_estoque": 20,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1036,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-036",
+      "nome": "Produto 36",
+      "preco_venda": "45.00",
+      "preco_custo": "22.50",
+      "quantidade_estoque": 21,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1037,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-037",
+      "nome": "Produto 37",
+      "preco_venda": "46.00",
+      "preco_custo": "23.00",
+      "quantidade_estoque": 22,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1038,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-038",
+      "nome": "Produto 38",
+      "preco_venda": "47.00",
+      "preco_custo": "23.50",
+      "quantidade_estoque": 23,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1039,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-039",
+      "nome": "Produto 39",
+      "preco_venda": "48.00",
+      "preco_custo": "24.00",
+      "quantidade_estoque": 24,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1040,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-040",
+      "nome": "Produto 40",
+      "preco_venda": "49.00",
+      "preco_custo": "24.50",
+      "quantidade_estoque": 25,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1041,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-041",
+      "nome": "Produto 41",
+      "preco_venda": "50.00",
+      "preco_custo": "25.00",
+      "quantidade_estoque": 26,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1042,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-042",
+      "nome": "Produto 42",
+      "preco_venda": "51.00",
+      "preco_custo": "25.50",
+      "quantidade_estoque": 27,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1043,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-043",
+      "nome": "Produto 43",
+      "preco_venda": "52.00",
+      "preco_custo": "26.00",
+      "quantidade_estoque": 28,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1044,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-044",
+      "nome": "Produto 44",
+      "preco_venda": "53.00",
+      "preco_custo": "26.50",
+      "quantidade_estoque": 29,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1045,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-045",
+      "nome": "Produto 45",
+      "preco_venda": "54.00",
+      "preco_custo": "27.00",
+      "quantidade_estoque": 30,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1046,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-046",
+      "nome": "Produto 46",
+      "preco_venda": "55.00",
+      "preco_custo": "27.50",
+      "quantidade_estoque": 4,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1047,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-047",
+      "nome": "Produto 47",
+      "preco_venda": "56.00",
+      "preco_custo": "28.00",
+      "quantidade_estoque": 3,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1048,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-048",
+      "nome": "Produto 48",
+      "preco_venda": "57.00",
+      "preco_custo": "28.50",
+      "quantidade_estoque": 2,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1049,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-049",
+      "nome": "Produto 49",
+      "preco_venda": "58.00",
+      "preco_custo": "29.00",
+      "quantidade_estoque": 1,
+      "quantidade_minima_estoque": 5
+    }
+  },
+  {
+    "model": "estoque.produto",
+    "pk": 1050,
+    "fields": {
+      "empresa": 1000,
+      "codigo_do_produto": "SKU-050",
+      "nome": "Produto 50",
+      "preco_venda": "59.00",
+      "preco_custo": "29.50",
+      "quantidade_estoque": 0,
+      "quantidade_minima_estoque": 5
+    }
+  }
+]

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, View, Platform } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, View, Platform, TextInput } from 'react-native';
 import { getProducts, createProduct, deleteProduct } from '../../services/StockService';
 import type { Product } from '../../services/StockService';
 import ProductList from '../../components/stock/ProductList';
@@ -11,16 +11,29 @@ export default function StockScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [busca, setBusca] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        fetchProducts();
-    }, []);
+        const handler = setTimeout(() => {
+            setCurrentPage(1);
+            fetchProducts(1, busca);
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [busca]);
 
-    const fetchProducts = async () => {
+    useEffect(() => {
+        fetchProducts(currentPage, busca);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage]);
+
+    const fetchProducts = async (page: number, search: string) => {
         try {
             setLoading(true);
-            const data = await getProducts();
-            setProducts(data);
+            const data = await getProducts({ page, search });
+            setProducts(data.results);
+            setTotalPages(Math.ceil((data.count || 0) / 10));
         } catch (error) {
             console.error("Erro ao buscar produtos:", error);
             Alert.alert("Erro", "Não foi possível carregar os produtos.");
@@ -33,7 +46,7 @@ export default function StockScreen() {
         try {
             await createProduct(newProduct);
             setIsModalOpen(false);
-            await fetchProducts(); // Recarrega a lista
+            await fetchProducts(currentPage, busca);
             Alert.alert("Sucesso", "Produto adicionado!");
         } catch (error: any) {
             console.error("Erro ao adicionar produto:", error);
@@ -105,12 +118,44 @@ export default function StockScreen() {
                     <Text style={styles.addButtonText}>Adicionar</Text>
                 </TouchableOpacity>
             </View>
+
+            <View style={styles.searchContainer}>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Pesquisar por produto ou SKU..."
+                    value={busca}
+                    onChangeText={setBusca}
+                    placeholderTextColor={DashboardColors.grayText}
+                />
+            </View>
             
             <ProductList 
                 products={products} 
                 onEditProduct={handleEditProduct}
                 onDeleteProduct={handleDeleteProduct} 
             />
+
+            {totalPages > 1 && (
+                <View style={styles.paginationContainer}>
+                    <TouchableOpacity
+                        style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+                        onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                    >
+                        <Text style={styles.paginationButtonText}>Anterior</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.paginationText}>
+                        {currentPage} de {totalPages}
+                    </Text>
+                    <TouchableOpacity
+                        style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
+                        onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                    >
+                        <Text style={styles.paginationButtonText}>Próximo</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             <AddProductModal 
                 visible={isModalOpen}
