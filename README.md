@@ -23,7 +23,9 @@
 
 ## 📖 Sobre o Projeto
 
-|O **EzGestor** é uma solução de gestão empresarial integrada, projetada para atender às necessidades de micro, pequenas e médias empresas. A plataforma, acessível via web e aplicativo móvel, centraliza e automatiza processos essenciais como gestão de vendas, controle de estoque e fluxo de caixa, fornecendo aos gestores uma visão completa e em tempo real do negócio para impulsionar o crescimento e a competitividade no mercado.|![logo](https://github.com/user-attachments/assets/043b5e6c-d9f6-410f-be7f-853a23c47013)|
+|O **EzGestor** é uma solução de gestão empresarial integrada, projetada para atender às necessidades de micro, pequenas e médias empresas. A plataforma, acessível via web e aplicativo móvel, centraliza e automatiza processos essenciais como gestão de vendas, controle de estoque e fluxo de caixa, fornecendo aos gestores uma visão completa e em tempo real do negócio para impulsionar o crescimento e a competitividade no mercado.
+
+<img width="612" height="612" alt="Logo - EzGestor" src="https://github.com/user-attachments/assets/f7da447a-2494-4b76-ae00-b3f73c82c25c" />
 
 ## 🧾 Requisitos Funcionais
 
