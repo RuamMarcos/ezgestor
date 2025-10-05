@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import ProductTable from '../components/stock/ProductTable';
 import AddProductModal from '../components/stock/AddProductModal';
+import EditProductModal from '../components/stock/EditProductModal';
 import QuickAddModal from '../components/stock/QuickAddModal';
 import QuickAddProductModal from '../components/stock/QuickAddProductModal';
-import { getProducts, createProduct, deleteProduct, quickAddProduct, addStockToProduct } from '../services/stockService';
+import { getProducts, createProduct, deleteProduct, quickAddProduct, addStockToProduct, updateProduct } from '../services/stockService'; // Importe updateProduct
 import type { Product } from '../services/stockService';
 
 
@@ -14,6 +15,8 @@ function StockPage() {
   const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
   const [isQuickAddProductModalOpen, setIsQuickAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -96,6 +99,25 @@ function StockPage() {
     }
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    if (!editingProduct) return;
+
+    try {
+      await updateProduct(editingProduct.id_produto!, updatedProduct);
+      setIsEditModalOpen(false);
+      fetchProducts();
+      alert("Produto atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar produto:", error);
+      alert("Falha ao atualizar o produto.");
+    }
+  };
+
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -119,10 +141,11 @@ function StockPage() {
       {loading ? (
         <p>Carregando produtos...</p>
       ) : (
-        <ProductTable 
-          produtos={products} 
+        <ProductTable
+          produtos={products}
           onDeleteProduct={handleDeleteProduct}
           onAddStock={handleAddStock}
+          onEditProduct={handleEditProduct} // Passe a nova função
         />
       )}
 
@@ -145,6 +168,14 @@ function StockPage() {
             product={selectedProduct}
             onClose={() => setIsQuickAddProductModalOpen(false)}
             onSave={handleQuickAddProductSave}
+        />
+      )}
+
+      {isEditModalOpen && editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleUpdateProduct}
         />
       )}
     </div>

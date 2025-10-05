@@ -1,17 +1,19 @@
 import api from '../utils/api';
 
 export interface Product {
-    id_produto?: number;
-    codigo_do_produto?: string;
-    nome: string;
-    preco_venda: number | string;
-    preco_custo?: number | string;
-    quantidade_estoque: number;
-    quantidade_minima_estoque: number;
+  id_produto?: number;
+  codigo_do_produto?: string;
+  nome: string;
+  preco_venda: number | string;
+  preco_custo?: number | string;
+  quantidade_estoque: number;
+  quantidade_minima_estoque: number;
+  em_baixo_estoque?: boolean;
 }
 
-export const getProducts = async (): Promise<Product[]> => {
-    const response = await api.get('/estoque/produtos/');
+// FUNÇÃO ATUALIZADA
+export const getProducts = async (params: { page: number, search: string }): Promise<any> => {
+    const response = await api.get('/estoque/produtos/', { params });
     return response.data;
 };
 
@@ -22,6 +24,11 @@ export const createProduct = async (productData: Product): Promise<Product> => {
 
 export const deleteProduct = async (productId: number): Promise<void> => {
     await api.delete(`/estoque/produtos/${productId}/`);
+};
+
+export const updateProduct = async (productId: number, productData: Product): Promise<Product> => {
+  const response = await api.put(`/estoque/produtos/${productId}/`, productData);
+  return response.data;
 };
 
 export const quickAddProduct = async (quickAddString: string): Promise<Product> => {

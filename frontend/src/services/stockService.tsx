@@ -38,3 +38,8 @@ export const addStockToProduct = async (productId: number, quantity: number): Pr
   });
   return response.data;
 };
+
+export const updateProduct = async (productId: number, productData: Product): Promise<Product> => {
+  const response = await api.put(`/estoque/produtos/${productId}/`, productData);
+  return response.data;
+};
