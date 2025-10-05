@@ -20,3 +20,8 @@ class Produto(models.Model):
 
     class Meta:
         unique_together = ('empresa', 'codigo_do_produto')
+        indexes = [
+            models.Index(fields=['nome'], name='produto_nome_idx'),
+            models.Index(fields=['codigo_do_produto'], name='produto_codigo_idx'),
+            models.Index(fields=['empresa', 'codigo_do_produto'], name='empresa_codigo_comp_idx'),
+        ]

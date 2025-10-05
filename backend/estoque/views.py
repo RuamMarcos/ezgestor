@@ -1,17 +1,69 @@
 from rest_framework import generics, permissions
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q, F
 from .models import Produto
 from .serializers import ProdutoSerializer
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class ProdutoListCreateView(generics.ListCreateAPIView):
     """
-    View para listar e criar produtos.
+    View para listar e criar produtos com paginação, busca e filtros.
     """
     serializer_class = ProdutoSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        # Filtra os produtos pela empresa do usuário logado
-        return Produto.objects.filter(empresa=self.request.user.empresa)
+        user = self.request.user
+        queryset = Produto.objects.filter(empresa=user.empresa)
+
+        # Busca ampla
+        search_term = self.request.query_params.get('search')
+        if search_term:
+            queryset = queryset.filter(
+                Q(nome__icontains=search_term) |
+                Q(codigo_do_produto__icontains=search_term)
+            )
+
+        # Filtros específicos
+        codigo = self.request.query_params.get('codigo')
+        if codigo:
+            queryset = queryset.filter(codigo_do_produto__icontains=codigo)
+
+        nome = self.request.query_params.get('nome')
+        if nome:
+            queryset = queryset.filter(nome__icontains=nome)
+
+        em_baixo_estoque = self.request.query_params.get('em_baixo_estoque')
+        if em_baixo_estoque in {'true', '1', 'True'}:
+            queryset = queryset.filter(quantidade_estoque__lte=F('quantidade_minima_estoque'))
+
+        preco_min = self.request.query_params.get('preco_min')
+        if preco_min is not None:
+            try:
+                queryset = queryset.filter(preco_venda__gte=float(preco_min))
+            except ValueError:
+                pass
+
+        preco_max = self.request.query_params.get('preco_max')
+        if preco_max is not None:
+            try:
+                queryset = queryset.filter(preco_venda__lte=float(preco_max))
+            except ValueError:
+                pass
+
+        # Ordenação
+        ordering = self.request.query_params.get('ordering')
+        allowed = {'nome', '-nome', 'preco_venda', '-preco_venda', 'quantidade_estoque', '-quantidade_estoque'}
+        if ordering in allowed:
+            queryset = queryset.order_by(ordering)
+
+        return queryset
 
     def perform_create(self, serializer):
         # Associa o produto à empresa do usuário logado ao criar
