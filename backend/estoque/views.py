@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions, status, views
 from .models import Produto
-from .serializers import ProdutoSerializer, QuickAddSerializer
+from .serializers import ProdutoSerializer, QuickAddSerializer, AddStockSerializer
 from django.shortcuts import get_object_or_404
 from django.db import models
 from rest_framework.response import Response
@@ -69,6 +69,31 @@ class ProdutoQuickUpdateView(views.APIView):
         produto.save(update_fields=['quantidade_estoque'])
         
         # Recarrega o objeto do banco para obter o valor atualizado
+        produto.refresh_from_db()
+
+        response_serializer = ProdutoSerializer(produto)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+
+class AddStockView(views.APIView):
+    """
+    View para adicionar estoque a um produto específico por ID.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, id_produto, *args, **kwargs):
+        serializer = AddStockSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        quantidade = serializer.validated_data['quantity']
+
+        empresa = request.user.empresa
+        produto = get_object_or_404(Produto, id_produto=id_produto, empresa=empresa)
+
+        produto.quantidade_estoque = models.F('quantidade_estoque') + quantidade
+        produto.save(update_fields=['quantidade_estoque'])
+        
         produto.refresh_from_db()
 
         response_serializer = ProdutoSerializer(produto)

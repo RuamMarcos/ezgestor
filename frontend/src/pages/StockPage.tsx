@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import ProductTable from '../components/stock/ProductTable';
 import AddProductModal from '../components/stock/AddProductModal';
-import QuickAddModal from '../components/stock/QuickAddModal'; // Import the new modal
-import { getProducts, createProduct, deleteProduct, quickAddProduct } from '../services/stockService';
+import QuickAddModal from '../components/stock/QuickAddModal';
+import QuickAddProductModal from '../components/stock/QuickAddProductModal';
+import { getProducts, createProduct, deleteProduct, quickAddProduct, addStockToProduct } from '../services/stockService';
 import type { Product } from '../services/stockService';
 
 
@@ -10,7 +11,9 @@ function StockPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false); // State for the new modal
+  const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
+  const [isQuickAddProductModalOpen, setIsQuickAddProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -33,7 +36,7 @@ function StockPage() {
     try {
       await createProduct(newProduct);
       setIsAddModalOpen(false);
-      fetchProducts(); // Atualiza a lista após adicionar
+      fetchProducts();
       alert("Produto adicionado com sucesso!");
     } catch (error: any) {
       console.error("Erro ao adicionar produto:", error);
@@ -65,13 +68,31 @@ function StockPage() {
     }
     try {
         await quickAddProduct(quickAddValue);
-        setIsQuickAddModalOpen(false); // Close the modal
-        await fetchProducts(); // Refresh the product list
+        setIsQuickAddModalOpen(false);
+        await fetchProducts();
         alert("Estoque atualizado com sucesso!");
     } catch (error: any) {
         console.error("Erro na entrada rápida:", error);
         const errorMessage = error.response?.data?.detail || "Produto não encontrado ou formato inválido.";
         alert(`Erro: ${errorMessage}`);
+    }
+  };
+
+  const handleAddStock = (product: Product) => {
+    setSelectedProduct(product);
+    setIsQuickAddProductModalOpen(true);
+  };
+
+  const handleQuickAddProductSave = async (productId: number, quantity: number) => {
+    try {
+      await addStockToProduct(productId, quantity);
+      setIsQuickAddProductModalOpen(false);
+      await fetchProducts();
+      alert("Estoque atualizado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao adicionar estoque:", error);
+      const errorMessage = error.response?.data?.detail || "Erro ao adicionar estoque.";
+      alert(`Erro: ${errorMessage}`);
     }
   };
 
@@ -101,6 +122,7 @@ function StockPage() {
         <ProductTable 
           produtos={products} 
           onDeleteProduct={handleDeleteProduct}
+          onAddStock={handleAddStock}
         />
       )}
 
@@ -115,6 +137,14 @@ function StockPage() {
         <QuickAddModal
             onClose={() => setIsQuickAddModalOpen(false)}
             onSave={handleQuickAddSave}
+        />
+      )}
+
+      {isQuickAddProductModalOpen && selectedProduct && (
+        <QuickAddProductModal
+            product={selectedProduct}
+            onClose={() => setIsQuickAddProductModalOpen(false)}
+            onSave={handleQuickAddProductSave}
         />
       )}
     </div>

@@ -1,63 +1,107 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
-import type { Product } from '../../services/StockService';
-import { styles } from '../../styles/stock/ProductListStyles';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Product, deleteProduct } from '../../services/StockService';
 
 interface ProductListProps {
   products: Product[];
-  onEditProduct: (product: Product) => void;
-  onDeleteProduct: (productId: number) => void; 
+  onRefresh: () => void;
+  onAddStock: (product: Product) => void;
 }
 
-const formatCurrency = (value: number | string | undefined): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (typeof numValue !== 'number' || isNaN(numValue)) return 'N/A';
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
-};
+const ProductList: React.FC<ProductListProps> = ({ products, onRefresh, onAddStock }) => {
 
-const ProductItem = ({ item, onEdit, onDelete }: { item: Product; onEdit: (p: Product) => void; onDelete: (id: number) => void; }) => (
-  <View style={styles.itemContainer}>
-    <View style={styles.itemInfo}>
-      <Text style={styles.itemName}>{item.nome}</Text>
-      <Text style={styles.itemSku}>{item.codigo_do_produto || 'Sem SKU'}</Text>
-    </View>
-    <View style={styles.itemDetails}>
-      <Text style={styles.itemQuantity}>{item.quantidade_estoque} un.</Text>
-      <Text style={styles.itemPrice}>{formatCurrency(item.preco_venda)}</Text>
-    </View>
-    <View style={[styles.statusBadge, item.em_baixo_estoque ? styles.statusLow : styles.statusOk]}>
-      <Text style={styles.statusText}>{item.em_baixo_estoque ? 'Baixo' : 'Bom'}</Text>
-    </View>
-    
-    {/* Agrupar botões de ação */}
-    <View style={styles.actionsContainer}>
-        <TouchableOpacity onPress={() => onEdit(item)} style={styles.actionButton}>
-            <MaterialCommunityIcons name="pencil-outline" size={22} color="#555" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => onDelete(item.id_produto!)} style={styles.actionButton}>
-            <MaterialCommunityIcons name="trash-can-outline" size={22} color="#D9534F" />
-        </TouchableOpacity>
-    </View>
-  </View>
-);
+  const handleDelete = (productId: number) => {
+    Alert.alert(
+      "Confirmar Exclusão",
+      "Tem certeza que deseja excluir este produto?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Excluir", onPress: async () => {
+          try {
+            await deleteProduct(productId);
+            onRefresh(); // Atualiza a lista
+          } catch (error) {
+            Alert.alert("Erro", "Não foi possível excluir o produto.");
+          }
+        }, style: "destructive" }
+      ]
+    );
+  };
 
-const ProductList = ({ products, onEditProduct, onDeleteProduct }: ProductListProps) => {
+  const renderItem = ({ item }: { item: Product }) => (
+    <View style={styles.itemContainer}>
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemName}>{item.nome}</Text>
+        <Text>Código: {item.codigo_do_produto || 'N/A'}</Text>
+        <Text>Preço: R$ {item.preco_venda}</Text>
+        <Text>Estoque: {item.quantidade_estoque}</Text>
+      </View>
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity style={[styles.button, styles.addButton]} onPress={() => onAddStock(item)}>
+          <Text style={styles.buttonText}>Adicionar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={() => handleDelete(item.id_produto!)}>
+          <Text style={styles.buttonText}>Excluir</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <FlatList
       data={products}
-      renderItem={({ item }) => (
-        <ProductItem 
-            item={item} 
-            onEdit={onEditProduct} 
-            onDelete={onDeleteProduct} 
-        />
-      )}
-      keyExtractor={(item) => item.id_produto!.toString()}
+      renderItem={renderItem}
+      keyExtractor={item => item.id_produto!.toString()}
       contentContainerStyle={styles.list}
-      ListEmptyComponent={<Text style={styles.emptyText}>Nenhum produto cadastrado.</Text>}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  list: {
+    padding: 10,
+  },
+  itemContainer: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginVertical: 8,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 2,
+  },
+  itemDetails: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  actionsContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    height: '100%',
+  },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginVertical: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButton: {
+    backgroundColor: '#4CAF50', // Verde
+  },
+  deleteButton: {
+    backgroundColor: '#f44336', // Vermelho
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});
 
 export default ProductList;

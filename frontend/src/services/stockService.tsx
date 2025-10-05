@@ -31,3 +31,10 @@ export const quickAddProduct = async (quickAddString: string): Promise<Product> 
   });
   return response.data;
 };
+
+export const addStockToProduct = async (productId: number, quantity: number): Promise<Product> => {
+  const response = await api.post(`/estoque/produtos/${productId}/add-stock/`, {
+    quantity: quantity
+  });
+  return response.data;
+};
