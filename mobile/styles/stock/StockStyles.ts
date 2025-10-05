@@ -62,6 +62,15 @@ export const styles = StyleSheet.create({
         backgroundColor: DashboardColors.headerBlue,
         borderRadius: 8,
     },
+    paginationIconButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        backgroundColor: DashboardColors.headerBlue,
+        borderRadius: 8,
+        minWidth: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     disabledButton: {
         backgroundColor: DashboardColors.lightGray,
     },
@@ -74,5 +83,16 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: DashboardColors.darkText,
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999,
     },
 });
