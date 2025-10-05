@@ -48,7 +48,7 @@ function StockPage() {
       requestAnimationFrame(() => {
         window.scrollTo({
           top: scrollPositionRef.current,
-          behavior: 'instant' // Sem animação para ser instantâneo
+          behavior: 'instant' // No animation for instant scroll
         });
         shouldPreserveScrollRef.current = false;
       });
