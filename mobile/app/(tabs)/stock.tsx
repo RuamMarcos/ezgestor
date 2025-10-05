@@ -66,7 +66,16 @@ export default function StockScreen() {
     const proceedWithDelete = async (productId: number) => {
         try {
             await deleteProduct(productId);
-            setProducts(prevProducts => prevProducts.filter(p => p.id_produto !== productId));
+            const remaining = products.filter(p => p.id_produto !== productId);
+            
+            // Se a página ficou vazia e não é a primeira, volta uma página
+            if (remaining.length === 0 && currentPage > 1) {
+                setCurrentPage(currentPage - 1); // O useEffect vai buscar os dados automaticamente
+            } else {
+                // Apenas atualiza a lista se não vai mudar de página
+                setProducts(remaining);
+            }
+            
             if (Platform.OS !== 'web') {
                 Alert.alert("Sucesso", "Produto excluído com sucesso!");
             } else {
