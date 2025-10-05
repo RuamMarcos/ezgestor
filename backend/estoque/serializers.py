@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from .models import Produto
 
+class QuickAddSerializer(serializers.Serializer):
+    """Serializer para a string de entrada rápida."""
+    quick_add_string = serializers.CharField(max_length=100)
+
 class ProdutoSerializer(serializers.ModelSerializer):
     em_baixo_estoque = serializers.BooleanField(read_only=True)
 

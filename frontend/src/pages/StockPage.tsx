@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import ProductTable from '../components/stock/ProductTable';
 import AddProductModal from '../components/stock/AddProductModal';
-import { getProducts, createProduct, deleteProduct } from '../services/stockService';
+import QuickAddModal from '../components/stock/QuickAddModal'; // Import the new modal
+import { getProducts, createProduct, deleteProduct, quickAddProduct } from '../services/stockService';
 import type { Product } from '../services/stockService';
 
 
 function StockPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false); // State for the new modal
 
   useEffect(() => {
     fetchProducts();
@@ -28,22 +30,22 @@ function StockPage() {
   };
   
   const handleAddProduct = async (newProduct: Product) => {
-  try {
-    await createProduct(newProduct);
-    setIsModalOpen(false);
-    fetchProducts(); // Atualiza a lista após adicionar
-    alert("Produto adicionado com sucesso!");
-  } catch (error: any) {
-    console.error("Erro ao adicionar produto:", error);
-    let message = "Falha ao adicionar produto. Verifique os dados e tente novamente.";
-    if (error.response?.data?.codigo_do_produto) {
-      message = error.response.data.codigo_do_produto[0];
+    try {
+      await createProduct(newProduct);
+      setIsAddModalOpen(false);
+      fetchProducts(); // Atualiza a lista após adicionar
+      alert("Produto adicionado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao adicionar produto:", error);
+      let message = "Falha ao adicionar produto. Verifique os dados e tente novamente.";
+      if (error.response?.data?.codigo_do_produto) {
+        message = error.response.data.codigo_do_produto[0];
+      }
+      alert(message);
     }
-    alert(message);
-  }
-};
+  };
 
-const handleDeleteProduct = async (productId: number) => {
+  const handleDeleteProduct = async (productId: number) => {
     if (window.confirm("Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.")) {
       try {
         await deleteProduct(productId);
@@ -56,16 +58,41 @@ const handleDeleteProduct = async (productId: number) => {
     }
   };
 
+  const handleQuickAddSave = async (quickAddValue: string) => {
+    if (!quickAddValue || !quickAddValue.includes(':')) {
+        alert("Formato inválido. Use 'código:quantidade'.");
+        return;
+    }
+    try {
+        await quickAddProduct(quickAddValue);
+        setIsQuickAddModalOpen(false); // Close the modal
+        await fetchProducts(); // Refresh the product list
+        alert("Estoque atualizado com sucesso!");
+    } catch (error: any) {
+        console.error("Erro na entrada rápida:", error);
+        const errorMessage = error.response?.data?.detail || "Produto não encontrado ou formato inválido.";
+        alert(`Erro: ${errorMessage}`);
+    }
+  };
+
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Controle de Estoque</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors shadow"
-        >
-          Adicionar Produto
-        </button>
+        <div className="flex items-center gap-4">
+           <button
+            onClick={() => setIsQuickAddModalOpen(true)}
+            className="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors shadow"
+          >
+            Entrada Rápida
+          </button>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors shadow"
+          >
+            Adicionar Produto
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -77,10 +104,17 @@ const handleDeleteProduct = async (productId: number) => {
         />
       )}
 
-      {isModalOpen && (
+      {isAddModalOpen && (
         <AddProductModal
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => setIsAddModalOpen(false)}
           onSave={handleAddProduct}
+        />
+      )}
+
+      {isQuickAddModalOpen && (
+        <QuickAddModal
+            onClose={() => setIsQuickAddModalOpen(false)}
+            onSave={handleQuickAddSave}
         />
       )}
     </div>

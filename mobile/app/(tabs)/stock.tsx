@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, View, Platform } from 'react-native';
-import { getProducts, createProduct, deleteProduct } from '../../services/StockService';
+import { getProducts, createProduct, deleteProduct, quickAddProduct } from '../../services/StockService';
 import type { Product } from '../../services/StockService';
 import ProductList from '../../components/stock/ProductList';
 import AddProductModal from '../../components/stock/AddProductModal';
+import QuickAddModal from '../../components/stock/QuickAddModal';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '../../styles/stock/StockStyles';
 
 export default function StockScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
 
     useEffect(() => {
         fetchProducts();
@@ -32,7 +34,7 @@ export default function StockScreen() {
     const handleAddProduct = async (newProduct: Product) => {
         try {
             await createProduct(newProduct);
-            setIsModalOpen(false);
+            setIsAddModalOpen(false);
             await fetchProducts(); // Recarrega a lista
             Alert.alert("Sucesso", "Produto adicionado!");
         } catch (error: any) {
@@ -42,6 +44,23 @@ export default function StockScreen() {
                 message = error.response.data.codigo_do_produto[0];
             }
             Alert.alert("Erro", message);
+        }
+    };
+    
+    const handleQuickAddSave = async (quickAddValue: string) => {
+        if (!quickAddValue || !quickAddValue.includes(':')) {
+            Alert.alert("Erro", "Formato inválido. Use 'código:quantidade'.");
+            return;
+        }
+        try {
+            await quickAddProduct(quickAddValue);
+            setIsQuickAddModalOpen(false);
+            await fetchProducts();
+            Alert.alert("Sucesso", "Estoque atualizado!");
+        } catch (error: any) {
+            console.error("Erro na entrada rápida:", error);
+            const errorMessage = error.response?.data?.detail || "Produto não encontrado ou formato inválido.";
+            Alert.alert("Erro", errorMessage);
         }
     };
 
@@ -72,7 +91,6 @@ export default function StockScreen() {
     const handleDeleteProduct = (productId: number) => {
         const confirmationMessage = "Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.";
 
-        // 2. Verificar a plataforma
         if (Platform.OS === 'web') {
             if (window.confirm(confirmationMessage)) {
                 proceedWithDelete(productId);
@@ -101,9 +119,14 @@ export default function StockScreen() {
         <View style={styles.container}>
             <View style={styles.pageHeader}>
                 <Text style={styles.title}>Estoque</Text>
-                <TouchableOpacity style={styles.addButton} onPress={() => setIsModalOpen(true)}>
-                    <Text style={styles.addButtonText}>Adicionar</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <TouchableOpacity style={[styles.addButton, {backgroundColor: '#16a34a'}]} onPress={() => setIsQuickAddModalOpen(true)}>
+                        <Text style={styles.addButtonText}>Rápida</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
+                        <Text style={styles.addButtonText}>Adicionar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
             
             <ProductList 
@@ -113,11 +136,16 @@ export default function StockScreen() {
             />
 
             <AddProductModal 
-                visible={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                visible={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
                 onSave={handleAddProduct}
+            />
+
+            <QuickAddModal
+                visible={isQuickAddModalOpen}
+                onClose={() => setIsQuickAddModalOpen(false)}
+                onSave={handleQuickAddSave}
             />
         </View>
     );
 }
-

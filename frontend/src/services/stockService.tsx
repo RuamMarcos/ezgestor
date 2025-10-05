@@ -24,3 +24,10 @@ export const createProduct = async (productData: Product): Promise<Product> => {
 export const deleteProduct = async (productId: number): Promise<void> => {
   await api.delete(`/estoque/produtos/${productId}/`);
 };
+
+export const quickAddProduct = async (quickAddString: string): Promise<Product> => {
+  const response = await api.post('/estoque/produtos/quick-add/', {
+    quick_add_string: quickAddString
+  });
+  return response.data;
+};
