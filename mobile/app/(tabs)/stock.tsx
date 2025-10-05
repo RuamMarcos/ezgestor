@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
 import { useFocusEffect} from '@react-navigation/native';
-import { getProducts, createProduct, deleteProduct, updateProduct, Product } from '../../services/StockService';
+import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct } from '../../services/StockService'; // Importe addStockToProduct
 import ProductList from '../../components/stock/ProductList';
 import AddProductModal from '../../components/stock/AddProductModal';
 import EditProductModal from '../../components/stock/EditProductModal';
+import QuickAddProductModal from '../../components/stock/QuickAddProductModal'; // Importe o novo modal
 import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '../../styles/stock/StockStyles';
 import Svg, { Path } from 'react-native-svg';
@@ -17,6 +18,10 @@ export default function StockScreen() {
     const [busca, setBusca] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    
+    // Estados para o novo modal de adicionar estoque
+    const [isQuickAddProductModalOpen, setIsQuickAddProductModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     // Modal para adicionar produto
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -153,6 +158,25 @@ export default function StockScreen() {
             ]
         );
     };
+
+    // Função para abrir o modal de adicionar estoque
+    const handleAddStock = (product: Product) => {
+      setSelectedProduct(product);
+      setIsQuickAddProductModalOpen(true);
+    };
+  
+    // Função para salvar a quantidade de estoque
+    const handleQuickAddProductSave = async (productId: number, quantity: number) => {
+      try {
+        await addStockToProduct(productId, quantity);
+        setIsQuickAddProductModalOpen(false);
+        await fetchProducts(currentPage, busca);
+        Alert.alert("Sucesso", "Estoque atualizado!");
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.detail || "Erro ao adicionar estoque.";
+        Alert.alert(`Erro: ${errorMessage}`);
+      }
+    };
     
     return (
         <View style={styles.container}>
@@ -176,7 +200,8 @@ export default function StockScreen() {
             <ProductList 
                 products={products} 
                 onEditProduct={handleEditProduct}
-                onDeleteProduct={handleDeleteProduct} 
+                onDeleteProduct={handleDeleteProduct}
+                onAddStock={handleAddStock} // Passando a nova função
             />
 
             {totalPages > 1 && (
@@ -260,6 +285,14 @@ export default function StockScreen() {
                 onSave={handleUpdateProduct}
             />
             
+            {/* Novo Modal para Adicionar Estoque */}
+            <QuickAddProductModal
+                product={selectedProduct}
+                visible={isQuickAddProductModalOpen}
+                onClose={() => setIsQuickAddProductModalOpen(false)}
+                onSave={handleQuickAddProductSave}
+            />
+
             {loading && (
                 <View style={styles.loadingOverlay}>
                      <ActivityIndicator size="large" color="#FFFFFF" />
@@ -268,6 +301,3 @@ export default function StockScreen() {
         </View>
     );
 }
-
-// Adicione os estilos que faltam ao seu StockStyles.ts
-// Ex: searchContainer, searchInput, paginationContainer, loadingOverlay etc.

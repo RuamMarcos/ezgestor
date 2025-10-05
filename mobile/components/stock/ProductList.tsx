@@ -9,6 +9,7 @@ interface ProductListProps {
   products: Product[];
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (productId: number) => void;
+  onAddStock: (product: Product) => void; // Nova propriedade
 }
 
 const formatCurrency = (value: number | string | undefined): string => {
@@ -17,7 +18,7 @@ const formatCurrency = (value: number | string | undefined): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
 };
 
-const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDeleteProduct }) => {
+const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDeleteProduct, onAddStock }) => {
 
   const handleDelete = (productId: number) => {
     Alert.alert(
@@ -52,6 +53,10 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDe
         </Text>
       </View>
       <View style={styles.actionsContainer}>
+          {/* Novo Botão de Adicionar Estoque */}
+          <TouchableOpacity style={styles.actionButton} onPress={() => onAddStock(item)}>
+              <MaterialCommunityIcons name="plus-box-outline" size={22} color={DashboardColors.green} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => onEditProduct(item)}>
               <MaterialCommunityIcons name="pencil-outline" size={22} color={DashboardColors.headerBlue} />
           </TouchableOpacity>
