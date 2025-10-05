@@ -1,46 +1,145 @@
-import Constants from 'expo-constants';
+import axios from "axios";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
-type DeviceHostResolution = {
-  host: string | null;
-  scheme: 'http' | 'https';
-  port: number | null;
-};
-
-function resolveDevHost(): DeviceHostResolution {
+// Função para obter o IP do host de desenvolvimento automaticamente
+function getHostIp() {
   try {
-    const expoConfig = (Constants as any)?.expoConfig ?? (Constants as any)?.manifest2 ?? {};
-    // Expo Router SDK 49/50+: expoConfig.hostUri or debuggerHost are common
-    const hostUri: string | undefined = expoConfig.hostUri || expoConfig.debuggerHost || (Constants as any)?.manifest?.debuggerHost;
-    if (hostUri && typeof hostUri === 'string') {
-      const host = hostUri.split(':')[0];
-      // Default to 8000 for the backend (mapped by Docker Desktop)
-      return { host, scheme: 'http', port: 8000 };
+    // 1. Primeira tentativa: usar expoConfig.hostUri (Expo SDK 49+)
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (hostUri) {
+      const ip = hostUri.split(":")[0];
+      console.log(`✅ IP obtido do expoConfig.hostUri: ${ip}`);
+      return ip;
     }
-  } catch {}
-  return { host: null, scheme: 'http', port: 8000 };
-}
 
-export function getApiBaseUrl(): string {
-  // Highest priority: explicit public URL (prod or tunnel)
-  const explicit = process.env.EXPO_PUBLIC_API_URL;
-  if (explicit) return explicit.replace(/\/$/, '');
+    // 2. Segunda tentativa: usar manifest2.extra.expoGo (Expo Go)
+    const manifest2 = Constants.manifest2;
+    if (manifest2?.extra?.expoGo?.debuggerHost) {
+      const ip = manifest2.extra.expoGo.debuggerHost.split(":")[0];
+      console.log(`✅ IP obtido do manifest2.extra.expoGo: ${ip}`);
+      return ip;
+    }
 
-  // Web environment
-  if (typeof window !== 'undefined' && window.location) {
-    const host = window.location.hostname;
-    const port = 8000; // Docker Desktop mapping
-    return `http://${host}:${port}`;
+    // 3. Terceira tentativa: usar manifest.debuggerHost (legacy)
+    const manifest = Constants.manifest;
+    if (manifest && typeof manifest.debuggerHost === "string") {
+      const ip = manifest.debuggerHost.split(":")[0];
+      console.log(`✅ IP obtido do manifest.debuggerHost: ${ip}`);
+      return ip;
+    }
+
+    // 4. Quarta tentativa: usar experienceUrl
+    if (Constants.experienceUrl) {
+      const url = new URL(Constants.experienceUrl);
+      const ip = url.hostname;
+      console.log(`✅ IP obtido do experienceUrl: ${ip}`);
+      return ip;
+    }
+  } catch (e) {
+    console.error("❌ Erro ao obter o IP do host:", e);
   }
 
-  // Native dev: derive from Expo dev server host
-  const { host, scheme, port } = resolveDevHost();
-  if (host) {
-    return `${scheme}://${host}:${port ?? 8000}`;
-  }
-
-  // Fallback to localhost (works with ADB reverse in emulator)
-  return 'http://localhost:8000';
+  console.log("⚠️ Não foi possível detectar o IP automaticamente");
+  return null;
 }
 
-export const API_BASE_URL = getApiBaseUrl();
+// Função para tentar importar configuração personalizada (opcional)
+function tryGetDevConfig() {
+  try {
+    // Tenta importar o arquivo de config personalizado
+    const config = require("./config");
+    return config.getDevIp();
+  } catch (e) {
+    // Arquivo não existe ou erro na importação - isso é normal
+    console.log("💡 Arquivo de config personalizado não encontrado (opcional)");
+    return null;
+  }
+}
 
+// Determina a URL base da API
+function getApiBaseUrl() {
+  const BACKEND_PORT = 8000;
+
+  // 1. Para ambiente web (frontend React)
+  if (typeof window !== "undefined" && window.location) {
+    const url = `http://${window.location.hostname}:${BACKEND_PORT}`;
+    console.log(`🌐 URL para web: ${url}`);
+    return url;
+  }
+
+  // 2. Para mobile: tenta detecção automática do IP
+  const hostIp = getHostIp();
+  if (hostIp) {
+    const url = `http://${hostIp}:${BACKEND_PORT}`;
+    console.log(`📱 URL automática para mobile: ${url}`);
+    return url;
+  }
+
+  // 3. Fallback: tenta configuração personalizada
+  const devIp = tryGetDevConfig();
+  if (devIp) {
+    const url = `http://${devIp}:${BACKEND_PORT}`;
+    console.log(`⚙️ URL do arquivo de config: ${url}`);
+    return url;
+  }
+
+  // 4. Fallback final para emuladores
+  if (Platform.OS === "android") {
+    const fallbackUrl = `http://10.0.2.2:${BACKEND_PORT}`;
+    console.log(`🤖 URL fallback Android: ${fallbackUrl}`);
+    return fallbackUrl;
+  } else {
+    const fallbackUrl = `http://localhost:${BACKEND_PORT}`;
+    console.log(`🍎 URL fallback iOS: ${fallbackUrl}`);
+    return fallbackUrl;
+  }
+}
+
+const API_BASE_URL = getApiBaseUrl();
+console.log(`API_BASE_URL configurada como: ${API_BASE_URL}`);
+
+const api = axios.create({
+  baseURL: `${API_BASE_URL}/api`, // Adiciona o /api ao final da URL base
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Interceptor para debug (muito útil para ver as requisições saindo)
+api.interceptors.request.use(
+  (config) => {
+    console.log(`🚀 Fazendo requisição para: ${config.baseURL}${config.url}`);
+    console.log(`Método: ${config.method?.toUpperCase()}`);
+    if (config.data) {
+      console.log(`Dados enviados:`, config.data);
+    }
+    return config;
+  },
+  (error) => {
+    console.error("❌ Erro na requisição:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para debug das respostas
+api.interceptors.response.use(
+  (response) => {
+    console.log(`✅ Resposta recebida de: ${response.config.url}`);
+    console.log(`Status: ${response.status}`);
+    return response;
+  },
+  (error) => {
+    console.error("❌ Erro na resposta:", error.message);
+    if (error.response) {
+      console.error(`Status: ${error.response.status}`);
+      console.error(`Dados do erro:`, error.response.data);
+    } else if (error.request) {
+      console.error("Nenhuma resposta recebida:", error.request);
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch, Alert } from 'react-native';
-import { Link } from 'expo-router';
-import Header from '../../components/Header';
+import Header from '../../components/shared/AuthHeader';
+import api from '../../utils/api';
+import { Link, useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
+import { styles } from '../../styles/auth/PaymentStyles';
+import { LinearGradient } from 'expo-linear-gradient';
+import { landingPageColors } from '../../constants/IndexColors';
 import Colors from '../../constants/Colors';
-import { API_BASE_URL } from '../../utils/api';
 
 type PaymentMethod = 'cartao' | 'pix' | 'boleto';
 
@@ -14,6 +18,8 @@ import{
 } from '../../utils/masks';
 
 export default function PagamentoScreen() {
+  const router = useRouter();
+  const { markSubscriptionActive, refreshFromServer } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -33,36 +39,45 @@ export default function PagamentoScreen() {
   );
 
   const handleConfirmarPagamento = async () => {
-    const empresaId = 1;
-    const planoId = 2; 
+    if (!termsAccepted) {
+      Alert.alert('Atenção', 'Você precisa aceitar os Termos de Uso e a Política de Privacidade.');
+      return;
+    }
+
+    if (paymentMethod === 'cartao') {
+      if (!numeroCartao || !validade || !cvv || !nomeCartao) {
+        Alert.alert('Atenção', 'Por favor, preencha todos os dados do cartão.');
+        return;
+      }
+    }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/accounts/processar-pagamento/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          empresa_id: empresaId,
-          plano_id: planoId,
-          metodo: paymentMethod,
-        }),
+      // O ID do plano padrão é 1, conforme cadastrado no admin.
+      const planoId = 1;
+
+      await api.post('/accounts/payment/process/', {
+        plano_id: planoId,
+        metodo: paymentMethod,
       });
 
-      if (response.ok) {
-        Alert.alert('Sucesso', 'Pagamento confirmado! Acesso liberado.');
-      } else {
-        const errorData = await response.json();
-        Alert.alert('Erro', `Não foi possível confirmar o pagamento: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error('Erro de rede:', error);
-      Alert.alert('Erro', 'Erro de conexão ao processar o pagamento.');
+    markSubscriptionActive();
+  try { await refreshFromServer(); } catch {}
+      Alert.alert('Sucesso', 'Cadastro finalizado! Seu acesso ao sistema foi liberado.');
+      router.push('/(tabs)/dashboard');
+
+    } catch (error: any) {
+      console.error("Erro ao processar pagamento:", error);
+      const errorMessage = error.response?.data?.detail || 'Não foi possível finalizar a assinatura. Tente novamente.';
+      Alert.alert("Erro no Pagamento", errorMessage);
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <LinearGradient
+        colors={[landingPageColors.gradientStart, landingPageColors.gradientEnd]}
+        style={{ flex: 1 }}
+      >
       <Header />
       <View style={styles.content}>
         <View style={styles.card}>
@@ -86,30 +101,37 @@ export default function PagamentoScreen() {
               <TextInput 
                 style={styles.input} 
                 placeholder="Número do Cartão" 
+                placeholderTextColor={Colors.placeholder}
                 keyboardType="numeric" 
                 value={numeroCartao}
-                onChangeText={(text) => setNumeroCartao(aplicarMascaraCartao(text))} // 2. Aplica a máscara
+                maxLength={19}
+                onChangeText={(text) => setNumeroCartao(aplicarMascaraCartao(text))}
               />
               <View style={styles.inputRow}>
                 <TextInput 
-                  style={[styles.input, styles.inputHalf]} 
+                  style={[styles.input, styles.inputTwoThirds]} 
                   placeholder="Validade (MM/AA)" 
+                  placeholderTextColor={Colors.placeholder}
                   keyboardType="numeric" 
                   value={validade}
-                  onChangeText={(text) => setValidade(aplicarMascaraValidade(text))} // 2. Aplica a máscara
+                  maxLength={5}
+                  onChangeText={(text) => setValidade(aplicarMascaraValidade(text))}
                 />
                 <TextInput 
-                  style={[styles.input, styles.inputHalf]} 
+                  style={[styles.input, styles.inputOneThird]} 
                   placeholder="CVV" 
+                  placeholderTextColor={Colors.placeholder}
                   keyboardType="numeric" 
                   secureTextEntry 
                   value={cvv}
-                  onChangeText={(text) => setCvv(aplicarMascaraCvv(text))} // 2. Aplica a máscara
+                  maxLength={4}
+                  onChangeText={(text) => setCvv(aplicarMascaraCvv(text))}
                 />
               </View>
               <TextInput 
                 style={styles.input} 
                 placeholder="Nome no Cartão" 
+                placeholderTextColor={Colors.placeholder}
                 value={nomeCartao}
                 onChangeText={setNomeCartao}
               />
@@ -148,183 +170,7 @@ export default function PagamentoScreen() {
           </Link>
         </View>
       </View>
+      </LinearGradient>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: Colors.primary,
-  },
-  content: {
-    padding: 20,
-  },
-  card: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 20,
-    padding: 20,
-  },
-  mainTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: Colors.textPrimary,
-    marginBottom: 20,
-  },
-  planInfoCard: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  planBadge: {
-    backgroundColor: '#10b981',
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  planName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-  },
-  planPrice: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    marginVertical: 4,
-  },
-  planTrial: {
-    color: '#059669',
-    fontWeight: '500',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 12,
-  },
-  paymentButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 20,
-  },
-  paymentButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: 'center',
-  },
-  paymentButtonActive: {
-    borderColor: Colors.primary,
-    backgroundColor: '#eef2ff',
-  },
-  paymentIcon: {
-    fontSize: 24,
-  },
-  paymentTitle: {
-    fontWeight: 'bold',
-    marginTop: 4,
-    color: Colors.textPrimary,
-  },
-  paymentTitleActive: {
-    color: Colors.primary,
-  },
-  paymentDetails: {
-    marginTop: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  inputHalf: {
-    flex: 1,
-  },
-  infoBox: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  pixBox: {
-    backgroundColor: '#f0f9ff',
-    borderColor: '#7dd3fc',
-    borderWidth: 1,
-  },
-  boletoBox: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fcd34d',
-    borderWidth: 1,
-  },
-  infoBoxIcon: {
-    fontSize: 32,
-  },
-  infoBoxTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 8,
-    color: Colors.textPrimary,
-  },
-  infoBoxText: {
-    textAlign: 'center',
-    marginTop: 4,
-    color: Colors.textSecondary,
-  },
-  termsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  termsText: {
-    flex: 1,
-    marginLeft: 10,
-    color: Colors.textSecondary,
-  },
-  linkText: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    backgroundColor: '#16a34a',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  changePlanButton: {
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  changePlanButtonText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});

@@ -3,29 +3,38 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function LoginPage() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { login } = useAuth(); 
+  const navigate = useNavigate(); 
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate("/dashboard");
-    } catch (err: any) {
-      setError("Falha no login. Verifique seu e-mail e senha.");
-      console.error(err);
+  e.preventDefault();
+  setError('');
+  setLoading(true); 
+
+  try {
+      // Captura o retorno da função de login
+      const { hasActiveSubscription } = await login(email, password);
+
+      // Decide para onde navegar com base no status da assinatura
+      if (hasActiveSubscription) {
+        navigate('/dashboard');
+      } else {
+        navigate('/plans');
+      }
+
+    } catch (err) {
+      setError('E-mail ou senha inválidos.');
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-primary-gradient font-sans">
       <header className="fixed w-full top-0 z-50 transition-colors duration-300">
@@ -126,4 +135,5 @@ export default function LoginPage() {
   );
 }
 
+export default Login;
 

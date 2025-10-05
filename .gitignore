@@ -15,6 +15,7 @@ secrets/
 .cursorignore
 .specstory
 .cursor/
+.github/
 
 .DS_Store
 Thumbs.db

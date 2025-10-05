@@ -1,4 +1,3 @@
-
 # EzGestor - Sistema de Gestão Empresarial
 
 ## Universidade Federal do Tocantins (UFT)
@@ -24,7 +23,9 @@
 
 ## 📖 Sobre o Projeto
 
-|O **EzGestor** é uma solução de gestão empresarial integrada, projetada para atender às necessidades de micro, pequenas e médias empresas. A plataforma, acessível via web e aplicativo móvel, centraliza e automatiza processos essenciais como gestão de vendas, controle de estoque e fluxo de caixa, fornecendo aos gestores uma visão completa e em tempo real do negócio para impulsionar o crescimento e a competitividade no mercado.|![logo](https://github.com/user-attachments/assets/043b5e6c-d9f6-410f-be7f-853a23c47013)|
+|O **EzGestor** é uma solução de gestão empresarial integrada, projetada para atender às necessidades de micro, pequenas e médias empresas. A plataforma, acessível via web e aplicativo móvel, centraliza e automatiza processos essenciais como gestão de vendas, controle de estoque e fluxo de caixa, fornecendo aos gestores uma visão completa e em tempo real do negócio para impulsionar o crescimento e a competitividade no mercado.
+
+<img width="612" height="612" alt="Logo - EzGestor" src="https://github.com/user-attachments/assets/f7da447a-2494-4b76-ae00-b3f73c82c25c" />
 
 ## 🧾 Requisitos Funcionais
 
@@ -88,6 +89,8 @@ As User Stories são descrições breves e objetivas de funcionalidades do siste
 -   **RF10 – Configurações da Conta e da Empresa**: Garantir que os dados da empresa informados no cadastro sejam salvos e estruturados.
     
 -   **RF02 – Dashboard Central**: Apresentar a tela principal (dashboard) estática que o usuário visualizará após o login.
+
+[📄 Relatório](./relatorios/iteracao_1.md)
   
 
 ### **Iteração 2️⃣ - Gestão de Produtos e Lançamento de Vendas**
@@ -101,4 +104,27 @@ As User Stories são descrições breves e objetivas de funcionalidades do siste
 -   **RF04 – Controle de Estoque:** Implementar a interface e a lógica para o usuário gerenciar seu catálogo de produtos (adicionar, editar, visualizar) e garantir que o sistema realize a baixa automática do estoque após cada venda.
     
 -   **RF03 – Gestão de Vendas:** Desenvolver a tela de Ponto de Venda (PDV), permitindo a seleção de produtos e o registro de novas transações, incluindo o cadastro simplificado de um novo cliente durante o processo.
+
+[📄 Relatório](./relatorios/iteracao_2.md)
+
+    
+
+### **Iteração 3️⃣ - Visão Gerencial e Controle Financeiro**
+
+-   **Valor**: Entregar ao administrador a visão completa da saúde do negócio em tempo real e as ferramentas para um controle financeiro detalhado. Esta iteração transforma os dados operacionais (de produtos e vendas) em insights estratégicos, permitindo uma tomada de decisão baseada em métricas e não apenas em intuição.
+    
+-   **Objetivo**: Eu, como administrador, desejo visualizar um painel central com os principais indicadores da minha empresa e gerenciar meu fluxo de caixa de forma simples, para tomar decisões mais inteligentes sobre compras, vendas e investimentos, garantindo a estabilidade financeira do meu negócio.
+    
+
+**Requisitos**:
+
+-   **RF02 – Dashboard Central**: Implementar o dashboard dinâmico, que se conecta ao back-end para exibir indicadores essenciais em tempo real, como receita, lucro estimado e produtos com estoque baixo.
+    
+-   **RF05 – Gestão Financeira**: Desenvolver o módulo de fluxo de caixa, que registrará automaticamente as "entradas" provenientes das vendas e permitirá o lançamento manual de outras entradas e saídas (contas a pagar/receber).
+    
+-   **RF07 – Relatórios e Análises**: Criar os primeiros endpoints de agregação de dados que servirão de base para o dashboard e futuros relatórios mais detalhados.
+    
+-   **RF12 – Sistema de Notificações e Alertas**: Exibir alertas importantes, como "Estoque Baixo", diretamente no dashboard principal para ações proativas.
+
+[📄 Relatório](./relatorios/iteracao_3.md)
 

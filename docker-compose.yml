@@ -1,7 +1,4 @@
 # docker-compose.yml
-
-# Default: SQLite (no env required).
-# Optional Cloud SQL: enable with `--profile cloudsql` and supply env vars.
 services:
   web:
     build:
@@ -16,6 +13,7 @@ services:
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
+      STATICFILES_STORAGE: ${STATICFILES_STORAGE:-whitenoise.storage.CompressedStaticFilesStorage}
       # Useful when testing via Expo Web (browser). Add LAN host:port if needed.
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Default to a persistent SQLite file inside the volume-backed directory
@@ -31,6 +29,7 @@ services:
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
+      STATICFILES_STORAGE: ${STATICFILES_STORAGE:-whitenoise.storage.CompressedStaticFilesStorage}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Match the web default so migrations hit the same DB by default
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}

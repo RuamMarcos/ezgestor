@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import { styles } from '../styles/indexStyles';
+import { styles } from '../styles/IndexStyles';
 import { landingPageColors } from '../constants/IndexColors';
 
 export default function LandingScreen() {
@@ -15,7 +15,8 @@ export default function LandingScreen() {
       >
         <Image 
           source={require('../assets/images/white-logo.png')} 
-          style={styles.logo} 
+          style={styles.logo}
+          resizeMode="contain"
         />
 
         <Text style={styles.slogan}>
