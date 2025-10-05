@@ -25,10 +25,9 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDe
       "Tem certeza que deseja excluir este produto?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", onPress: async () => {
+        { text: "Excluir", onPress: () => {
           try {
-            await deleteProduct(productId);
-            onRefresh(); // Atualiza a lista
+            onDeleteProduct(productId);
           } catch (error) {
             Alert.alert("Erro", "Não foi possível excluir o produto.");
           }
