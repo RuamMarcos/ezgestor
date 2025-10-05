@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/ProductListStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -72,52 +72,5 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDe
     />
   );
 };
-
-const styles = StyleSheet.create({
-  list: {
-    padding: 10,
-  },
-  itemContainer: {
-    backgroundColor: '#fff',
-    padding: 15,
-    marginVertical: 8,
-    borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    elevation: 2,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  actionsContainer: {
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    height: '100%',
-  },
-  button: {
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    marginVertical: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButton: {
-    backgroundColor: '#4CAF50', // Verde
-  },
-  deleteButton: {
-    backgroundColor: '#f44336', // Vermelho
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-});
 
 export default ProductList;

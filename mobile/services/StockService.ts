@@ -11,10 +11,21 @@ export interface Product {
   em_baixo_estoque?: boolean;
 }
 
-// FUNÇÃO ATUALIZADA
-export const getProducts = async (params: { page: number, search: string }): Promise<any> => {
-    const response = await api.get('/estoque/produtos/', { params });
-    return response.data;
+export interface ProductQueryParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  codigo?: string;
+  nome?: string;
+  em_baixo_estoque?: boolean | string;
+  preco_min?: number | string;
+  preco_max?: number | string;
+  ordering?: 'nome' | '-nome' | 'preco_venda' | '-preco_venda' | 'quantidade_estoque' | '-quantidade_estoque';
+}
+
+export const getProducts = async (params: ProductQueryParams = {}): Promise<any> => {
+  const response = await api.get('/estoque/produtos/', { params });
+  return response.data;
 };
 
 export const createProduct = async (productData: Product): Promise<Product> => {
