@@ -7,7 +7,7 @@ import QuickAddModal from '../../components/stock/QuickAddModal';
 import QuickAddProductModal from '../../components/stock/QuickAddProductModal';
 import { getProducts, createProduct, quickAddProduct, addStockToProduct, Product } from '../../services/StockService';
 import AppHeader from '../../components/shared/AppHeader';
-import { commonStyles } from '../../styles/stock/StockStyles';
+import { styles } from '../../styles/stock/StockStyles';
 
 export default function StockScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,25 +77,22 @@ export default function StockScreen() {
     }
   };
 
-
   return (
-    <View style={commonStyles.container}>
+    <View style={styles.container}>
       <AppHeader title="Estoque" />
-      <View style={commonStyles.buttonContainer}>
-        <TouchableOpacity style={commonStyles.button} onPress={() => setQuickAddModalOpen(true)}>
-          <Text style={commonStyles.buttonText}>Entrada Rápida</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={() => setQuickAddModalOpen(true)}>
+          <Text style={styles.buttonText}>Entrada Rápida</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.button} onPress={() => setAddModalOpen(true)}>
-          <Text style={commonStyles.buttonText}>Adicionar Produto</Text>
+        <TouchableOpacity style={styles.button} onPress={() => setAddModalOpen(true)}>
+          <Text style={styles.buttonText}>Adicionar Produto</Text>
         </TouchableOpacity>
       </View>
-      
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <ProductList products={products} onRefresh={fetchProducts} onAddStock={handleAddStockPress} />
       )}
-
       <AddProductModal
         visible={isAddModalOpen}
         onClose={() => setAddModalOpen(false)}
