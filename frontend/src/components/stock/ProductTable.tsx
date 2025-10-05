@@ -2,7 +2,9 @@ import type { Product } from '../../services/stockService';
 
 interface ProductTableProps {
   produtos: Product[];
-  onDeleteProduct: (productId: number) => void; 
+  onDeleteProduct: (productId: number) => void;
+  onAddStock: (product: Product) => void;
+  onEditProduct: (product: Product) => void; // Adicione esta linha
 }
 
 const formatCurrency = (value: number | string | undefined): string => {
@@ -11,7 +13,7 @@ const formatCurrency = (value: number | string | undefined): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
 };
 
-function ProductTable({ produtos, onDeleteProduct }: ProductTableProps) {
+function ProductTable({ produtos, onDeleteProduct, onAddStock, onEditProduct }: ProductTableProps) {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
@@ -44,10 +46,15 @@ function ProductTable({ produtos, onDeleteProduct }: ProductTableProps) {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
-                <button className="text-indigo-600 hover:text-indigo-900">Editar</button>
-                {/* Botão de Excluir */}
-                <button 
-                  onClick={() => onDeleteProduct(produto.id_produto!)} 
+                <button
+                  onClick={() => onAddStock(produto)}
+                  className="text-green-600 hover:text-green-900"
+                >
+                  Adicionar
+                </button>
+                <button onClick={() => onEditProduct(produto)} className="text-indigo-600 hover:text-indigo-900">Editar</button> {/* Adicione esta linha */}
+                <button
+                  onClick={() => onDeleteProduct(produto.id_produto!)}
                   className="text-red-600 hover:text-red-900"
                 >
                   Excluir

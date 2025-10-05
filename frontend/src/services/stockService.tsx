@@ -36,3 +36,22 @@ export const createProduct = async (productData: Product): Promise<Product> => {
 export const deleteProduct = async (productId: number): Promise<void> => {
   await api.delete(`/estoque/produtos/${productId}/`);
 };
+
+export const quickAddProduct = async (quickAddString: string): Promise<Product> => {
+  const response = await api.post('/estoque/produtos/quick-add/', {
+    quick_add_string: quickAddString
+  });
+  return response.data;
+};
+
+export const addStockToProduct = async (productId: number, quantity: number): Promise<Product> => {
+  const response = await api.post(`/estoque/produtos/${productId}/add-stock/`, {
+    quantity: quantity
+  });
+  return response.data;
+};
+
+export const updateProduct = async (productId: number, productData: Product): Promise<Product> => {
+  const response = await api.put(`/estoque/produtos/${productId}/`, productData);
+  return response.data;
+};

@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, View, Platform, TextInput, Animated, Easing } from 'react-native';
-import { getProducts, createProduct, deleteProduct } from '../../services/StockService';
-import type { Product } from '../../services/StockService';
+// mobile/app/(tabs)/stock.tsx
+import React, { useState, useEffect, useRef, useCallback} from 'react';
+import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
+import { useFocusEffect} from '@react-navigation/native';
+import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct, quickAddProduct } from '../../services/StockService'; // Importe addStockToProduct
 import ProductList from '../../components/stock/ProductList';
 import AddProductModal from '../../components/stock/AddProductModal';
+import EditProductModal from '../../components/stock/EditProductModal';
+import QuickAddProductModal from '../../components/stock/QuickAddProductModal'; // Importe o novo modal
+import QuickAddModal from '../../components/stock/QuickAddModal';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '../../styles/stock/StockStyles';
 import Svg, { Path } from 'react-native-svg';
@@ -15,6 +19,18 @@ export default function StockScreen() {
     const [busca, setBusca] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    
+    // Estados para o novo modal de adicionar estoque
+    const [isQuickAddProductModalOpen, setIsQuickAddProductModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    // Modal para adicionar produto
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    // Modal para editar produto
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
     
     // Animação do spinner
     const spinValue = useRef(new Animated.Value(0)).current;
@@ -76,7 +92,6 @@ export default function StockScreen() {
             
             Alert.alert("Sucesso", "Produto adicionado!");
         } catch (error: any) {
-            console.error("Erro ao adicionar produto:", error);
             let message = "Falha ao adicionar produto.";
             if (error.response?.data?.codigo_do_produto) {
                 message = error.response.data.codigo_do_produto[0];
@@ -84,10 +99,31 @@ export default function StockScreen() {
             Alert.alert("Erro", message);
         }
     };
-
-    // Função placeholder para a edição
+    
     const handleEditProduct = (product: Product) => {
-        Alert.alert("Editar Produto", `Você selecionou para editar: ${product.nome}`);
+        setEditingProduct(product);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateProduct = async (updatedProduct: Product) => {
+        if (!editingProduct || !editingProduct.id_produto) return;
+
+        try {
+            setLoading(true);
+            await updateProduct(editingProduct.id_produto, updatedProduct);
+            setIsEditModalOpen(false);
+            setEditingProduct(null);
+            await fetchProducts(currentPage, busca);
+            Alert.alert("Sucesso", "Produto atualizado!");
+        } catch (error: any) {
+            let message = "Falha ao atualizar produto.";
+            if (error.response?.data?.codigo_do_produto) {
+                message = error.response.data.codigo_do_produto[0];
+            }
+            Alert.alert("Erro", message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const proceedWithDelete = async (productId: number) => {
@@ -106,45 +142,72 @@ export default function StockScreen() {
             if (Platform.OS !== 'web') {
                 Alert.alert("Sucesso", "Produto excluído com sucesso!");
             } else {
-                alert("Produto excluído com sucesso!");
+                fetchProducts(currentPage, busca);
             }
+            Alert.alert("Sucesso", "Produto excluído com sucesso!");
         } catch (error) {
-            console.error("Erro ao excluir produto:", error);
-            if (Platform.OS !== 'web') {
-                Alert.alert("Erro", "Não foi possível excluir o produto.");
-            } else {
-                alert("Não foi possível excluir o produto.");
-            }
+            Alert.alert("Erro", "Não foi possível excluir o produto.");
         }
     };
 
     const handleDeleteProduct = (productId: number) => {
-        const confirmationMessage = "Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.";
+        Alert.alert(
+            "Confirmar Exclusão",
+            "Tem certeza que deseja excluir este produto?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Excluir", onPress: () => proceedWithDelete(productId), style: "destructive" }
+            ]
+        );
+    };
 
-        // 2. Verificar a plataforma
-        if (Platform.OS === 'web') {
-            if (window.confirm(confirmationMessage)) {
-                proceedWithDelete(productId);
-            }
-        } else {
-            Alert.alert(
-                "Confirmar Exclusão",
-                confirmationMessage,
-                [
-                    { text: "Cancelar", style: "cancel" },
-                    { text: "Excluir", onPress: () => proceedWithDelete(productId), style: "destructive" }
-                ]
-            );
+    // Função para abrir o modal de adicionar estoque
+    const handleAddStock = (product: Product) => {
+      setSelectedProduct(product);
+      setIsQuickAddProductModalOpen(true);
+    };
+
+    const handleQuickAddSave = async (quickAddValue: string) => {
+        if (!quickAddValue || !quickAddValue.includes(':')) {
+            Alert.alert("Erro", "Formato inválido. Use 'código:quantidade'.");
+            return;
         }
+        try {
+            await quickAddProduct(quickAddValue);
+            setIsQuickAddModalOpen(false);
+            await fetchProducts(currentPage, busca);
+            Alert.alert("Sucesso", "Estoque atualizado com sucesso!");
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.detail || "Produto não encontrado ou formato inválido.";
+            Alert.alert(`Erro: ${errorMessage}`);
+        }
+      };
+  
+    // Função para salvar a quantidade de estoque
+    const handleQuickAddProductSave = async (productId: number, quantity: number) => {
+      try {
+        await addStockToProduct(productId, quantity);
+        setIsQuickAddProductModalOpen(false);
+        await fetchProducts(currentPage, busca);
+        Alert.alert("Sucesso", "Estoque atualizado!");
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.detail || "Erro ao adicionar estoque.";
+        Alert.alert(`Erro: ${errorMessage}`);
+      }
     };
     
     return (
         <View style={styles.container}>
             <View style={styles.pageHeader}>
                 <Text style={styles.title}>Estoque</Text>
-                <TouchableOpacity style={styles.addButton} onPress={() => setIsModalOpen(true)}>
+                <View style={{flexDirection: 'row'}}>
+                <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
+                    <Text style={styles.addButtonText}>Entrada Rápida</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
                     <Text style={styles.addButtonText}>Adicionar</Text>
                 </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.searchContainer}>
@@ -160,7 +223,8 @@ export default function StockScreen() {
             <ProductList 
                 products={products} 
                 onEditProduct={handleEditProduct}
-                onDeleteProduct={handleDeleteProduct} 
+                onDeleteProduct={handleDeleteProduct}
+                onAddStock={handleAddStock} // Passando a nova função
             />
 
             {totalPages > 1 && (
@@ -212,8 +276,8 @@ export default function StockScreen() {
             )}
 
             <AddProductModal 
-                visible={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                visible={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
                 onSave={handleAddProduct}
             />
 
@@ -236,7 +300,32 @@ export default function StockScreen() {
                     </Animated.View>
                 </View>
             )}
+             <QuickAddModal
+                visible={isQuickAddModalOpen}
+                onClose={() => setIsQuickAddModalOpen(false)}
+                onSave={handleQuickAddSave}
+            />
+
+            <EditProductModal
+                visible={isEditModalOpen}
+                product={editingProduct}
+                onClose={() => setIsEditModalOpen(false)}
+                onSave={handleUpdateProduct}
+            />
+            
+            {/* Novo Modal para Adicionar Estoque */}
+            <QuickAddProductModal
+                product={selectedProduct}
+                visible={isQuickAddProductModalOpen}
+                onClose={() => setIsQuickAddProductModalOpen(false)}
+                onSave={handleQuickAddProductSave}
+            />
+
+            {loading && (
+                <View style={styles.loadingOverlay}>
+                     <ActivityIndicator size="large" color="#FFFFFF" />
+                </View>
+            )}
         </View>
     );
 }
-
