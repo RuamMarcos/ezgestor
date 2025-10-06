@@ -12,6 +12,7 @@ import api from '../../utils/api';
 import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
 import AddSaleModal from '@/components/sales/AddSaleModal';
+import EditSaleModal from '@/components/sales/EditSaleModal';
 import { styles } from '../../styles/sales/salesStyles';
 import { DashboardColors } from '@/constants/DashboardColors';
 
@@ -32,6 +33,7 @@ export default function VendasScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [editSale, setEditSale] = useState<Venda | null>(null);
 
   const buscarVendas = async (page: number, searchTerm: string) => {
     if (loading) return;
@@ -141,7 +143,9 @@ export default function VendasScreen() {
         ) : (
             <FlatList
               data={vendas}
-              renderItem={({ item }) => <SaleListItem item={item} />}
+              renderItem={({ item }) => (
+                <SaleListItem item={item} onPress={(v) => setEditSale(v)} />
+              )}
               keyExtractor={(item) => item.id_venda.toString()}
               ListFooterComponent={renderPagination}
               ListEmptyComponent={
@@ -158,6 +162,13 @@ export default function VendasScreen() {
         visible={isModalVisible}
         onClose={() => setModalVisible(false)}
         onSaleAdded={handleSaleAdded}
+      />
+      <EditSaleModal
+        visible={!!editSale}
+        sale={editSale as any}
+        onClose={() => setEditSale(null)}
+        onSaved={() => buscarVendas(currentPage, busca)}
+        onDeleted={() => buscarVendas(currentPage, busca)}
       />
     </SafeAreaView>
   );

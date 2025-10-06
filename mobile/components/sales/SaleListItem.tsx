@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/sales/SaleListItemStyles';
 
 interface Venda {
+  id_venda?: number;
   nome_produto: string;
   nome_vendedor: string;
   preco_total: string;
@@ -13,6 +14,7 @@ interface Venda {
 
 interface SaleListItemProps {
   item: Venda;
+  onPress?: (item: any) => void;
 }
 
 const formatarData = (dataString: string) => {
@@ -27,9 +29,9 @@ const formatCurrency = (value: string) => {
     }).format(parseFloat(value));
   };
 
-const SaleListItem = ({ item }: SaleListItemProps) => {
+const SaleListItem = ({ item, onPress }: SaleListItemProps) => {
   return (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity onPress={() => onPress && onPress(item)} activeOpacity={0.7} style={styles.itemContainer}>
       <View style={styles.infoContainer}>
         <Text style={styles.productName}>{item.nome_produto}</Text>
         <Text style={styles.saleDetail}>
@@ -49,7 +51,7 @@ const SaleListItem = ({ item }: SaleListItemProps) => {
         </View>
       </View>
       <Text style={styles.price}>{formatCurrency(item.preco_total)}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 

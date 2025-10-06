@@ -7,11 +7,15 @@ interface Venda {
   preco_total: string;
   data_venda: string;
   pago?: boolean;
-  quantidade?: number;
+  quantidade: number;
+  cliente_nome?: string | null;
+  cliente_email?: string | null;
+  cliente_telefone?: string | null;
 }
 
 interface SalesListItemProps {
   venda: Venda;
+  onClick?: (venda: any) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -29,11 +33,12 @@ const formatCurrency = (value: string) => {
   }).format(parseFloat(value));
 };
 
-const SalesListItem = ({ venda }: SalesListItemProps) => {
+const SalesListItem = ({ venda, onClick }: SalesListItemProps) => {
   return (
     <li
       key={venda.id_venda}
-      className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
+      className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer"
+      onClick={() => onClick && onClick(venda)}
     >
       <div>
         <p className="font-semibold text-gray-900">{venda.nome_produto}</p>

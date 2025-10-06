@@ -4,6 +4,7 @@ import SalesHeader from '../components/sales/SalesHeader';
 import SalesListItem from '../components/sales/SalesListItem';
 import SalesPagination from '../components/sales/SalesPagination';
 import AddSaleModal from '../components/sales/AddSaleModal';
+import EditSaleModal from '../components/sales/EditSaleModal';
 
 interface Venda {
   id_venda: number;
@@ -11,6 +12,10 @@ interface Venda {
   nome_vendedor: string;
   preco_total: string;
   data_venda: string;
+  quantidade: number;
+  cliente_nome?: string | null;
+  cliente_email?: string | null;
+  cliente_telefone?: string | null;
 }
 
 export default function SalesPage() {
@@ -21,6 +26,7 @@ export default function SalesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editSale, setEditSale] = useState<Venda | null>(null);
 
   const fetchSales = async (page: number, search: string) => {
     if (isLoading) return;
@@ -102,7 +108,7 @@ export default function SalesPage() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <ul className="divide-y divide-gray-200">
           {vendas.map((venda) => (
-            <SalesListItem key={venda.id_venda} venda={venda} />
+            <SalesListItem key={venda.id_venda} venda={venda} onClick={(v) => setEditSale(v)} />
           ))}
         </ul>
 
@@ -136,6 +142,16 @@ export default function SalesPage() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSaleAdded={handleSaleAdded}
+        />
+      )}
+
+      {editSale && (
+        <EditSaleModal
+          isOpen={!!editSale}
+          sale={editSale}
+          onClose={() => setEditSale(null)}
+          onSaved={() => fetchSales(currentPage, searchTerm)}
+          onDeleted={() => fetchSales(currentPage, searchTerm)}
         />
       )}
     </div>

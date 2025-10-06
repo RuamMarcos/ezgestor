@@ -229,18 +229,6 @@ export default function StockScreen() {
 
             {totalPages > 1 && (
                 <View style={styles.paginationContainer}>
-                    {/* Botão Primeira Página */}
-                    <TouchableOpacity
-                        style={[styles.paginationIconButton, currentPage === 1 && styles.disabledButton]}
-                        onPress={() => currentPage > 1 && setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                    >
-                        <Svg width="20" height="20" viewBox="0 0 24 24" fill={currentPage === 1 ? "#999" : "#FFF"}>
-                            <Path d="M18.41 16.59L13.82 12l4.59-4.59L17 6l-6 6 6 6 1.41-1.41zM6 6h2v12H6V6z"/>
-                        </Svg>
-                    </TouchableOpacity>
-                    
-                    {/* Botão Anterior */}
                     <TouchableOpacity
                         style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
                         onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
@@ -248,29 +236,15 @@ export default function StockScreen() {
                     >
                         <Text style={styles.paginationButtonText}>Anterior</Text>
                     </TouchableOpacity>
-                    
                     <Text style={styles.paginationText}>
                         {currentPage} de {totalPages}
                     </Text>
-                    
-                    {/* Botão Próximo */}
                     <TouchableOpacity
                         style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
                         onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
                         disabled={currentPage === totalPages}
                     >
                         <Text style={styles.paginationButtonText}>Próximo</Text>
-                    </TouchableOpacity>
-                    
-                    {/* Botão Última Página */}
-                    <TouchableOpacity
-                        style={[styles.paginationIconButton, currentPage === totalPages && styles.disabledButton]}
-                        onPress={() => currentPage < totalPages && setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                    >
-                        <Svg width="20" height="20" viewBox="0 0 24 24" fill={currentPage === totalPages ? "#999" : "#FFF"}>
-                            <Path d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6-1.41 1.41zM16 6h2v12h-2V6z"/>
-                        </Svg>
                     </TouchableOpacity>
                 </View>
             )}
