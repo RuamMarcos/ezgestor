@@ -11,6 +11,7 @@ class AddStockSerializer(serializers.Serializer):
 
 class ProdutoSerializer(serializers.ModelSerializer):
     em_baixo_estoque = serializers.BooleanField(read_only=True)
+    imagem_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Produto
@@ -22,8 +23,13 @@ class ProdutoSerializer(serializers.ModelSerializer):
             'preco_custo',
             'quantidade_estoque',
             'quantidade_minima_estoque',
-            'em_baixo_estoque'
+            'em_baixo_estoque',
+            'imagem',
+            'imagem_url',
         ]
+        extra_kwargs = {
+            'imagem': {'required': False, 'allow_null': True}
+        }
 
     def validate(self, data):
         empresa = self.context['request'].user.empresa
@@ -38,3 +44,12 @@ class ProdutoSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"codigo_do_produto": "Este código já está em uso para esta empresa."})
         
         return data
+
+    def get_imagem_url(self, obj: Produto):
+        request = self.context.get('request')
+        if obj.imagem and hasattr(obj.imagem, 'url'):
+            url = obj.imagem.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        return None

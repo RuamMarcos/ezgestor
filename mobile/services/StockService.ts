@@ -9,6 +9,9 @@ export interface Product {
   quantidade_estoque: number;
   quantidade_minima_estoque: number;
   em_baixo_estoque?: boolean;
+  imagem_url?: string | null;
+  // For create/update from mobile: local picked image
+  imagem?: { uri: string; name?: string; type?: string } | null;
 }
 
 export interface ProductQueryParams {
@@ -29,7 +32,26 @@ export const getProducts = async (params: ProductQueryParams = {}): Promise<any>
 };
 
 export const createProduct = async (productData: Product): Promise<Product> => {
-    const response = await api.post('/estoque/produtos/', productData);
+    // Always use multipart/form-data to support optional image upload
+    const formData = new FormData();
+    // Required/optional text & numeric fields
+    formData.append('nome', String(productData.nome ?? ''));
+    if (productData.codigo_do_produto) formData.append('codigo_do_produto', String(productData.codigo_do_produto));
+    if (productData.preco_venda !== undefined && productData.preco_venda !== null) formData.append('preco_venda', String(productData.preco_venda));
+    if (productData.preco_custo !== undefined && productData.preco_custo !== null) formData.append('preco_custo', String(productData.preco_custo));
+    if (productData.quantidade_estoque !== undefined && productData.quantidade_estoque !== null) formData.append('quantidade_estoque', String(productData.quantidade_estoque));
+    if (productData.quantidade_minima_estoque !== undefined && productData.quantidade_minima_estoque !== null) formData.append('quantidade_minima_estoque', String(productData.quantidade_minima_estoque));
+
+    // Optional image
+    if (productData.imagem && productData.imagem.uri) {
+      const fileName = productData.imagem.name || `produto_${Date.now()}.jpg`;
+      const mimeType = productData.imagem.type || 'image/jpeg';
+      formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+    }
+
+    const response = await api.post('/estoque/produtos/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
 };
 
@@ -38,7 +60,24 @@ export const deleteProduct = async (productId: number): Promise<void> => {
 };
 
 export const updateProduct = async (productId: number, productData: Product): Promise<Product> => {
-  const response = await api.put(`/estoque/produtos/${productId}/`, productData);
+  // Use multipart/form-data for updates to allow optional image change
+  const formData = new FormData();
+  formData.append('nome', String(productData.nome ?? ''));
+  if (productData.codigo_do_produto !== undefined) formData.append('codigo_do_produto', String(productData.codigo_do_produto ?? ''));
+  if (productData.preco_venda !== undefined) formData.append('preco_venda', String(productData.preco_venda ?? ''));
+  if (productData.preco_custo !== undefined) formData.append('preco_custo', String(productData.preco_custo ?? ''));
+  if (productData.quantidade_estoque !== undefined) formData.append('quantidade_estoque', String(productData.quantidade_estoque ?? ''));
+  if (productData.quantidade_minima_estoque !== undefined) formData.append('quantidade_minima_estoque', String(productData.quantidade_minima_estoque ?? ''));
+
+  if (productData.imagem && productData.imagem.uri) {
+    const fileName = productData.imagem.name || `produto_${Date.now()}.jpg`;
+    const mimeType = productData.imagem.type || 'image/jpeg';
+    formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+  }
+
+  const response = await api.put(`/estoque/produtos/${productId}/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 

@@ -2,65 +2,47 @@ import { StyleSheet } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 
 export const styles = StyleSheet.create({
-  itemContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: DashboardColors.lightGray,
-    backgroundColor: '#FFFFFF',
-  },
-  infoContainer: {
+  card: {
     flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    // Shadow iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    // Elevation Android
+    elevation: 2,
   },
-  productName: {
+  imageWrapper: {
+    height: 110,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  cardTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: DashboardColors.darkText,
   },
-  saleDetail: {
-    fontSize: 14,
+  cardSub: {
+    fontSize: 12,
     color: DashboardColors.grayText,
-    marginTop: 4,
+    marginTop: 2,
   },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cardPrice: {
+    fontSize: 14,
     marginTop: 6,
-  },
-  paidBadge: {
-    backgroundColor: 'rgba(40, 167, 69, 0.08)',
-    borderWidth: 1,
-    borderColor: DashboardColors.green,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  paidBadgeText: {
-    color: DashboardColors.green,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  quantityBadge: {
-    backgroundColor: 'rgba(253, 126, 20, 0.1)',
-    borderWidth: 1,
-    borderColor: DashboardColors.orange,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 999,
-    marginLeft: 8,
-  },
-  quantityBadgeText: {
-    color: DashboardColors.orange,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: DashboardColors.headerBlue,
-    marginLeft: 10,
   },
 });

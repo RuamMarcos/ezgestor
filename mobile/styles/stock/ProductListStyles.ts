@@ -5,6 +5,63 @@ export const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 20,
   },
+  grid: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 12,
+    flex: 1,
+    // iOS shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    // Android elevation
+    elevation: 2,
+  },
+  imageWrapper: {
+    height: 120,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DashboardColors.darkText,
+  },
+  cardSub: {
+    fontSize: 12,
+    color: DashboardColors.grayText,
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+    marginRight: 6,
+  },
+  cardStatus: {
+    fontSize: 12,
+    color: DashboardColors.grayText,
+  },
+  cardActions: {
+    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   itemContainer: {
     backgroundColor: 'white',
     paddingVertical: 12,

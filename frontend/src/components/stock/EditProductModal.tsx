@@ -54,6 +54,21 @@ function EditProductModal({ product, onClose, onSave }: ModalProps) {
             />
           </div>
           <div className="flex gap-4">
+            <input
+              type="file" name="imagem" accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setFormData(prev => ({ ...prev, imagem: file as any }));
+              }}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          {formData.imagem_url && typeof formData.imagem_url === 'string' && (
+            <div>
+              <img src={formData.imagem_url} alt="Imagem atual" className="w-32 h-32 object-cover rounded" />
+            </div>
+          )}
+          <div className="flex gap-4">
              <input
               type="number" name="quantidade_estoque" placeholder="Qtd. em Estoque"
               value={formData.quantidade_estoque} onChange={handleChange} required

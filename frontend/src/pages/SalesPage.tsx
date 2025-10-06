@@ -13,6 +13,7 @@ interface Venda {
   preco_total: string;
   data_venda: string;
   quantidade: number;
+  imagem_url?: string | null;
   cliente_nome?: string | null;
   cliente_email?: string | null;
   cliente_telefone?: string | null;
@@ -105,12 +106,29 @@ export default function SalesPage() {
         />
       </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <ul className="divide-y divide-gray-200">
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {vendas.map((venda) => (
-            <SalesListItem key={venda.id_venda} venda={venda} onClick={(v) => setEditSale(v)} />
+            <div key={venda.id_venda} className="bg-white border rounded-lg p-3 shadow hover:shadow-md transition cursor-pointer" onClick={() => setEditSale(venda)}>
+              <div className="h-40 w-full bg-gray-100 rounded mb-3 flex items-center justify-center overflow-hidden">
+                {venda.imagem_url ? (
+                  <img src={venda.imagem_url} alt={venda.nome_produto} className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-16 h-16 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v11a2 2 0 01-2 2H9l-4 4v-4H5a2 2 0 01-2-2V5z"/>
+                  </svg>
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">{venda.nome_produto}</h3>
+                <span className="text-sm text-gray-500">{new Date(venda.data_venda).toLocaleDateString('pt-BR')}</span>
+              </div>
+              <p className="text-sm text-gray-600">Vendido por {venda.nome_vendedor}</p>
+              <p className="text-sm text-gray-600">Qtd: {venda.quantidade}</p>
+              <p className="text-base font-bold text-blue-600 mt-1">{new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(parseFloat(venda.preco_total))}</p>
+            </div>
           ))}
-        </ul>
+        </div>
 
         {isLoading && (
           <div className="p-6 text-center text-gray-500">Carregando...</div>

@@ -23,6 +23,8 @@ interface Venda {
   preco_total: string;
   data_venda: string;
   pago: boolean;
+  quantidade?: number;
+  imagem_url?: string | null;
 }
 
 export default function VendasScreen() {
@@ -147,6 +149,9 @@ export default function VendasScreen() {
                 <SaleListItem item={item} onPress={(v) => setEditSale(v)} />
               )}
               keyExtractor={(item) => item.id_venda.toString()}
+              numColumns={2}
+              columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
+              contentContainerStyle={{ paddingVertical: 8, gap: 12 }}
               ListFooterComponent={renderPagination}
               ListEmptyComponent={
                 !loading ? (

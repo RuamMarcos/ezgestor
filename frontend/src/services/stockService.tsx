@@ -9,6 +9,8 @@ export interface Product {
   quantidade_estoque: number;
   quantidade_minima_estoque: number;
   em_baixo_estoque?: boolean;
+  imagem?: File | null | string;
+  imagem_url?: string | null;
 }
 
 export interface ProductQueryParams {
@@ -29,7 +31,18 @@ export const getProducts = async (params: ProductQueryParams = {}): Promise<any>
 };
 
 export const createProduct = async (productData: Product): Promise<Product> => {
-  const response = await api.post('/estoque/produtos/', productData);
+  const form = new FormData();
+  Object.entries(productData).forEach(([k, v]) => {
+    if (v === undefined || v === null || k === 'imagem_url') return;
+    if (k === 'imagem' && typeof v !== 'string' && v instanceof File) {
+      form.append('imagem', v);
+    } else {
+      form.append(k, String(v));
+    }
+  });
+  const response = await api.post('/estoque/produtos/', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 
@@ -52,6 +65,17 @@ export const addStockToProduct = async (productId: number, quantity: number): Pr
 };
 
 export const updateProduct = async (productId: number, productData: Product): Promise<Product> => {
-  const response = await api.put(`/estoque/produtos/${productId}/`, productData);
+  const form = new FormData();
+  Object.entries(productData).forEach(([k, v]) => {
+    if (v === undefined || v === null || k === 'imagem_url') return;
+    if (k === 'imagem' && typeof v !== 'string' && v instanceof File) {
+      form.append('imagem', v);
+    } else {
+      form.append(k, String(v));
+    }
+  });
+  const response = await api.put(`/estoque/produtos/${productId}/`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
