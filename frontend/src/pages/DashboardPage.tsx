@@ -121,8 +121,7 @@ function DashboardPage() {
         onClose={() => setIsModalOpen(false)}
         onSaleAdded={handleSaleAdded}
       />
-      
-      <Footer />
+
     </div>
   );
 }
