@@ -1,6 +1,8 @@
 from django.db import models
 import uuid
 import os
+import uuid
+import os
 from accounts.models import Empresa
 
 def produto_image_upload_to(instance, filename: str) -> str:
@@ -19,8 +21,6 @@ class Produto(models.Model):
     preco_custo = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     quantidade_estoque = models.IntegerField()
     quantidade_minima_estoque = models.IntegerField(default=0, help_text="Quantidade mínima para alerta de baixo estoque.")
-    imagem = models.ImageField(upload_to=produto_image_upload_to, blank=True, null=True)
-    ativo = models.BooleanField(default=True, db_index=True)
     
     def __str__(self):
         return self.nome

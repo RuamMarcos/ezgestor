@@ -13,6 +13,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
     em_baixo_estoque = serializers.BooleanField(read_only=True)
     imagem_url = serializers.SerializerMethodField(read_only=True)
     ativo = serializers.BooleanField(read_only=True)
+    imagem_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Produto
