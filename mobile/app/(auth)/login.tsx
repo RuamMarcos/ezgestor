@@ -68,7 +68,13 @@ const LoginScreen = () => {
       }
     } catch (error: any) {
       console.error('Erro na requisição de login:', error);
-      setErrorMessage('E-mail ou senha incorretos. Tente novamente.');
+      if (error?.response?.data?.detail) {
+        setErrorMessage(String(error.response.data.detail));
+      } else if (error?.message) {
+        setErrorMessage(String(error.message));
+      } else {
+        setErrorMessage('Falha ao fazer login. Verifique suas credenciais e tente novamente.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -52,9 +52,10 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
         return;
     }
     onSave(productData);
-    // Limpa o formulário após salvar
+    // Limpa o formulário após salvar e fecha o modal
     setFormData({ nome: '', codigo_do_produto: '', preco_venda: '', preco_custo: '', quantidade_estoque: '', quantidade_minima_estoque: '' });
     setPickedImage(null);
+    onClose();
   };
 
   const pickImage = async () => {

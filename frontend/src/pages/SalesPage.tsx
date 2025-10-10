@@ -79,9 +79,25 @@ export default function SalesPage() {
     }
   };
 
-  const handleSaleAdded = () => {
-    // Refresh the sales list after adding a new sale
-    fetchSales(currentPage, searchTerm);
+  const handleFirstPage = () => {
+    if (currentPage !== 1) setCurrentPage(1);
+  };
+
+  const handleLastPage = () => {
+    if (currentPage !== totalPages) setCurrentPage(totalPages);
+  };
+
+  const handleSaleAdded = async () => {
+    // Após salvar, vá para a última página e atualize a lista para mostrar a nova venda
+    try {
+      const resp = await api.get('/vendas/', { params: { page: 1, search: searchTerm } });
+      const totalItems = resp.data?.count ?? 0;
+      const lastPage = Math.max(1, Math.ceil(totalItems / 10));
+      setCurrentPage(lastPage);
+      await fetchSales(lastPage, searchTerm);
+    } catch (e) {
+      await fetchSales(currentPage, searchTerm);
+    }
   };
 
   return (
@@ -140,6 +156,8 @@ export default function SalesPage() {
             totalPages={totalPages}
             onPrevPage={handlePrevPage}
             onNextPage={handleNextPage}
+            onFirstPage={handleFirstPage}
+            onLastPage={handleLastPage}
           />
         )}
 

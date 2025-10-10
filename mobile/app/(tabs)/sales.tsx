@@ -65,9 +65,20 @@ export default function VendasScreen() {
     }
   };
 
-  const handleSaleAdded = () => {
+  const handleSaleAdded = async () => {
+    // Fecha o modal e navega para a última página, onde a nova venda estará
     setModalVisible(false);
-    buscarVendas(1, busca); // Recarrega as vendas
+    try {
+      const resp = await api.get('/vendas/', { params: { page: 1, search: busca } });
+      const totalItems = resp.data?.count ?? 0;
+      const lastPage = Math.max(1, Math.ceil(totalItems / 10));
+      setCurrentPage(lastPage);
+      // Opcional: chamada direta para atualização imediata
+      // buscarVendas(lastPage, busca);
+    } catch (e) {
+      // Se falhar, mantenha o refresh na página atual
+      buscarVendas(currentPage, busca);
+    }
   };
 
   useEffect(() => {
@@ -91,6 +102,15 @@ export default function VendasScreen() {
 
     return (
       <View style={styles.paginationContainer}>
+        {/* |< first */}
+        <TouchableOpacity
+          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+          onPress={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.paginationButtonText}>|&lt;</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
           // CORREÇÃO: Simplifica a lógica de navegação
@@ -104,9 +124,7 @@ export default function VendasScreen() {
           <Text style={styles.paginationButtonText}>Anterior</Text>
         </TouchableOpacity>
 
-        <Text style={styles.paginationText}>
-          {currentPage} de {totalPages}
-        </Text>
+        <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
 
         <TouchableOpacity
           style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
@@ -119,6 +137,15 @@ export default function VendasScreen() {
           disabled={currentPage === totalPages}
         >
           <Text style={styles.paginationButtonText}>Próximo</Text>
+        </TouchableOpacity>
+
+        {/* >| last */}
+        <TouchableOpacity
+          style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
+          onPress={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.paginationButtonText}>&gt;|</Text>
         </TouchableOpacity>
       </View>
     );

@@ -72,10 +72,11 @@ function StockPage() {
     // Busca o total atualizado para calcular a última página (onde o produto foi inserido)
     const data = await getProducts({ page: 1, search: searchTerm });
     const totalItems = data.count || 0;
-    const lastPage = Math.ceil(totalItems / 10);
-    
-    // Navega para a última página (onde o novo produto estará)
-    setCurrentPage(lastPage);
+    const lastPage = Math.max(1, Math.ceil(totalItems / 10));
+
+  // Ajusta o pager para a última página e atualiza a lista imediatamente para refletir o novo item
+  setCurrentPage(lastPage);
+  await fetchProducts(lastPage, searchTerm);
     
     alert("Produto adicionado com sucesso!");
   } catch (error: any) {
@@ -219,6 +220,20 @@ function StockPage() {
               scrollPositionRef.current = window.scrollY;
               shouldPreserveScrollRef.current = true;
               setCurrentPage(currentPage + 1);
+            }
+          }}
+          onFirstPage={() => {
+            if (currentPage !== 1) {
+              scrollPositionRef.current = window.scrollY;
+              shouldPreserveScrollRef.current = true;
+              setCurrentPage(1);
+            }
+          }}
+          onLastPage={() => {
+            if (currentPage !== totalPages) {
+              scrollPositionRef.current = window.scrollY;
+              shouldPreserveScrollRef.current = true;
+              setCurrentPage(totalPages);
             }
           }}
         />

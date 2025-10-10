@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import { Platform } from 'react-native';
 
 export interface Product {
   id_produto?: number;
@@ -46,12 +47,18 @@ export const createProduct = async (productData: Product): Promise<Product> => {
     if (productData.imagem && productData.imagem.uri) {
       const fileName = productData.imagem.name || `produto_${Date.now()}.jpg`;
       const mimeType = productData.imagem.type || 'image/jpeg';
-      formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+      if (Platform.OS === 'web') {
+        // On web, convert the URI to a Blob and append it
+        const resp = await fetch(productData.imagem.uri);
+        const blob = await resp.blob();
+        formData.append('imagem', blob, fileName);
+      } else {
+        // On native, append RN-style file descriptor
+        formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+      }
     }
 
-    const response = await api.post('/estoque/produtos/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/estoque/produtos/', formData);
     return response.data;
 };
 
@@ -72,12 +79,16 @@ export const updateProduct = async (productId: number, productData: Product): Pr
   if (productData.imagem && productData.imagem.uri) {
     const fileName = productData.imagem.name || `produto_${Date.now()}.jpg`;
     const mimeType = productData.imagem.type || 'image/jpeg';
-    formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+    if (Platform.OS === 'web') {
+      const resp = await fetch(productData.imagem.uri);
+      const blob = await resp.blob();
+      formData.append('imagem', blob, fileName);
+    } else {
+      formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+    }
   }
 
-  const response = await api.put(`/estoque/produtos/${productId}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const response = await api.put(`/estoque/produtos/${productId}/`, formData);
   return response.data;
 };
 
