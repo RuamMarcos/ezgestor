@@ -12,6 +12,7 @@ class AddStockSerializer(serializers.Serializer):
 class ProdutoSerializer(serializers.ModelSerializer):
     em_baixo_estoque = serializers.BooleanField(read_only=True)
     imagem_url = serializers.SerializerMethodField(read_only=True)
+    ativo = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Produto
@@ -26,6 +27,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
             'em_baixo_estoque',
             'imagem',
             'imagem_url',
+            'ativo',
         ]
         extra_kwargs = {
             'imagem': {'required': False, 'allow_null': True}

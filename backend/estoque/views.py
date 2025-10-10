@@ -23,7 +23,7 @@ class ProdutoListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Produto.objects.filter(empresa=user.empresa)
+        queryset = Produto.objects.filter(empresa=user.empresa, ativo=True)
 
         # Busca ampla
         search_term = self.request.query_params.get('search')
@@ -81,7 +81,14 @@ class ProdutoDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'id_produto'
 
     def get_queryset(self):
-        return Produto.objects.filter(empresa=self.request.user.empresa)
+        return Produto.objects.filter(empresa=self.request.user.empresa, ativo=True)
+
+    def destroy(self, request, *args, **kwargs):
+        # Soft delete: marca o produto como inativo ao invés de deletar
+        instance = self.get_object()
+        instance.ativo = False
+        instance.save(update_fields=['ativo'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProdutoQuickUpdateView(views.APIView):

@@ -20,6 +20,7 @@ class Produto(models.Model):
     quantidade_estoque = models.IntegerField()
     quantidade_minima_estoque = models.IntegerField(default=0, help_text="Quantidade mínima para alerta de baixo estoque.")
     imagem = models.ImageField(upload_to=produto_image_upload_to, blank=True, null=True)
+    ativo = models.BooleanField(default=True, db_index=True)
     
     def __str__(self):
         return self.nome

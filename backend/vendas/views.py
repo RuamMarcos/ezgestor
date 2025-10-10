@@ -51,6 +51,7 @@ class VendaViewSet(viewsets.ModelViewSet):
         """
         produtos = Produto.objects.filter(
             empresa=request.user.empresa,
+            ativo=True,
             quantidade_estoque__gt=0
         ).order_by('nome')
         
