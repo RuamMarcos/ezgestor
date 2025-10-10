@@ -15,6 +15,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
     ativo = serializers.BooleanField(read_only=True)
     imagem_url = serializers.SerializerMethodField(read_only=True)
 
+
     class Meta:
         model = Produto
         fields = [
