@@ -5,6 +5,7 @@ import FinancialChart from '../components/financials/FinancialChart';
 import { getLancamentos, getFinancialStats, getLancamentoCategorias } from '../services/financialService';
 import type { LancamentoFinanceiro, FinancialStats } from '../services/financialService';
 import FinancialsHeader from '../components/financials/FinancialsHeader';
+import FinancialsPagination from '../components/financials/FinancialsPagination';
 
 function FinancialsPage() {
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
@@ -12,22 +13,30 @@ function FinancialsPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [lancamentosLoading, setLancamentosLoading] = useState(false);
   
+  // Filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
 
-  const fetchLancamentos = useCallback(async (search?: string, categoria?: string, tipo?: string) => {
+  // 2. Estados para a paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // 3. Atualizar a função de busca
+  const fetchLancamentos = useCallback(async (page: number, search: string, categoria: string, tipo: string) => {
     try {
       setLancamentosLoading(true);
       const params = {
-        ...(search && search.trim() && { search: search.trim() }),
-        ...(categoria && categoria !== '' && { categoria }),
-        ...(tipo && tipo !== '' && { tipo })
+        page,
+        ...(search.trim() && { search: search.trim() }),
+        ...(categoria && { categoria }),
+        ...(tipo && { tipo })
       };
-      console.log('Parâmetros de filtro enviados:', params); // Debug log
       const data = await getLancamentos(params);
-      setLancamentos(data);
+      setLancamentos(data.results);
+      // Calcula o total de páginas com base no total de itens e no limite por página (10)
+      setTotalPages(Math.ceil(data.count / 10)); 
     } catch (error) {
       console.error("Erro ao buscar lançamentos:", error);
       alert("Não foi possível carregar o extrato.");
@@ -48,7 +57,7 @@ function FinancialsPage() {
         setCategories(categoriesData);
         
         // Carregar lançamentos iniciais
-        await fetchLancamentos();
+        await fetchLancamentos(1, '', '', '');
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
       } finally {
@@ -59,13 +68,28 @@ function FinancialsPage() {
   }, [fetchLancamentos]);
 
   // Debounce para pesquisa
-  useEffect(() => {
+ useEffect(() => {
     const timer = setTimeout(() => {
-      fetchLancamentos(searchTerm, selectedCategory, selectedType);
+      // Sempre que um filtro muda, a busca é feita na primeira página
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+      } else {
+        fetchLancamentos(1, searchTerm, selectedCategory, selectedType);
+      }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedCategory, selectedType, fetchLancamentos]);
+  }, [searchTerm, selectedCategory, selectedType]);
+
+  useEffect(() => {
+    fetchLancamentos(currentPage, searchTerm, selectedCategory, selectedType);
+  }, [currentPage, fetchLancamentos]);
+
+  const handlePageChange = (page: number) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -119,7 +143,18 @@ function FinancialsPage() {
       {lancamentosLoading ? (
         <p>Carregando extrato...</p>
       ) : (
-        <TransactionsTable lancamentos={lancamentos} />
+        <>
+          <TransactionsTable lancamentos={lancamentos} />
+          {/* 6. Adicionar o componente de paginação */}
+          <FinancialsPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevPage={() => handlePageChange(currentPage - 1)}
+            onNextPage={() => handlePageChange(currentPage + 1)}
+            onFirstPage={() => handlePageChange(1)}
+            onLastPage={() => handlePageChange(totalPages)}
+          />
+        </>
       )}
     </div>
   );

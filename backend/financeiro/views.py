@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
 from django.db.models import DecimalField
+from rest_framework.pagination import PageNumberPagination
+from vendas.views import StandardResultsSetPagination
 
 class LancamentoFinanceiroListView(generics.ListAPIView):
     """
@@ -15,6 +17,7 @@ class LancamentoFinanceiroListView(generics.ListAPIView):
     """
     serializer_class = LancamentoFinanceiroSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         # Garante que o usuário só possa ver os lançamentos da sua própria empresa
