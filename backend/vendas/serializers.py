@@ -7,6 +7,7 @@ class VendaSerializer(serializers.ModelSerializer):
     nome_produto = serializers.CharField(source='produto.nome', read_only=True)
     nome_vendedor = serializers.SerializerMethodField()
     pago = serializers.SerializerMethodField()
+    imagem_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Venda
@@ -18,6 +19,7 @@ class VendaSerializer(serializers.ModelSerializer):
             'preco_total', 
             'data_venda',
             'pago',
+            'imagem_url',
             'cliente_nome',
             'cliente_email',
             'cliente_telefone',
@@ -31,6 +33,17 @@ class VendaSerializer(serializers.ModelSerializer):
     def get_pago(self, obj):
         # Por decisão de design, toda venda listada é considerada paga
         return True
+
+    def get_imagem_url(self, obj):
+        request = self.context.get('request')
+        try:
+            imagem = obj.produto.imagem
+            if imagem and hasattr(imagem, 'url'):
+                url = imagem.url
+                return request.build_absolute_uri(url) if request else url
+        except Exception:
+            pass
+        return None
 
 
 class VendaCreateSerializer(serializers.ModelSerializer):

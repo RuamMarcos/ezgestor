@@ -79,24 +79,28 @@ export default function StockScreen() {
 
     const handleAddProduct = async (newProduct: Product) => {
         try {
+            // Fecha o modal imediatamente para sensação de resposta rápida
+            setIsAddModalOpen(false);
             await createProduct(newProduct);
-            setIsModalOpen(false);
             
             // Busca o total atualizado para calcular a última página (onde o produto foi inserido)
             const data = await getProducts({ page: 1, search: busca });
             const totalItems = data.count || 0;
-            const lastPage = Math.ceil(totalItems / 10);
+            const lastPage = Math.max(1, Math.ceil(totalItems / 10));
             
-            // Navega para a última página (onde o novo produto estará)
+            // Navega e atualiza a lista imediatamente para mostrar o novo item
             setCurrentPage(lastPage);
+            await fetchProducts(lastPage, busca);
             
-            Alert.alert("Sucesso", "Produto adicionado!");
+            Alert.alert("Sucesso", "Produto cadastrado com sucesso!");
         } catch (error: any) {
             let message = "Falha ao adicionar produto.";
             if (error.response?.data?.codigo_do_produto) {
                 message = error.response.data.codigo_do_produto[0];
             }
             Alert.alert("Erro", message);
+            // Reabre o modal em caso de erro para facilitar a correção
+            setIsAddModalOpen(true);
         }
     };
     
@@ -229,18 +233,16 @@ export default function StockScreen() {
 
             {totalPages > 1 && (
                 <View style={styles.paginationContainer}>
-                    {/* Botão Primeira Página */}
+                    {/* |< first */}
                     <TouchableOpacity
-                        style={[styles.paginationIconButton, currentPage === 1 && styles.disabledButton]}
-                        onPress={() => currentPage > 1 && setCurrentPage(1)}
+                        style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+                        onPress={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
                     >
-                        <Svg width="20" height="20" viewBox="0 0 24 24" fill={currentPage === 1 ? "#999" : "#FFF"}>
-                            <Path d="M18.41 16.59L13.82 12l4.59-4.59L17 6l-6 6 6 6 1.41-1.41zM6 6h2v12H6V6z"/>
-                        </Svg>
+                        <Text style={styles.paginationButtonText}>|&lt;</Text>
                     </TouchableOpacity>
-                    
-                    {/* Botão Anterior */}
+
+                    {/* Anterior */}
                     <TouchableOpacity
                         style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
                         onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
@@ -248,12 +250,13 @@ export default function StockScreen() {
                     >
                         <Text style={styles.paginationButtonText}>Anterior</Text>
                     </TouchableOpacity>
-                    
+
+                    {/* Página X de Y */}
                     <Text style={styles.paginationText}>
                         {currentPage} de {totalPages}
                     </Text>
-                    
-                    {/* Botão Próximo */}
+
+                    {/* Próximo */}
                     <TouchableOpacity
                         style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
                         onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
@@ -261,16 +264,14 @@ export default function StockScreen() {
                     >
                         <Text style={styles.paginationButtonText}>Próximo</Text>
                     </TouchableOpacity>
-                    
-                    {/* Botão Última Página */}
+
+                    {/* >| last */}
                     <TouchableOpacity
-                        style={[styles.paginationIconButton, currentPage === totalPages && styles.disabledButton]}
-                        onPress={() => currentPage < totalPages && setCurrentPage(totalPages)}
+                        style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
+                        onPress={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
                     >
-                        <Svg width="20" height="20" viewBox="0 0 24 24" fill={currentPage === totalPages ? "#999" : "#FFF"}>
-                            <Path d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6-1.41 1.41zM16 6h2v12h-2V6z"/>
-                        </Svg>
+                        <Text style={styles.paginationButtonText}>&gt;|</Text>
                     </TouchableOpacity>
                 </View>
             )}

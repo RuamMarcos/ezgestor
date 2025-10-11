@@ -1,6 +1,7 @@
 // mobile/components/stock/EditProductModal.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import Colors from '../../constants/Colors';
 import type { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/AddProductModalStyles'; // Reutilizando os estilos
@@ -44,6 +45,26 @@ export default function EditProductModal({ visible, product, onClose, onSave }: 
     }
   }, [product]);
 
+  const [pickedImage, setPickedImage] = useState<{ uri: string; name?: string; type?: string } | null>(null);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria para selecionar a imagem.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      const name = (asset as any).fileName || asset.uri.split('/').pop() || `imagem_${Date.now()}.jpg`;
+      const type = (asset as any).mimeType || 'image/jpeg';
+      setPickedImage({ uri: asset.uri, name, type });
+    }
+  };
+
   const handleChange = (name: keyof FormDataState, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -58,6 +79,7 @@ export default function EditProductModal({ visible, product, onClose, onSave }: 
       preco_custo: formData.preco_custo ? parseFloat(formData.preco_custo.replace(',', '.')) : undefined,
       quantidade_estoque: parseInt(formData.quantidade_estoque, 10) || 0,
       quantidade_minima_estoque: parseInt(formData.quantidade_minima_estoque, 10) || 0,
+      imagem: pickedImage || undefined,
     };
     if (!productData.nome || !productData.preco_venda) {
         Alert.alert("Erro", "Nome e Preço de Venda são obrigatórios.");
@@ -118,6 +140,16 @@ export default function EditProductModal({ visible, product, onClose, onSave }: 
               value={formData.quantidade_minima_estoque}
               onChangeText={(text) => handleChange('quantidade_minima_estoque', text)}
             />
+            {pickedImage ? (
+              <Image source={{ uri: pickedImage.uri }} style={styles.imagePreview} resizeMode="cover" />
+            ) : product?.imagem_url ? (
+              <Image source={{ uri: product.imagem_url }} style={styles.imagePreview} resizeMode="cover" />
+            ) : (
+              <Text style={styles.imageHint}>Sem imagem atual. Selecione para adicionar.</Text>
+            )}
+            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+              <Text>Selecionar Nova Imagem</Text>
+            </TouchableOpacity>
             <View style={styles.buttonRow}>
               <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
                 <Text style={styles.cancelButtonText}>Cancelar</Text>

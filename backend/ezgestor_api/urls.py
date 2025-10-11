@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, re_path, include
 from django.http import HttpResponse, HttpResponseNotFound
 from django.conf import settings
+from django.conf.urls.static import static
 from pathlib import Path
 from handler.views import ApiRootView 
 
@@ -31,8 +32,13 @@ urlpatterns = [
     path('api/vendas/', include('vendas.urls')),
     # SPA routes (always last)
     path('', spa_200, name='root'),
-    re_path(r'^(?!admin/|api/).*$', spa_200, name='spa-fallback'),
+    # Exclude media and static from SPA fallback to avoid intercepting asset requests
+    re_path(r'^(?!admin/|api/|media/|static/).*$', spa_200, name='spa-fallback'),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 

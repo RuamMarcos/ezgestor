@@ -24,12 +24,12 @@ export default function LandingScreen() {
         </Text>
 
         <View style={styles.buttonContainer}>
-          <Link href="/register" asChild>
+          <Link href="/(auth)/register" asChild>
             <TouchableOpacity style={styles.primaryButton}>
               <Text style={styles.primaryButtonText}>Começar Grátis</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/login" asChild>
+          <Link href="/(auth)/login" asChild>
             <TouchableOpacity style={styles.secondaryButton}>
               <Text style={styles.secondaryButtonText}>Já tenho conta</Text>
             </TouchableOpacity>
