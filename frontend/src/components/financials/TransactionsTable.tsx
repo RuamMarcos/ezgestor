@@ -25,6 +25,7 @@ function TransactionsTable({ lancamentos }: TransactionsTableProps) {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
@@ -34,6 +35,11 @@ function TransactionsTable({ lancamentos }: TransactionsTableProps) {
           {lancamentos.map((lancamento) => (
             <tr key={lancamento.id_lancamento}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lancamento.descricao}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <span className="bg-gray-100 px-2 py-1 rounded-full text-xs">
+                  {lancamento.categoria || 'Sem categoria'}
+                </span>
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(lancamento.data_lancamento)}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm">
                 <span className={`font-semibold ${lancamento.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}`}>

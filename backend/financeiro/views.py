@@ -11,6 +11,7 @@ class LancamentoFinanceiroListView(generics.ListAPIView):
     """
     View para listar os lançamentos financeiros (extrato do fluxo de caixa).
     Filtra os lançamentos pela empresa do usuário logado.
+    Suporte a filtros: search (busca na descrição) e categoria.
     """
     serializer_class = LancamentoFinanceiroSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -18,7 +19,45 @@ class LancamentoFinanceiroListView(generics.ListAPIView):
     def get_queryset(self):
         # Garante que o usuário só possa ver os lançamentos da sua própria empresa
         empresa_usuario = self.request.user.empresa
-        return LancamentoFinanceiro.objects.filter(empresa=empresa_usuario)
+        queryset = LancamentoFinanceiro.objects.filter(empresa=empresa_usuario).order_by('-data_lancamento')
+        
+        # Filtro de pesquisa na descrição
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(descricao__icontains=search)
+        
+        # Filtro por categoria
+        categoria = self.request.query_params.get('categoria', None)
+        if categoria:
+            queryset = queryset.filter(categoria=categoria)
+        
+        # Filtro por tipo (entrada/saida)
+        tipo = self.request.query_params.get('tipo', None)
+        if tipo:
+            queryset = queryset.filter(tipo=tipo)
+            
+        return queryset
+    
+class LancamentoCategoriasView(views.APIView):
+    """
+    Retorna uma lista de todas as categorias de lançamento distintas
+    para a empresa do usuário logado.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        empresa = request.user.empresa
+        categorias = LancamentoFinanceiro.objects.filter(
+            empresa=empresa
+        ).exclude(
+            categoria__isnull=True
+        ).exclude(
+            categoria__exact=''
+        ).values_list(
+            'categoria', flat=True
+        ).distinct().order_by('categoria')
+        
+        return Response(list(categorias))
     
 class FinancialStatsView(views.APIView):
     """

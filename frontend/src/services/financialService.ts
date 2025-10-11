@@ -16,12 +16,23 @@ export interface FinancialStats {
   saldo_atual: number;
 }
 
-export const getLancamentos = async (): Promise<LancamentoFinanceiro[]> => {
-  const response = await api.get('/financeiro/lancamentos/');
+interface LancamentosParams {
+  search?: string;
+  categoria?: string;
+  tipo?: string;
+}
+
+export const getLancamentos = async (params: LancamentosParams): Promise<LancamentoFinanceiro[]> => {
+  const response = await api.get('/financeiro/lancamentos/', { params });
   return response.data;
 };
 
 export const getFinancialStats = async (): Promise<FinancialStats> => {
     const response = await api.get('/financeiro/stats/');
+    return response.data;
+};
+
+export const getLancamentoCategorias = async (): Promise<string[]> => {
+    const response = await api.get('/financeiro/categorias/');
     return response.data;
 };
