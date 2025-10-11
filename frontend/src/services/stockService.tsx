@@ -34,15 +34,18 @@ export const createProduct = async (productData: Product): Promise<Product> => {
   const form = new FormData();
   Object.entries(productData).forEach(([k, v]) => {
     if (v === undefined || v === null || k === 'imagem_url') return;
-    if (k === 'imagem' && typeof v !== 'string' && v instanceof File) {
-      form.append('imagem', v);
-    } else {
-      form.append(k, String(v));
+    // Evita enviar string vazia para campos decimais opcionais
+    if (k === 'preco_custo' && (v === '' || v === ('' as any))) return;
+    if (k === 'imagem') {
+      // Somente envia se for File; ignora string (URL) ou string vazia
+      if (typeof v !== 'string' && v instanceof File) {
+        form.append('imagem', v);
+      }
+      return;
     }
+    form.append(k, String(v));
   });
-  const response = await api.post('/estoque/produtos/', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const response = await api.post('/estoque/produtos/', form);
   return response.data;
 };
 
@@ -68,14 +71,16 @@ export const updateProduct = async (productId: number, productData: Product): Pr
   const form = new FormData();
   Object.entries(productData).forEach(([k, v]) => {
     if (v === undefined || v === null || k === 'imagem_url') return;
-    if (k === 'imagem' && typeof v !== 'string' && v instanceof File) {
-      form.append('imagem', v);
-    } else {
-      form.append(k, String(v));
+    // Evita enviar string vazia para campos decimais opcionais
+    if (k === 'preco_custo' && (v === '' || v === ('' as any))) return;
+    if (k === 'imagem') {
+      if (typeof v !== 'string' && v instanceof File) {
+        form.append('imagem', v);
+      }
+      return;
     }
+    form.append(k, String(v));
   });
-  const response = await api.put(`/estoque/produtos/${productId}/`, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const response = await api.put(`/estoque/produtos/${productId}/`, form);
   return response.data;
 };

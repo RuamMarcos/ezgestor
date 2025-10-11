@@ -21,7 +21,15 @@ function EditProductModal({ product, onClose, onSave }: ModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // Normaliza campos numéricos e trata preco_custo vazio como null
+    const payload: Product = {
+      ...formData,
+      preco_venda: formData.preco_venda === '' ? 0 : Number(formData.preco_venda),
+      preco_custo: formData.preco_custo === '' ? undefined : Number(formData.preco_custo),
+      quantidade_estoque: Number(formData.quantidade_estoque),
+      quantidade_minima_estoque: Number(formData.quantidade_minima_estoque),
+    };
+    onSave(payload);
   };
 
   return (
