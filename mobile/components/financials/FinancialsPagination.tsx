@@ -10,13 +10,11 @@ interface PaginationProps {
 
 const FinancialsPagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => {
     if (totalPages <= 1) {
-        return null; // Não renderiza se houver apenas uma página
+        return null;
     }
 
-    // Lógica para criar os números das páginas a serem exibidos
     const getPageNumbers = () => {
         const pages = [];
-        // Mostra a primeira página, as páginas ao redor da atual e a última página
         if (totalPages <= 5) {
             for (let i = 1; i <= totalPages; i++) {
                 pages.push(i);
@@ -40,46 +38,47 @@ const FinancialsPagination = ({ currentPage, totalPages, onPageChange }: Paginat
             }
             pages.push(totalPages);
         }
-        // Remove duplicatas e reticências desnecessárias
         return [...new Set(pages)];
     };
 
     const pageNumbers = getPageNumbers();
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity 
-                style={styles.button}
-                onPress={() => onPageChange(currentPage - 1)} 
-                disabled={currentPage === 1}
-            >
-                <Text style={[styles.buttonText, currentPage === 1 && styles.disabledText]}>Anterior</Text>
-            </TouchableOpacity>
+            <View style={styles.paginationContainer}>
+                <TouchableOpacity
+                    style={currentPage === 1 ? [styles.smallNavButton, styles.paginationButtonDisabled] : styles.smallNavButton}
+                    onPress={() => onPageChange(1)}
+                    disabled={currentPage === 1}
+                >
+                    <Text style={styles.smallNavButtonText}>|&lt;</Text>
+                </TouchableOpacity>
 
-            {pageNumbers.map((page, index) => 
-                page === '...' ? (
-                    <Text key={`ellipsis-${index}`} style={{ paddingHorizontal: 5 }}>...</Text>
-                ) : (
-                    <TouchableOpacity 
-                        key={page}
-                        style={[styles.pageButton, currentPage === page && styles.activePage]}
-                        onPress={() => onPageChange(page as number)}
-                    >
-                        <Text style={[styles.pageButtonText, currentPage === page && styles.activePageText]}>
-                            {page}
-                        </Text>
-                    </TouchableOpacity>
-                )
-            )}
+                <TouchableOpacity
+                    style={currentPage === 1 ? [styles.paginationButton, styles.paginationButtonDisabled] : styles.paginationButton}
+                    onPress={() => onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                >
+                    <Text style={styles.paginationButtonText}>Anterior</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity 
-                style={styles.button}
-                onPress={() => onPageChange(currentPage + 1)} 
-                disabled={currentPage === totalPages}
-            >
-                <Text style={[styles.buttonText, currentPage === totalPages && styles.disabledText]}>Próximo</Text>
-            </TouchableOpacity>
-        </View>
+                <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
+
+                <TouchableOpacity
+                    style={currentPage === totalPages ? [styles.paginationButton, styles.paginationButtonDisabled] : styles.paginationButton}
+                    onPress={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                >
+                    <Text style={styles.paginationButtonText}>Próximo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={currentPage === totalPages ? [styles.smallNavButton, styles.paginationButtonDisabled] : styles.smallNavButton}
+                    onPress={() => onPageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    <Text style={styles.smallNavButtonText}>&gt;|</Text>
+                </TouchableOpacity>
+            </View>
     );
 };
 

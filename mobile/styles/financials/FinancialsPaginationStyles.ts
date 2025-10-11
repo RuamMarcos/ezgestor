@@ -2,50 +2,47 @@ import { StyleSheet } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 
 export const styles = StyleSheet.create({
-  container: {
+  // Usar mesmo padrão do sales pagination
+  paginationContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: DashboardColors.lightGray,
   },
-  button: {
-    paddingHorizontal: 16,
+  paginationButton: {
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    marginHorizontal: 5,
+    backgroundColor: DashboardColors.headerBlue,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
   },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: DashboardColors.headerBlue,
+  paginationButtonDisabled: {
+    backgroundColor: DashboardColors.lightGray,
+    opacity: 0.7,
   },
-  pageButton: {
-    width: 40,
-    height: 40,
+  paginationButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  smallNavButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: DashboardColors.lightGray,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
   },
-  pageButtonText: {
+  smallNavButtonText: {
+    color: DashboardColors.darkText,
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '600',
   },
-  activePage: {
-    backgroundColor: DashboardColors.headerBlue,
-    borderColor: DashboardColors.headerBlue,
-  },
-  activePageText: {
-    color: '#fff',
-  },
-  disabledText: {
-    color: '#ccc',
+  paginationText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DashboardColors.darkText,
   },
 });
