@@ -1,56 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Text, View, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { styles } from '../../styles/dashboard/DashboardStyles';
 
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';
 import { DashboardColors } from '@/constants/DashboardColors';
+import { getFinancialStats, FinancialStats } from '@/services/FinancialService';
+import api from '@/utils/api';
+import { router } from 'expo-router';
+
+type RecentSale = {
+  id_venda: number;
+  nome_produto: string;
+  nome_vendedor: string;
+  preco_total: string; // vem como string do backend
+  data_venda: string;
+  cliente_nome?: string | null;
+};
+
+const formatCurrency = (value: number | string): string => {
+  const n = typeof value === 'string' ? Number(value) : value;
+  if (Number.isNaN(n)) return 'R$ 0,00';
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
+};
 
 export default function DashboardScreen() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<FinancialStats | null>(null);
+  const [totalVendas, setTotalVendas] = useState<number>(0);
+  const [lowStockCount, setLowStockCount] = useState<number>(0);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
 
-  const handleNewSale = () => {
-    setModalVisible(true);
-  };
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1) Estatísticas financeiras (Entradas, Saídas, Saldo)
+      const financial = await getFinancialStats();
+      setStats(financial);
 
-  const handleSaleAdded = () => {
-    // Aqui você pode atualizar os dados do dashboard após uma nova venda
-    // Por exemplo, recarregar as vendas recentes
-    console.log('Nova venda adicionada - atualizando dashboard');
+      // 2) Total de vendas (usa paginação para obter apenas o count)
+      const vendasResp = await api.get('/vendas/', { params: { page_size: 1 } });
+      setTotalVendas(Number(vendasResp.data?.count ?? 0));
+
+      // 3) Produtos em baixo estoque (usa filtro + page_size=1 para pegar apenas o count)
+      const lowStockResp = await api.get('/estoque/produtos/', { params: { em_baixo_estoque: true, page_size: 1 } });
+      setLowStockCount(Number(lowStockResp.data?.count ?? 0));
+
+      // 4) Vendas recentes (pega as 5 mais recentes)
+      const recentResp = await api.get('/vendas/', { params: { page_size: 5 } });
+      setRecentSales(recentResp.data?.results ?? []);
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || e.message || 'Falha ao carregar o dashboard.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      // --- DADOS MOCADOS (DE EXEMPLO) ---
-      const MOCK_DATA = {
-        summary: [
-          { id: '1', title: 'Receita Mensal', value: 'R$ 8.450', color: DashboardColors.purple },
-          { id: '2', title: 'Vendas', value: '127', color: DashboardColors.green },
-          { id: '3', title: 'Estoque Baixo', value: '23', color: DashboardColors.orange },
-          { id: '4', title: 'Lucro', value: 'R$ 2.890', color: DashboardColors.blue },
-        ],
-        actions: [
-          { id: '1', label: 'Nova Venda', iconName: 'cart-plus', onPress: handleNewSale },
-          { id: '2', label: 'Emitir NF-e', iconName: 'file-document-outline', onPress: () => {} },
-          { id: '3', label: 'Estoque', iconName: 'archive-outline', onPress: () => {} },
-          { id: '4', label: 'Relatórios', iconName: 'chart-line', onPress: () => {} },
-        ],
-        recentSales: [
-          { id: '1', customer: 'João Silva', product: 'Camiseta Polo - Hoje', amount: 'R$ 45,00' },
-          { id: '2', customer: 'Maria Santos', product: 'Tênis Esportivo - Ontem', amount: 'R$ 120,00' },
-        ],
-      };
-
-      // Simula o carregamento dos dados
-      setTimeout(() => {
-        setData(MOCK_DATA);
-      }, 1000);
-    };
-    fetchData();
+    loadData();
   }, []);
 
-  if (!data) {
+  const summaryCards = useMemo(() => {
+    return [
+      {
+        id: '1',
+        title: 'Receita',
+        value: formatCurrency(stats?.total_entradas ?? 0),
+        color: DashboardColors.purple,
+      },
+      {
+        id: '2',
+        title: 'Vendas',
+        value: String(totalVendas),
+        color: DashboardColors.green,
+      },
+      {
+        id: '3',
+        title: 'Estoque Baixo',
+        value: String(lowStockCount),
+        color: DashboardColors.orange,
+      },
+      {
+        id: '4',
+        title: 'Saldo', // Pode ser exibido como "Lucro" se desejar
+        value: formatCurrency(stats?.saldo_atual ?? 0),
+        color: DashboardColors.blue,
+      },
+    ];
+  }, [stats, totalVendas, lowStockCount]);
+
+  const actions = useMemo(() => [
+    { id: '1', label: 'Nova Venda', iconName: 'cart-plus' as const, onPress: () => router.push('/(tabs)/sales') },
+    { id: '2', label: 'Financeiro', iconName: 'cash-multiple' as const, onPress: () => router.push('/(tabs)/financial') },
+    { id: '3', label: 'Estoque', iconName: 'archive-outline' as const, onPress: () => router.push('/(tabs)/stock') },
+    { id: '4', label: 'Atualizar', iconName: 'refresh' as const, onPress: loadData },
+  ], []);
+
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={DashboardColors.headerBlue} />
@@ -59,21 +108,25 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView 
-      style={styles.safeArea} 
+    <ScrollView
+      style={styles.safeArea}
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.title}>Dashboard</Text>
 
+      {error ? (
+        <Text style={{ color: 'red', marginHorizontal: 16 }}>{error}</Text>
+      ) : null}
+
       <View style={styles.cardsGrid}>
-        {data.summary.map((item: any) => (
+        {summaryCards.map((item) => (
           <SummaryCard key={item.id} title={item.title} value={item.value} backgroundColor={item.color} />
         ))}
       </View>
 
       <View style={styles.cardsGrid}>
-        {data.actions.map((item: any) => (
+        {actions.map((item) => (
           <ActionCard
             key={item.id}
             label={item.label}
@@ -85,13 +138,13 @@ export default function DashboardScreen() {
 
       <View style={styles.recentSalesContainer}>
         <Text style={styles.title}>Vendas Recentes</Text>
-        {data.recentSales.map((sale: any) => (
-          <View key={sale.id} style={styles.saleItem}>
+        {recentSales.map((sale) => (
+          <View key={sale.id_venda} style={styles.saleItem}>
             <View>
-              <Text style={styles.saleCustomer}>{sale.customer}</Text>
-              <Text style={styles.saleProduct}>{sale.product}</Text>
+              <Text style={styles.saleCustomer}>{sale.cliente_nome || sale.nome_vendedor || '—'}</Text>
+              <Text style={styles.saleProduct}>{sale.nome_produto}</Text>
             </View>
-            <Text style={styles.saleAmount}>{sale.amount}</Text>
+            <Text style={styles.saleAmount}>{formatCurrency(sale.preco_total)}</Text>
           </View>
         ))}
       </View>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { getLancamentos, getFinancialStats } from '@/services/FinancialService';
 import type { LancamentoFinanceiro, FinancialStats } from '@/services/FinancialService';
 import SummaryCard from '@/components/dashboard/SummaryCard';
@@ -7,6 +7,7 @@ import TransactionListItem from '@/components/financials/TransactionListItem';
 import FinancialsPagination from '@/components/financials/FinancialsPagination';
 import FinancialsHeader from '@/components/financials/FinancialsHeader';
 import FinancialChart from '@/components/financials/FinancialChart';
+import { styles } from '@/styles/financial/FinancialStyles';
 
 const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -68,24 +69,30 @@ export default function FinancialScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={styles.screen}>
             <FlatList
                 data={lancamentos}
                 keyExtractor={(item) => item.id_lancamento.toString()}
                 renderItem={({ item }) => <TransactionListItem item={item} />}
                 ListHeaderComponent={
-                    <>
-                        <View style={styles.pageTitleContainer}>
+                    <View>
+                        <View style={styles.headerSpacing}>
                             <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
                         </View>
                         {stats && (
-                            <View style={styles.summaryContainer}>
-                                <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" />
-                                <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" />
-                                <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" />
+                            <View style={styles.cardsSection}>
+                                <View style={styles.cardsRow}>
+                                    <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" span="half" />
+                                    <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" span="half" />
+                                </View>
+                                <View style={styles.cardsRowFull}>
+                                    <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" span="full" />
+                                </View>
                             </View>
                         )}
-                        <FinancialChart />
+                        <View style={styles.chartContainer}>
+                            <FinancialChart />
+                        </View>
                         <FinancialsHeader 
                             searchTerm={searchTerm}
                             onSearchChange={setSearchTerm}
@@ -94,10 +101,10 @@ export default function FinancialScreen() {
                             onAddTransaction={() => Alert.alert("WIP", "Modal de novo lançamento")} 
                         />
                         <Text style={styles.listTitle}>Histórico de Transações</Text>
-                    </>
+                    </View>
                 }
                 ListFooterComponent={
-                    listLoading ? <ActivityIndicator style={{ marginVertical: 20 }}/> : (
+                    listLoading ? <ActivityIndicator style={styles.footerLoader}/> : (
                         <FinancialsPagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -105,35 +112,8 @@ export default function FinancialScreen() {
                         />
                     )
                 }
+                contentContainerStyle={styles.listContent}
             />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1, 
-        backgroundColor: '#f4f7fa'
-    },
-    pageTitleContainer: {
-        paddingHorizontal: 20, 
-        paddingTop: 20,
-    },
-    pageTitle: {
-        fontSize: 24, 
-        fontWeight: 'bold'
-    },
-    summaryContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        paddingVertical: 10,
-    },
-    listTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginHorizontal: 20,
-        marginTop: 10,
-        marginBottom: 15,
-    }
-});

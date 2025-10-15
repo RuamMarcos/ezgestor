@@ -55,9 +55,6 @@ function FinancialsPage() {
         ]);
         setStats(statsData);
         setCategories(categoriesData);
-        
-        // Carregar lançamentos iniciais
-        await fetchLancamentos(1, '', '', '');
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
       } finally {
@@ -65,17 +62,12 @@ function FinancialsPage() {
       }
     };
     initialFetch();
-  }, [fetchLancamentos]);
+  }, []);
 
-  // Debounce para pesquisa
- useEffect(() => {
+  // Debounce para pesquisa - volta para página 1 quando filtros mudam
+  useEffect(() => {
     const timer = setTimeout(() => {
-      // Sempre que um filtro muda, a busca é feita na primeira página
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      } else {
-        fetchLancamentos(1, searchTerm, selectedCategory, selectedType);
-      }
+      setCurrentPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -83,7 +75,7 @@ function FinancialsPage() {
 
   useEffect(() => {
     fetchLancamentos(currentPage, searchTerm, selectedCategory, selectedType);
-  }, [currentPage, fetchLancamentos]);
+  }, [currentPage, fetchLancamentos, searchTerm, selectedCategory, selectedType]);
 
   const handlePageChange = (page: number) => {
     if (page > 0 && page <= totalPages) {
