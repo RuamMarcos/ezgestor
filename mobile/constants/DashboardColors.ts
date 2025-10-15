@@ -1,7 +1,6 @@
 export const DashboardColors = {
   purple: '#6F42C1',
   green: '#28A745',
-  red: '#DC3545',
   orange: '#FD7E14',
   blue: '#0D6EFD',
   headerBlue: '#4A55E1',

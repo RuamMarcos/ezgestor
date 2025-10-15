@@ -7,8 +7,7 @@ import TransactionListItem from '@/components/financials/TransactionListItem';
 import FinancialsPagination from '@/components/financials/FinancialsPagination';
 import FinancialsHeader from '@/components/financials/FinancialsHeader';
 import FinancialChart from '@/components/financials/FinancialChart';
-import { styles } from '../../styles/financial/FinancialStyles';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { styles } from '@/styles/financial/FinancialStyles';
 
 const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -70,40 +69,42 @@ export default function FinancialScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={styles.screen}>
             <FlatList
                 data={lancamentos}
                 keyExtractor={(item) => item.id_lancamento.toString()}
                 renderItem={({ item }) => <TransactionListItem item={item} />}
                 ListHeaderComponent={
-                    <>
-                        <View style={styles.headerContainer}>
+                    <View>
+                        <View style={styles.headerSpacing}>
                             <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
                         </View>
                         {stats && (
-                            <View style={styles.cardsGrid}>
-                                <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor={DashboardColors.green} />
-                                <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor={DashboardColors.red} />
-                                <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor={DashboardColors.blue} />
+                            <View style={styles.cardsSection}>
+                                <View style={styles.cardsRow}>
+                                    <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" span="half" />
+                                    <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" span="half" />
+                                </View>
+                                <View style={styles.cardsRowFull}>
+                                    <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" span="full" />
+                                </View>
                             </View>
                         )}
                         <View style={styles.chartContainer}>
                             <FinancialChart />
                         </View>
-                        <View style={styles.filtersContainer}>
-                            <FinancialsHeader 
-                                searchTerm={searchTerm}
-                                onSearchChange={setSearchTerm}
-                                selectedType={selectedType}
-                                onTypeChange={setSelectedType}
-                                onAddTransaction={() => Alert.alert("WIP", "Modal de novo lançamento")} 
-                            />
-                        </View>
+                        <FinancialsHeader 
+                            searchTerm={searchTerm}
+                            onSearchChange={setSearchTerm}
+                            selectedType={selectedType}
+                            onTypeChange={setSelectedType}
+                            onAddTransaction={() => Alert.alert("WIP", "Modal de novo lançamento")} 
+                        />
                         <Text style={styles.listTitle}>Histórico de Transações</Text>
-                    </>
+                    </View>
                 }
                 ListFooterComponent={
-                    listLoading ? <ActivityIndicator style={{ marginVertical: 20 }}/> : (
+                    listLoading ? <ActivityIndicator style={styles.footerLoader}/> : (
                         <FinancialsPagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -111,7 +112,7 @@ export default function FinancialScreen() {
                         />
                     )
                 }
-                contentContainerStyle={{ paddingBottom: 24 }}
+                contentContainerStyle={styles.listContent}
             />
         </View>
     );
