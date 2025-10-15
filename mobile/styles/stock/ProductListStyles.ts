@@ -9,6 +9,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     gap: 12,
+    paddingBottom: 24, // Add padding at the bottom to give space for pagination
   },
   card: {
     backgroundColor: 'white',

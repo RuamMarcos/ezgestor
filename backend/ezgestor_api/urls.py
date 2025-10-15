@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/handler/', include('handler.urls')),
     path('api/estoque/', include('estoque.urls')),
     path('api/vendas/', include('vendas.urls')),
+    path('api/financeiro/', include('financeiro.urls')),
     # SPA routes (always last)
     path('', spa_200, name='root'),
     # Exclude media and static from SPA fallback to avoid intercepting asset requests

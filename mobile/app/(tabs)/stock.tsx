@@ -200,17 +200,61 @@ export default function StockScreen() {
       }
     };
     
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        
+        return (
+            <View style={styles.paginationContainer}>
+                <TouchableOpacity
+                    style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+                    onPress={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                >
+                    <Text style={styles.smallNavButtonText}>|&lt;</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+                    onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    <Text style={styles.paginationButtonText}>Anterior</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.paginationText}>
+                    {currentPage} de {totalPages}
+                </Text>
+
+                <TouchableOpacity
+                    style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+                    onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    <Text style={styles.paginationButtonText}>Próximo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+                    onPress={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    <Text style={styles.smallNavButtonText}>&gt;|</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+    
     return (
         <View style={styles.container}>
             <View style={styles.pageHeader}>
                 <Text style={styles.title}>Estoque</Text>
                 <View style={{flexDirection: 'row'}}>
-                <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
-                    <Text style={styles.addButtonText}>Entrada Rápida</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
-                    <Text style={styles.addButtonText}>Adicionar</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
+                        <Text style={styles.addButtonText}>Entrada Rápida</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
+                        <Text style={styles.addButtonText}>Adicionar</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -228,80 +272,19 @@ export default function StockScreen() {
                 products={products} 
                 onEditProduct={handleEditProduct}
                 onDeleteProduct={handleDeleteProduct}
-                onAddStock={handleAddStock} // Passando a nova função
+                onAddStock={handleAddStock}
+                ListFooterComponent={renderPagination()} 
             />
 
-            {totalPages > 1 && (
-                <View style={styles.paginationContainer}>
-                    {/* |< first */}
-                    <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-                        onPress={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                    >
-                        <Text style={styles.paginationButtonText}>|&lt;</Text>
-                    </TouchableOpacity>
-
-                    {/* Anterior */}
-                    <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-                        onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                    >
-                        <Text style={styles.paginationButtonText}>Anterior</Text>
-                    </TouchableOpacity>
-
-                    {/* Página X de Y */}
-                    <Text style={styles.paginationText}>
-                        {currentPage} de {totalPages}
-                    </Text>
-
-                    {/* Próximo */}
-                    <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
-                        onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                    >
-                        <Text style={styles.paginationButtonText}>Próximo</Text>
-                    </TouchableOpacity>
-
-                    {/* >| last */}
-                    <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
-                        onPress={() => setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                    >
-                        <Text style={styles.paginationButtonText}>&gt;|</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-
+            
+            {/* Rest of your modals and overlays */}
             <AddProductModal 
                 visible={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSave={handleAddProduct}
             />
 
-            {/* Overlay de Loading */}
-            {loading && (
-                <View style={styles.loadingOverlay}>
-                    <Animated.View
-                        style={{
-                            transform: [
-                                {
-                                    rotate: spinValue.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ['0deg', '360deg'],
-                                    }),
-                                },
-                            ],
-                        }}
-                    >
-                        <ActivityIndicator size="large" color="#FFFFFF" />
-                    </Animated.View>
-                </View>
-            )}
-             <QuickAddModal
+            <QuickAddModal
                 visible={isQuickAddModalOpen}
                 onClose={() => setIsQuickAddModalOpen(false)}
                 onSave={handleQuickAddSave}
@@ -314,13 +297,12 @@ export default function StockScreen() {
                 onSave={handleUpdateProduct}
             />
             
-            {/* Novo Modal para Adicionar Estoque */}
             <QuickAddProductModal
                 product={selectedProduct}
                 visible={isQuickAddProductModalOpen}
                 onClose={() => setIsQuickAddProductModalOpen(false)}
                 onSave={handleQuickAddProductSave}
-            />
+            />       
 
             {loading && (
                 <View style={styles.loadingOverlay}>

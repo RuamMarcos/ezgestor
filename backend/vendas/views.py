@@ -8,6 +8,7 @@ from .models import Venda
 from .serializers import VendaSerializer, VendaCreateSerializer
 from estoque.models import Produto
 from estoque.serializers import ProdutoSerializer
+from financeiro.models import LancamentoFinanceiro
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -61,17 +62,16 @@ class VendaViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """
         Atualiza uma venda. Permite editar quantidade e dados do cliente.
-        - Se a quantidade mudar, ajusta o estoque do produto correspondente
-          e recalcula o preço total com base no preço de venda atual do produto.
+        - Ajusta o estoque do produto.
+        - Recalcula o preço total.
+        - Atualiza o lançamento financeiro correspondente.
         """
         partial = kwargs.pop('partial', True)
         instance: Venda = self.get_object()
 
-        # Valores atuais
         old_qty = instance.quantidade
         produto: Produto = instance.produto
 
-        # Campos editáveis
         new_qty = request.data.get('quantidade', old_qty)
         try:
             new_qty = int(new_qty)
@@ -84,25 +84,32 @@ class VendaViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             if diff != 0:
-                # Aumentou a quantidade vendida -> reduz estoque adicional
-                # Diminuiu a quantidade vendida -> devolve para o estoque
                 if diff > 0 and produto.quantidade_estoque < diff:
                     return Response(
                         {"quantidade": f"Estoque insuficiente. Disponível: {produto.quantidade_estoque} unidades."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                produto.quantidade_estoque = produto.quantidade_estoque - diff
+                produto.quantidade_estoque -= diff
                 produto.save(update_fields=['quantidade_estoque'])
 
-            # Atualiza campos do cliente se informados
             instance.cliente_nome = request.data.get('cliente_nome', instance.cliente_nome)
             instance.cliente_email = request.data.get('cliente_email', instance.cliente_email)
             instance.cliente_telefone = request.data.get('cliente_telefone', instance.cliente_telefone)
 
-            # Atualiza quantidade e preço total
             instance.quantidade = new_qty
             instance.preco_total = produto.preco_venda * new_qty
             instance.save()
+
+            lancamento, created = LancamentoFinanceiro.objects.update_or_create(
+                venda=instance,
+                empresa=instance.produto.empresa,
+                defaults={
+                    'valor': instance.preco_total,
+                    'descricao': f"Venda do produto: {instance.produto.nome}",
+                    'tipo': 'entrada',
+                    'categoria': 'Vendas'
+                }
+            )
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -114,12 +121,20 @@ class VendaViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """
-        Ao excluir uma venda, devolve a quantidade vendida para o estoque.
+        Ao excluir uma venda:
+        - Devolve a quantidade vendida para o estoque do produto.
+        - Exclui o lançamento financeiro associado a esta venda.
         """
         instance: Venda = self.get_object()
         with transaction.atomic():
             produto: Produto = instance.produto
             produto.quantidade_estoque = produto.quantidade_estoque + instance.quantidade
             produto.save(update_fields=['quantidade_estoque'])
+
+            # Encontra e deleta todos os lançamentos associados a esta venda.
+            LancamentoFinanceiro.objects.filter(venda=instance).delete()
+
+            # Exclui a própria venda
             instance.delete()
+            
         return Response(status=status.HTTP_204_NO_CONTENT)

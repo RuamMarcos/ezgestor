@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'handler',
     'estoque',
     'vendas',
+    'financeiro',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework',

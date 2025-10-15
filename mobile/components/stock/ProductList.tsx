@@ -9,7 +9,8 @@ interface ProductListProps {
   products: Product[];
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (productId: number) => void;
-  onAddStock: (product: Product) => void; // Nova propriedade
+  onAddStock: (product: Product) => void; 
+  ListFooterComponent?: React.ReactElement | null; 
 }
 
 const formatCurrency = (value: number | string | undefined): string => {
@@ -18,7 +19,13 @@ const formatCurrency = (value: number | string | undefined): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
 };
 
-const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDeleteProduct, onAddStock }) => {
+const ProductList: React.FC<ProductListProps> = ({ 
+  products, 
+  onEditProduct, 
+  onDeleteProduct, 
+  onAddStock,
+  ListFooterComponent 
+}) => {
 
   const handleDelete = (productId: number) => {
     Alert.alert(
@@ -61,8 +68,8 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDe
     </View>
   );
 
-  return (
-     <FlatList
+    return (
+    <FlatList
       data={products}
       renderItem={renderItem}
       keyExtractor={(item) => item.id_produto!.toString()}
@@ -70,6 +77,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDe
       numColumns={2}
       columnWrapperStyle={{ gap: 12 }}
       ListEmptyComponent={<Text style={styles.emptyText}>Nenhum produto encontrado.</Text>}
+      ListFooterComponent={ListFooterComponent} 
     />
   );
 };

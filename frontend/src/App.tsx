@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout'; 
 import StockPage from './pages/StockPage'; 
 import SalesPage from './pages/SalesPage';
+import FinancialsPage from './pages/FinancialsPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/stock" element={<StockPage />} />
           <Route path="/vendas" element={<SalesPage />} />
+          <Route path="/fluxo-de-caixa" element={<FinancialsPage />} />
         </Route>
 
         {/* Fallback Route */}

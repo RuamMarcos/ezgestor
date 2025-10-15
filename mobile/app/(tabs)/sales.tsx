@@ -13,7 +13,7 @@ import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
 import AddSaleModal from '@/components/sales/AddSaleModal';
 import EditSaleModal from '@/components/sales/EditSaleModal';
-import { styles } from '../../styles/sales/salesStyles';
+import { styles } from '../../styles/sales/SalesStyles';
 import { DashboardColors } from '@/constants/DashboardColors';
 
 interface Venda {
@@ -93,7 +93,6 @@ export default function VendasScreen() {
   }, [busca]);
 
   useEffect(() => {
-    // CORREÇÃO: Remove a condição e sempre busca quando a página muda
     buscarVendas(currentPage, busca);
   }, [currentPage]);
 
@@ -102,18 +101,16 @@ export default function VendasScreen() {
 
     return (
       <View style={styles.paginationContainer}>
-        {/* |< first */}
         <TouchableOpacity
-          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+          style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
           onPress={() => setCurrentPage(1)}
           disabled={currentPage === 1}
         >
-          <Text style={styles.paginationButtonText}>|&lt;</Text>
+          <Text style={styles.smallNavButtonText}>|&lt;</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-          // CORREÇÃO: Simplifica a lógica de navegação
+          style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
           onPress={() => {
             if (currentPage > 1) {
               setCurrentPage(currentPage - 1);
@@ -127,8 +124,7 @@ export default function VendasScreen() {
         <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
 
         <TouchableOpacity
-          style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
-          // CORREÇÃO: Simplifica a lógica de navegação
+          style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
           onPress={() => {
             if (currentPage < totalPages) {
               setCurrentPage(currentPage + 1);
@@ -139,13 +135,12 @@ export default function VendasScreen() {
           <Text style={styles.paginationButtonText}>Próximo</Text>
         </TouchableOpacity>
 
-        {/* >| last */}
         <TouchableOpacity
-          style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
+          style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
           onPress={() => setCurrentPage(totalPages)}
           disabled={currentPage === totalPages}
         >
-          <Text style={styles.paginationButtonText}>&gt;|</Text>
+          <Text style={styles.smallNavButtonText}>&gt;|</Text>
         </TouchableOpacity>
       </View>
     );
