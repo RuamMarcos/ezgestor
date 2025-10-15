@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { getLancamentos, getFinancialStats } from '@/services/FinancialService';
 import type { LancamentoFinanceiro, FinancialStats } from '@/services/FinancialService';
 import SummaryCard from '@/components/dashboard/SummaryCard';
@@ -7,6 +7,8 @@ import TransactionListItem from '@/components/financials/TransactionListItem';
 import FinancialsPagination from '@/components/financials/FinancialsPagination';
 import FinancialsHeader from '@/components/financials/FinancialsHeader';
 import FinancialChart from '@/components/financials/FinancialChart';
+import { styles } from '../../styles/financial/FinancialStyles';
+import { DashboardColors } from '@/constants/DashboardColors';
 
 const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -75,24 +77,28 @@ export default function FinancialScreen() {
                 renderItem={({ item }) => <TransactionListItem item={item} />}
                 ListHeaderComponent={
                     <>
-                        <View style={styles.pageTitleContainer}>
+                        <View style={styles.headerContainer}>
                             <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
                         </View>
                         {stats && (
-                            <View style={styles.summaryContainer}>
-                                <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" />
-                                <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" />
-                                <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" />
+                            <View style={styles.cardsGrid}>
+                                <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor={DashboardColors.green} />
+                                <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor={DashboardColors.red} />
+                                <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor={DashboardColors.blue} />
                             </View>
                         )}
-                        <FinancialChart />
-                        <FinancialsHeader 
-                            searchTerm={searchTerm}
-                            onSearchChange={setSearchTerm}
-                            selectedType={selectedType}
-                            onTypeChange={setSelectedType}
-                            onAddTransaction={() => Alert.alert("WIP", "Modal de novo lançamento")} 
-                        />
+                        <View style={styles.chartContainer}>
+                            <FinancialChart />
+                        </View>
+                        <View style={styles.filtersContainer}>
+                            <FinancialsHeader 
+                                searchTerm={searchTerm}
+                                onSearchChange={setSearchTerm}
+                                selectedType={selectedType}
+                                onTypeChange={setSelectedType}
+                                onAddTransaction={() => Alert.alert("WIP", "Modal de novo lançamento")} 
+                            />
+                        </View>
                         <Text style={styles.listTitle}>Histórico de Transações</Text>
                     </>
                 }
@@ -105,35 +111,8 @@ export default function FinancialScreen() {
                         />
                     )
                 }
+                contentContainerStyle={{ paddingBottom: 24 }}
             />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1, 
-        backgroundColor: '#f4f7fa'
-    },
-    pageTitleContainer: {
-        paddingHorizontal: 20, 
-        paddingTop: 20,
-    },
-    pageTitle: {
-        fontSize: 24, 
-        fontWeight: 'bold'
-    },
-    summaryContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        paddingVertical: 10,
-    },
-    listTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginHorizontal: 20,
-        marginTop: 10,
-        marginBottom: 15,
-    }
-});

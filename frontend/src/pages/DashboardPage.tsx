@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Footer from '../components/Footer';
 import StatCard from '../components/StatCard';
 import AddSaleModal from '../components/sales/AddSaleModal';
+import api from '../api';
 
 // Tipos para os dados do dashboard
 interface Sale {
@@ -19,28 +20,47 @@ interface DashboardData {
   recentSales: Sale[];
 }
 
-// Dados estáticos para demonstração
-const staticDashboardData: DashboardData = {
-  monthlyRevenue: 8450.50,
-  salesCount: 127,
-  lowStockItems: 23,
-  estimatedProfit: 2890.00,
-  recentSales: [
-    { id: 1, clientName: "João Silva", description: "Camiseta Polo", value: 45.00 },
-    { id: 2, clientName: "Maria Santos", description: "Tênis Esportivo", value: 120.00 },
-    { id: 3, clientName: "Carlos Souza", description: "Mochila Executiva", value: 85.00 },
-    { id: 4, clientName: "Ana Pereira", description: "Boné Aba Reta", value: 35.00 }
-  ]
+const emptyDashboardData: DashboardData = {
+  monthlyRevenue: 0,
+  salesCount: 0,
+  lowStockItems: 0,
+  estimatedProfit: 0,
+  recentSales: [],
 };
 
 function DashboardPage() {
-  const [data] = useState<DashboardData>(staticDashboardData);
+  const [data, setData] = useState<DashboardData>(emptyDashboardData);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSaleAdded = () => {
-    // Aqui você pode atualizar os dados do dashboard após uma nova venda
-    console.log('Nova venda adicionada - atualizando dashboard');
+    // Recarrega KPIs após nova venda
+    fetchDashboard();
   };
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const resp = await api.get('/financeiro/dashboard/');
+      const d = resp.data || {};
+      setData({
+        monthlyRevenue: Number(d.monthlyRevenue ?? 0),
+        salesCount: Number(d.salesCount ?? 0),
+        lowStockItems: Number(d.lowStockItems ?? 0),
+        estimatedProfit: Number(d.estimatedProfit ?? 0),
+        recentSales: Array.isArray(d.recentSales) ? d.recentSales : [],
+      });
+    } catch (e: any) {
+      setError('Não foi possível carregar os indicadores agora.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -51,26 +71,30 @@ function DashboardPage() {
       
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Geral</h2>
 
+      {error && (
+        <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">{error}</div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
           title="Receita Mensal" 
-          value={formatCurrency(data.monthlyRevenue)}
+          value={loading ? '—' : formatCurrency(data.monthlyRevenue)}
           gradient="bg-gradient-to-r from-orange-400 to-pink-400"
         />
         <StatCard 
           title="Vendas Este Mês" 
-          value={data.salesCount.toString()}
+          value={loading ? '—' : data.salesCount.toString()}
           gradient="bg-gradient-to-r from-pink-300 to-orange-300"
         />
         <StatCard 
           title="Produtos em Estoque Baixo" 
-          value={data.lowStockItems.toString()}
+          value={loading ? '—' : data.lowStockItems.toString()}
           gradient="bg-gradient-to-r from-purple-200 to-pink-200"
           textColor="text-gray-700"
         />
         <StatCard 
           title="Lucro Estimado" 
-          value={formatCurrency(data.estimatedProfit)}
+          value={loading ? '—' : formatCurrency(data.estimatedProfit)}
           gradient="bg-gradient-to-r from-cyan-400 to-blue-400"
         />
       </div>
@@ -104,13 +128,19 @@ function DashboardPage() {
       <div className="mt-8 bg-white rounded-2xl p-6 hidden lg:block border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Vendas Recentes</h3>
         <div className="space-y-3">
-          {data.recentSales.map(sale => (
+          {loading && (
+            <div className="py-6 text-center text-gray-500">Carregando...</div>
+          )}
+          {!loading && data.recentSales.length === 0 && (
+            <div className="py-6 text-center text-gray-500">Sem vendas recentes.</div>
+          )}
+          {!loading && data.recentSales.map((sale: any) => (
             <div key={sale.id} className="flex justify-between items-center py-3 px-4 bg-white rounded-lg border border-gray-200">
               <div>
                 <p className="font-semibold text-gray-800">{sale.clientName}</p>
                 <p className="text-sm text-gray-600">{sale.description}</p>
               </div>
-              <p className="font-semibold text-gray-800">{formatCurrency(sale.value)}</p>
+              <p className="font-semibold text-gray-800">{formatCurrency(Number(sale.value || 0))}</p>
             </div>
           ))}
         </div>
