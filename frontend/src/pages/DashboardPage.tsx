@@ -132,7 +132,7 @@ function DashboardPage() {
       if (vendedor) params.push(`vendedor=${encodeURIComponent(vendedor)}`);
       if (cliente) params.push(`cliente=${encodeURIComponent(cliente)}`);
       if (produto) params.push(`produto=${encodeURIComponent(produto)}`);
-      // CSV agora suportado por todos os relatórios no backend (exceto bundle que sempre é ZIP)
+  // CSV agora suportado por todos os relatórios no backend (bundle retorna ZIP contendo PDFs ou CSVs)
       const finalFmt = fmt;
       switch (reportType) {
         case 'executive':
@@ -181,9 +181,13 @@ function DashboardPage() {
           filename = `dre_${s}_${e}.${finalFmt}`;
           break;
         case 'bundle':
-        default:
-          url = `/relatorios/bundle/?${params.join('&')}`;
-          filename = `relatorios_${s}_${e}.zip`;
+        default: {
+          const base = params.length ? `${params.join('&')}&` : '';
+          url = `/relatorios/bundle/?${base}format=${finalFmt}`;
+          const suffix = finalFmt === 'csv' ? 'csv' : 'pdf';
+          filename = `relatorios_${s}_${e}_${suffix}.zip`;
+          break;
+        }
       }
 
       const resp = await api.get(url, { responseType: 'blob' });
@@ -278,11 +282,11 @@ function DashboardPage() {
               </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Formato</label>
-                <select value={reportFormat} onChange={(e)=>setReportFormat(e.target.value as 'pdf'|'csv')} className="w-full border rounded-lg p-2" disabled={reportType === 'bundle'}>
+                <select value={reportFormat} onChange={(e)=>setReportFormat(e.target.value as 'pdf'|'csv')} className="w-full border rounded-lg p-2">
                   <option value="pdf">PDF</option>
                   <option value="csv">CSV</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-1">CSV disponível para todos os relatórios (exceto Bundle, que gera ZIP).</p>
+                <p className="text-xs text-gray-500 mt-1">CSV disponível para todos os relatórios. Bundle gera um ZIP contendo arquivos no formato escolhido.</p>
               </div>
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                 <div>

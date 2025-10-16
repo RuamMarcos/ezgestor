@@ -452,6 +452,7 @@ class ReportsBundleZipView(APIView):
     def get(self, request, *args, **kwargs):
         start = parse_date(request.GET.get('start'))
         end = parse_date(request.GET.get('end'))
+        out_format = request.GET.get('format', 'pdf').lower()
         vendedores_param = request.GET.get('vendedor')  # csv: emails or ids
         cliente_param = request.GET.get('cliente')
         produto_param = request.GET.get('produto')
@@ -488,33 +489,58 @@ class ReportsBundleZipView(APIView):
                 )['t'] or 0
             )
             series = [float(v) for v in []]
-            html = render_to_string('reports/executive_summary.html', {
-                'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'), 'empresa_nome': '—',
-                'kpis': { 'receita_total': total, 'numero_vendas': vendas_qs.count(), 'ticket_medio': 0, 'margem_bruta': 0, 'baixo_estoque': 0, 'entradas': 0, 'saidas': 0, 'saldo_variacao': 0 },
-                'top_produtos': [], 'top_clientes': [], 'revenue_svg': mark_safe(svg_line_chart(series)), 'vendors_svg': mark_safe(svg_bar_chart([])), 'variacao_percent': 0,
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 16mm; } body { font-family: Arial; font-size: 12px; }')
-            files.append((f'01_resumo_executivo_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Indicador', 'Valor'])
+                w.writerow(['Receita Total', f"{float(total):.2f}"])
+                w.writerow(['Nº Vendas', f"{vendas_qs.count()}"])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'01_resumo_executivo_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/executive_summary.html', {
+                    'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'), 'empresa_nome': '—',
+                    'kpis': { 'receita_total': total, 'numero_vendas': vendas_qs.count(), 'ticket_medio': 0, 'margem_bruta': 0, 'baixo_estoque': 0, 'entradas': 0, 'saidas': 0, 'saldo_variacao': 0 },
+                    'top_produtos': [], 'top_clientes': [], 'revenue_svg': mark_safe(svg_line_chart(series)), 'vendors_svg': mark_safe(svg_bar_chart([])), 'variacao_percent': 0,
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 16mm; } body { font-family: Arial; font-size: 12px; }')
+                files.append((f'01_resumo_executivo_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 2) Vendas por período (skeleton)
-            html = render_to_string('reports/sales_period.html', {
-                'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'), 'empresa_nome': '—',
-                'sumario': { 'receita_total': total, 'numero_vendas': 0, 'ticket_medio': 0, 'unidades': 0, 'desconto_total': 0, 'margem_total': 0 },
-                'vendas': [], 'daily': [], 'by_product': [],
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial; font-size: 11px; }')
-            files.append((f'02_vendas_periodo_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Campo', 'Valor'])
+                w.writerow(['Receita Total', f"{float(total):.2f}"])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'02_vendas_periodo_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/sales_period.html', {
+                    'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'), 'empresa_nome': '—',
+                    'sumario': { 'receita_total': total, 'numero_vendas': 0, 'ticket_medio': 0, 'unidades': 0, 'desconto_total': 0, 'margem_total': 0 },
+                    'vendas': [], 'daily': [], 'by_product': [],
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial; font-size: 11px; }')
+                files.append((f'02_vendas_periodo_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 3) Ranking de produtos (skeleton)
-            html = render_to_string('reports/product_ranking.html', {
-                'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'), 'empresa_nome': '—',
-                'receita_periodo': total, 'ranking': [], 'produtos_sem_giro': [],
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial; font-size: 11px; }')
-            files.append((f'03_ranking_produtos_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Campo', 'Valor'])
+                w.writerow(['Receita no período', f"{float(total):.2f}"])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'03_ranking_produtos_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/product_ranking.html', {
+                    'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'), 'empresa_nome': '—',
+                    'receita_periodo': total, 'ranking': [], 'produtos_sem_giro': [],
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial; font-size: 11px; }')
+                files.append((f'03_ranking_produtos_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 4) Performance por Vendedor (real)
             tz = timezone.get_current_timezone()
@@ -570,16 +596,25 @@ class ReportsBundleZipView(APIView):
                     'participacao': part,
                 })
                 seller_bars.append(faturamento)
-            html = render_to_string('reports/seller_performance.html', {
-                'periodo_inicio': s.strftime('%d/%m/%Y'),
-                'periodo_fim': e.strftime('%d/%m/%Y'),
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
-                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
-                'rows': perf_rows,
-                'bars_svg': mark_safe(svg_bar_chart(seller_bars)),
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
-            files.append((f'04_performance_vendedor_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Vendedor', 'Vendas', 'Faturamento', 'Ticket Médio', 'Margem', 'Média Diária', 'Participação %'])
+                for r in perf_rows:
+                    w.writerow([r['nome'], r['vendas'], f"{r['faturamento']:.2f}", f"{r['ticket_medio']:.2f}", f"{r['margem']:.2f}", f"{r['media_diaria']:.2f}", f"{r['participacao']:.2f}"])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'04_performance_vendedor_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/seller_performance.html', {
+                    'periodo_inicio': s.strftime('%d/%m/%Y'),
+                    'periodo_fim': e.strftime('%d/%m/%Y'),
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                    'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                    'rows': perf_rows,
+                    'bars_svg': mark_safe(svg_bar_chart(seller_bars)),
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+                files.append((f'04_performance_vendedor_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 5) Vendas por Cliente (real)
             vendas_cli = Venda.objects.all()
@@ -630,15 +665,24 @@ class ReportsBundleZipView(APIView):
                     top10.append(row)
                 if recencia and recencia >= gap_days:
                     recuperaveis.append(row)
-            html = render_to_string('reports/sales_by_customer.html', {
-                'periodo_inicio': s.strftime('%d/%m/%Y'),
-                'periodo_fim': e.strftime('%d/%m/%Y'),
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
-                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
-                'rows': rows, 'top10': top10, 'recuperaveis': recuperaveis,
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
-            files.append((f'05_vendas_por_cliente_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Cliente', 'Última Compra', 'Compras', 'Faturamento', 'Ticket Médio', 'Observações'])
+                for r in rows:
+                    w.writerow([r['cliente'], r['ultima_compra'], r['compras'], f"{r['faturamento']:.2f}", f"{r['ticket_medio']:.2f}", r['observacoes']])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'05_vendas_por_cliente_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/sales_by_customer.html', {
+                    'periodo_inicio': s.strftime('%d/%m/%Y'),
+                    'periodo_fim': e.strftime('%d/%m/%Y'),
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                    'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                    'rows': rows, 'top10': top10, 'recuperaveis': recuperaveis,
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+                files.append((f'05_vendas_por_cliente_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 6) Posição/Valuation de Estoque (real)
             base_days = 30
@@ -694,16 +738,25 @@ class ReportsBundleZipView(APIView):
                     'cobertura': cobertura,
                     'status': status,
                 })
-            html = render_to_string('reports/stock_position.html', {
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
-                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
-                'valor_total_custo': valor_total_custo,
-                'baixo_estoque': baixo_estoque,
-                'sem_giro': sem_giro,
-                'rows': rows_sp[:1000],
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
-            files.append((f'06_posicao_valuation_estoque_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Código', 'Nome', 'Estoque', 'Estoque Mínimo', 'Custo Médio', 'Valor Estoque', 'Preço Venda', 'Margem %', 'Cobertura (dias)', 'Status'])
+                for r in rows_sp:
+                    w.writerow([r['codigo'], r['nome'], r['estoque'], r['estoque_min'], f"{r['custo_medio']:.2f}", f"{r['valor_estoque']:.2f}", f"{r['preco_venda']:.2f}", f"{r['margem_pct']:.2f}", (f"{r['cobertura']:.2f}" if r['cobertura'] is not None else ''), r['status']])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'06_posicao_valuation_estoque_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/stock_position.html', {
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                    'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                    'valor_total_custo': valor_total_custo,
+                    'baixo_estoque': baixo_estoque,
+                    'sem_giro': sem_giro,
+                    'rows': rows_sp[:1000],
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+                files.append((f'06_posicao_valuation_estoque_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 7) Sugestão de Reposição (real)
             base_days_r = 30
@@ -755,14 +808,23 @@ class ReportsBundleZipView(APIView):
                     'obs': obs,
                 })
             suggestions.sort(key=lambda x: (x['cobertura'] if x['cobertura'] is not None else 1e9))
-            html = render_to_string('reports/replenishment.html', {
-                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
-                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
-                'base_days': base_days_r, 'lead_time': lead_time, 'safety': safety,
-                'rows': suggestions[:1000],
-            })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
-            files.append((f'07_sugestao_compra_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Produto', 'Média Diária', 'Estoque Atual', 'Cobertura (dias)', 'Ruptura Prevista', 'Qtd. Sugerida', 'Observações'])
+                for r in suggestions:
+                    w.writerow([r['produto'], f"{r['media_diaria']:.2f}", r['estoque_atual'], f"{r['cobertura']:.2f}" if r['cobertura'] is not None else '', r['ruptura_prevista'], f"{r['qtd_sugerida']:.0f}", r['obs']])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'07_sugestao_compra_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/replenishment.html', {
+                    'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                    'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                    'base_days': base_days_r, 'lead_time': lead_time, 'safety': safety,
+                    'rows': suggestions[:1000],
+                })
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+                files.append((f'07_sugestao_compra_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 8) Fluxo de Caixa (real)
             tz = timezone.get_current_timezone()
@@ -799,6 +861,7 @@ class ReportsBundleZipView(APIView):
             chart_end = e
             ent_map = {r['day']: float(r['total'] or 0) for r in entradas_por_dia}
             sai_map = {r['day']: float(r['total'] or 0) for r in saidas_por_dia}
+            days = []
             ent_series, sai_series, saldo_series = [], [], []
             running = 0.0
             d = chart_start
@@ -806,6 +869,7 @@ class ReportsBundleZipView(APIView):
                 e_val = ent_map.get(d, 0.0)
                 s_val = sai_map.get(d, 0.0)
                 running += e_val - s_val
+                days.append(d)
                 ent_series.append(e_val)
                 sai_series.append(s_val)
                 saldo_series.append(running)
@@ -828,9 +892,18 @@ class ReportsBundleZipView(APIView):
                 ),
                 'lancamentos': lanc.order_by('-data_lancamento')[:500],
             }
-            html = render_to_string('reports/cashflow.html', context_cf)
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }')
-            files.append((f'08_fluxo_caixa_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Dia', 'Entradas', 'Saídas', 'Saldo Acumulado'])
+                for idx, day in enumerate(days):
+                    w.writerow([day.strftime('%d/%m/%Y'), f"{ent_series[idx]:.2f}", f"{sai_series[idx]:.2f}", f"{saldo_series[idx]:.2f}"])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'08_fluxo_caixa_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                html = render_to_string('reports/cashflow.html', context_cf)
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }')
+                files.append((f'08_fluxo_caixa_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 9) Kardex (Parcial - real)
             vendas_k = Venda.objects.select_related('produto').all()
@@ -875,8 +948,17 @@ class ReportsBundleZipView(APIView):
                     'saldo_final': saldo_final,
                 }
             })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
-            files.append((f'09_kardex_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Data', 'Tipo', 'Documento', 'Produto', 'Quantidade', 'Saldo Aproximado', 'Obs'])
+                for m in movimentos:
+                    w.writerow([m['data'].strftime('%d/%m/%Y %H:%M') if m['data'] else '', m['tipo'], m['documento'], m['produto'], m['qtd'], m['saldo_aprox'] if m['saldo_aprox'] is not None else '', m['obs']])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'09_kardex_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+                files.append((f'09_kardex_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
             # 10) DRE Simplificada (real)
             vendas_d = Venda.objects.select_related('produto').all()
@@ -930,8 +1012,24 @@ class ReportsBundleZipView(APIView):
                     'observacao': 'Parcial (estimado) por ausência de mapeamento completo de categorias.'
                 }
             })
-            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
-            files.append((f'10_dre_simplificada_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+            if out_format == 'csv':
+                sio = StringIO(newline='')
+                w = csv.writer(sio, delimiter=';')
+                w.writerow(['Conta', 'Valor'])
+                w.writerow(['Receita Bruta', f"{float(receita_bruta):.2f}"])
+                w.writerow(['(-) Deduções', f"{0.0:.2f}"])
+                w.writerow(['= Receita Líquida', f"{float(receita_liquida):.2f}"])
+                w.writerow(['(-) CMV', f"{float(cmv):.2f}"])
+                w.writerow(['= Lucro Bruto', f"{float(lucro_bruto):.2f}"])
+                w.writerow(['(-) Despesas Operacionais', f"{float(despesas_op):.2f}"])
+                w.writerow(['= Resultado Operacional', f"{float(resultado_operacional):.2f}"])
+                w.writerow(['(+/-) Outras Receitas', f"{float(outras_rec):.2f}"])
+                w.writerow(['= Resultado Líquido', f"{float(resultado_liquido):.2f}"])
+                data = sio.getvalue().encode('utf-8-sig')
+                files.append((f'10_dre_simplificada_{s.isoformat()}_{e.isoformat()}.csv', data))
+            else:
+                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+                files.append((f'10_dre_simplificada_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
         except Exception as e:
             files.append(("erro.txt", str(e).encode('utf-8')))
@@ -941,7 +1039,8 @@ class ReportsBundleZipView(APIView):
             for fname, content in files:
                 zf.writestr(fname, content)
         mem.seek(0)
-        filename = f"relatorios_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.zip"
+        suffix = 'csv' if out_format == 'csv' else 'pdf'
+        filename = f"relatorios_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}_{suffix}.zip"
         resp = HttpResponse(mem.read(), content_type='application/zip')
         resp['Content-Disposition'] = f'attachment; filename="{filename}"'
         return resp
