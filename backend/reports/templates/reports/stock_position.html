@@ -1,0 +1,35 @@
+{% extends 'reports/base.html' %}
+{% block title %}Posição e Valuation de Estoque{% endblock %}
+{% block content %}
+<h2 class="page-title">Posição e Valuation de Estoque</h2>
+<p class="muted">Emitido em {{ emitido_em }}</p>
+<p>Valor total de custo: R$ {{ valor_total_custo|floatformat:2 }} | Itens em baixo estoque: {{ baixo_estoque }} | Itens sem giro: {{ sem_giro }}</p>
+<table>
+  <tr>
+    <th>Código</th>
+    <th>Produto</th>
+    <th>Estoque</th>
+    <th>Estoque Mín.</th>
+    <th>Custo Médio</th>
+    <th>Valor Estoque</th>
+    <th>Preço Venda</th>
+    <th>Margem %</th>
+    <th>Cobertura (dias)</th>
+    <th>Status</th>
+  </tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.codigo }}</td>
+    <td>{{ r.nome }}</td>
+    <td>{{ r.estoque }}</td>
+    <td>{{ r.estoque_min }}</td>
+    <td>R$ {{ r.custo_medio|floatformat:2 }}</td>
+    <td>R$ {{ r.valor_estoque|floatformat:2 }}</td>
+    <td>R$ {{ r.preco_venda|floatformat:2 }}</td>
+    <td>{{ r.margem_pct|floatformat:2 }}%</td>
+    <td>{% if r.cobertura %}{{ r.cobertura|floatformat:1 }}{% else %}—{% endif %}</td>
+    <td>{{ r.status }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

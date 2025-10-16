@@ -4,6 +4,7 @@ import { styles } from '../../styles/dashboard/DashboardStyles';
 
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';
+import ReportModal from '@/components/shared/ReportModal';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { getFinancialStats, FinancialStats } from '@/services/FinancialService';
 import api from '@/utils/api';
@@ -31,6 +32,7 @@ export default function DashboardScreen() {
   const [totalVendas, setTotalVendas] = useState<number>(0);
   const [lowStockCount, setLowStockCount] = useState<number>(0);
   const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -93,10 +95,8 @@ export default function DashboardScreen() {
   }, [stats, totalVendas, lowStockCount]);
 
   const actions = useMemo(() => [
-    { id: '1', label: 'Nova Venda', iconName: 'cart-plus' as const, onPress: () => router.push('/(tabs)/sales') },
-    { id: '2', label: 'Financeiro', iconName: 'cash-multiple' as const, onPress: () => router.push('/(tabs)/financial') },
-    { id: '3', label: 'Estoque', iconName: 'archive-outline' as const, onPress: () => router.push('/(tabs)/stock') },
-    { id: '4', label: 'Atualizar', iconName: 'refresh' as const, onPress: loadData },
+    { id: '1', label: 'Gerar Relatórios', iconName: 'file-chart' as const, onPress: () => setReportModalOpen(true) },
+    { id: '2', label: 'Atualizar', iconName: 'refresh' as const, onPress: loadData },
   ], []);
 
   if (loading) {
@@ -149,6 +149,7 @@ export default function DashboardScreen() {
         ))}
       </View>
 
+      <ReportModal visible={reportModalOpen} onClose={()=>setReportModalOpen(false)} />
     </ScrollView>
   );
 }

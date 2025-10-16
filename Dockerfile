@@ -22,8 +22,16 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install dependencies for mysqlclient (build-time)
-RUN apt-get update && apt-get install -y default-libmysqlclient-dev gcc pkg-config && rm -rf /var/lib/apt/lists/*
+# Install dependencies for mysqlclient and WeasyPrint (build-time)
+RUN apt-get update && apt-get install -y \
+	default-libmysqlclient-dev \
+	gcc \
+	pkg-config \
+	libpango-1.0-0 \
+	libcairo2 \
+	libgdk-pixbuf-2.0-0 \
+	libffi-dev \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY backend/requirements.txt .
@@ -35,8 +43,13 @@ COPY backend/ .
 FROM python:3.11-slim
 
 WORKDIR /app
-# Install runtime libraries needed by mysqlclient (libmariadb3 provides libmysqlclient-compatible runtime)
-RUN apt-get update && apt-get install -y --no-install-recommends libmariadb3 && rm -rf /var/lib/apt/lists/*
+# Install runtime libraries for mysqlclient and WeasyPrint
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	libmariadb3 \
+	libpango-1.0-0 \
+	libcairo2 \
+	libgdk-pixbuf-2.0-0 \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Set environment variables for Gunicorn
 ENV GUNICORN_CMD_ARGS="--workers=2 --threads=4 --worker-class=gthread --bind=0.0.0.0:8080"

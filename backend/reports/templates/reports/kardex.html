@@ -1,0 +1,30 @@
+{% extends 'reports/base.html' %}
+{% block title %}Kardex (Parcial){% endblock %}
+{% block content %}
+<h2>Kardex (Parcial)</h2>
+<p>Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+<table>
+  <tr><th>Data</th><th>Tipo</th><th>Documento</th><th>Produto</th><th>Qtd</th><th>Saldo</th><th>Obs</th></tr>
+  {% for m in movimentos %}
+  <tr>
+    <td>{{ m.data|date:'d/m/Y H:i' }}</td>
+    <td>{{ m.tipo }}</td>
+    <td>{{ m.documento }}</td>
+    <td>{{ m.produto }}</td>
+    <td>{{ m.qtd }}</td>
+    <td>{{ m.saldo_aprox|default:'—' }}</td>
+    <td>{{ m.obs }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<h3>Sumário</h3>
+<table>
+  <tr><th>Entradas</th><th>Saídas</th><th>Saldo Inicial</th><th>Saldo Final</th></tr>
+  <tr>
+    <td>{{ sumario.entradas }}</td>
+    <td>{{ sumario.saidas }}</td>
+    <td>{{ sumario.saldo_inicial|default:'—' }}</td>
+    <td>{{ sumario.saldo_final|default:'—' }}</td>
+  </tr>
+</table>
+{% endblock %}
