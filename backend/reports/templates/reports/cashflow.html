@@ -1,10 +1,10 @@
 {% extends 'reports/base.html' %}
 {% block title %}Fluxo de Caixa{% endblock %}
 {% block content %}
-<h2>Fluxo de Caixa</h2>
-<p>Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+<h2 class="page-title">Fluxo de Caixa</h2>
+<p class="muted">Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
 
-<h3>Resumo</h3>
+<h3 class="section-title">Resumo</h3>
 <table>
   <tr><th>Entradas</th><th>Saídas</th><th>Saldo</th></tr>
   <tr>
@@ -14,16 +14,22 @@
   </tr>
 </table>
 
-<h3>Evolução do Saldo</h3>
-<div>{{ saldo_svg|safe }}</div>
+<div class="section card">
+  <h3 class="section-title">Evolução do Saldo</h3>
+  <div>{{ saldo_svg|safe }}</div>
+  </div>
 
-<h3>Entradas por Dia</h3>
-<div>{{ entradas_svg|safe }}</div>
+<div class="section card">
+  <h3 class="section-title">Entradas por Dia</h3>
+  <div>{{ entradas_svg|safe }}</div>
+  </div>
 
-<h3>Saídas por Dia</h3>
-<div>{{ saidas_svg|safe }}</div>
+<div class="section card">
+  <h3 class="section-title">Saídas por Dia</h3>
+  <div>{{ saidas_svg|safe }}</div>
+  </div>
 
-<h3>Por Categoria</h3>
+<h3 class="section-title">Por Categoria</h3>
 <table>
   <tr><th>Categoria</th><th>Tipo</th><th>Total</th></tr>
   {% for c in por_categoria %}
@@ -35,7 +41,7 @@
   {% endfor %}
 </table>
 
-<h3>Últimos Lançamentos</h3>
+<h3 class="section-title">Últimos Lançamentos</h3>
 <table>
   <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr>
   {% for l in lancamentos %}

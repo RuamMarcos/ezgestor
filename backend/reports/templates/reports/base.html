@@ -5,6 +5,95 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Relatório{% endblock %}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      color: #2a2f45;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    h1, h2, h3 { margin: 0 0 10px 0; color: #1e2a5a; }
+    h2.page-title {
+      background: #1e88e5;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e88e5;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .header .h-title { font-size: 18px; font-weight: bold; color: #fff; }
+    .header .muted { color: #e7eef9; }
+    .muted { color: #6b7280; }
+
+    .section { margin-top: 14px; }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e6eaf2;
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(30, 40, 90, 0.05);
+      margin: 8px 0;
+    }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0; }
+    .kpi {
+      background: #f5f8ff;
+      border: 1px solid #e1e7f5;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .kpi .label { font-size: 11px; color: #475569; }
+    .kpi .value { font-size: 16px; font-weight: bold; color: #111827; }
+
+    h3.section-title {
+      background: #e8f1ff;
+      color: #0f4c81;
+      padding: 6px 10px;
+      border-left: 4px solid #1e88e5;
+      border-radius: 6px;
+      margin: 10px 0 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate; /* better border radius support */
+      border-spacing: 0;
+      background: #fff;
+      border: 1px solid #e6eaf2;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    thead th {
+      background: #f0f5ff;
+      color: #0f2147;
+      font-weight: 600;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e6eaf2;
+    }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid #eef2f7; }
+    tbody tr:nth-child(even) td { background: #fbfdff; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #eef6ff;
+      color: #1e88e5;
+      border-radius: 999px;
+      font-size: 10px;
+    }
+  </style>
 </head>
 <body>
   {% block content %}{% endblock %}

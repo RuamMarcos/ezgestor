@@ -28,8 +28,8 @@
   <div class="muted">Variação vs período anterior: {{ variacao_percent|floatformat:1 }}%</div>
   {% endif %}
 
-  <div class="section">
-    <h3>Top 5 Produtos por Faturamento</h3>
+  <div class="section card">
+    <h3 class="section-title">Top 5 Produtos por Faturamento</h3>
     <table>
       <thead>
         <tr>
@@ -54,8 +54,8 @@
     </table>
   </div>
 
-  <div class="section">
-    <h3>Top 5 Clientes</h3>
+  <div class="section card">
+    <h3 class="section-title">Top 5 Clientes</h3>
     <table>
       <thead>
         <tr>
@@ -78,13 +78,13 @@
     </table>
   </div>
 
-  <div class="section">
-    <h3>Receita por Dia</h3>
+  <div class="section card">
+    <h3 class="section-title">Receita por Dia</h3>
     {{ revenue_svg|safe }}
   </div>
 
-  <div class="section">
-    <h3>Vendas por Vendedor</h3>
+  <div class="section card">
+    <h3 class="section-title">Vendas por Vendedor</h3>
     {{ vendors_svg|safe }}
   </div>
 

@@ -1,9 +1,9 @@
 {% extends 'reports/base.html' %}
 {% block title %}Vendas por Cliente{% endblock %}
 {% block content %}
-<h2>Vendas por Cliente</h2>
-<p>Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
-<h3>Top 10</h3>
+<h2 class="page-title">Vendas por Cliente</h2>
+<p class="muted">Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+<h3 class="section-title">Top 10</h3>
 <table>
   <tr><th>Cliente</th><th>Última Compra</th><th>Compras</th><th>Faturamento</th><th>Ticket Médio</th><th>Obs</th></tr>
   {% for r in top10 %}
@@ -18,7 +18,7 @@
   {% endfor %}
 </table>
 
-<h3>Recuperáveis (sem compra há tempo)</h3>
+<h3 class="section-title">Recuperáveis (sem compra há tempo)</h3>
 <table>
   <tr><th>Cliente</th><th>Última Compra</th><th>Compras</th><th>Faturamento</th><th>Ticket Médio</th><th>Obs</th></tr>
   {% for r in recuperaveis %}
@@ -33,7 +33,7 @@
   {% endfor %}
 </table>
 
-<h3>Lista</h3>
+<h3 class="section-title">Lista</h3>
 <table>
   <tr><th>Cliente</th><th>Última Compra</th><th>Compras</th><th>Faturamento</th><th>Ticket Médio</th><th>Obs</th></tr>
   {% for r in rows %}

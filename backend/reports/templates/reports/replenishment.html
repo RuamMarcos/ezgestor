@@ -1,8 +1,8 @@
 {% extends 'reports/base.html' %}
 {% block title %}Sugestão de Reposição{% endblock %}
 {% block content %}
-<h2>Sugestão de Reposição</h2>
-<p>Emitido em {{ emitido_em }} | Base: {{ base_days }} dias | Lead time: {{ lead_time }} | Safety: {{ safety }}</p>
+<h2 class="page-title">Sugestão de Reposição</h2>
+<p class="muted">Emitido em {{ emitido_em }} | Base: {{ base_days }} dias | Lead time: {{ lead_time }} | Safety: {{ safety }}</p>
 <table>
   <tr><th>Produto</th><th>Média diária</th><th>Estoque atual</th><th>Cobertura</th><th>Ruptura prevista</th><th>Qtd sugerida</th><th>Obs</th></tr>
   {% for r in rows %}

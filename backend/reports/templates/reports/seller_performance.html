@@ -1,9 +1,9 @@
 {% extends 'reports/base.html' %}
 {% block title %}Performance por Vendedor{% endblock %}
 {% block content %}
-<h2>Performance por Vendedor</h2>
-<p>Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
-<div>{{ bars_svg|safe }}</div>
+<h2 class="page-title">Performance por Vendedor</h2>
+<p class="muted">Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+<div class="card">{{ bars_svg|safe }}</div>
 <table>
   <tr>
     <th>Vendedor</th>

@@ -1,8 +1,8 @@
 {% extends 'reports/base.html' %}
 {% block title %}Posição e Valuation de Estoque{% endblock %}
 {% block content %}
-<h2>Posição e Valuation de Estoque</h2>
-<p>Emitido em {{ emitido_em }}</p>
+<h2 class="page-title">Posição e Valuation de Estoque</h2>
+<p class="muted">Emitido em {{ emitido_em }}</p>
 <p>Valor total de custo: R$ {{ valor_total_custo|floatformat:2 }} | Itens em baixo estoque: {{ baixo_estoque }} | Itens sem giro: {{ sem_giro }}</p>
 <table>
   <tr>
