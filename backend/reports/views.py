@@ -158,6 +158,27 @@ class ExecutiveSummaryPDFView(APIView):
             series_vals.append(daily_map.get(d, 0.0))
             d += timedelta(days=1)
 
+        # CSV branch
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Período', start.strftime('%d/%m/%Y') if start else '-', end.strftime('%d/%m/%Y') if end else '-'])
+            w.writerow(['Emitido em', timezone.now().strftime('%d/%m/%Y %H:%M')])
+            w.writerow([])
+            w.writerow(['Indicador', 'Valor'])
+            w.writerow(['Receita Total', f"{float(receita_total):.2f}"])
+            w.writerow(['Nº Vendas', f"{numero_vendas}"])
+            w.writerow(['Ticket Médio', f"{ticket_medio:.2f}"])
+            w.writerow(['Margem Bruta (estimada)', f"{float(margem_bruta):.2f}"])
+            w.writerow(['Produtos com Baixo Estoque', f"{baixo_estoque}"])
+            w.writerow(['Entradas (financeiro)', f"{float(total_entradas):.2f}"])
+            w.writerow(['Saídas (financeiro)', f"{float(total_saidas):.2f}"])
+            w.writerow(['Saldo (entradas - saídas)', f"{(float(total_entradas)-float(total_saidas)):.2f}"])
+            data = out.getvalue().encode('utf-8-sig')
+            resp = HttpResponse(data, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="resumo_executivo_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"'
+            return resp
+
         context = {
             'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
             'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
@@ -270,6 +291,26 @@ class SalesPeriodPDFView(APIView):
             'by_product': list(by_product[:12]),
         }
 
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Data', 'Cliente', 'Vendedor', 'Produto', 'Quantidade', 'Valor'])
+            for v in vendas.order_by('data_venda'):
+                w.writerow([
+                    v.data_venda.strftime('%d/%m/%Y %H:%M') if v.data_venda else '',
+                    getattr(v, 'cliente_nome', '') or '',
+                    (v.vendedor.first_name or v.vendedor.email) if getattr(v, 'vendedor', None) else '',
+                    v.produto.nome if getattr(v, 'produto', None) else '',
+                    int(v.quantidade or 0),
+                    f"{float(v.preco_total or 0):.2f}",
+                ])
+            csv_bytes = out.getvalue().encode('utf-8-sig')
+            filename = f"vendas_periodo_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+
         html_string = render_to_string('reports/sales_period.html', context)
         base_css = '''
             @page { size: A4; margin: 12mm; }
@@ -366,6 +407,27 @@ class ProductRankingPDFView(APIView):
             'ranking': ranking_list,
             'produtos_sem_giro': produtos_sem_giro[:100],
         }
+
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Produto', 'Unidades', 'Faturamento', 'Margem', 'Participação %', 'Status', 'Curva ABC'])
+            for r in ranking_list:
+                w.writerow([
+                    r.get('produto__nome', ''),
+                    int(r.get('unidades', 0) or 0),
+                    f"{float(r.get('faturamento') or 0):.2f}",
+                    f"{float(r.get('margem') or 0):.2f}",
+                    f"{float(r.get('participacao') or 0):.2f}",
+                    r.get('status', ''),
+                    r.get('abc', ''),
+                ])
+            csv_bytes = out.getvalue().encode('utf-8-sig')
+            filename = f"ranking_produtos_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
 
         html_string = render_to_string('reports/product_ranking.html', context)
         base_css = '''
@@ -960,6 +1022,21 @@ class SellerPerformancePDFView(APIView):
             'rows': perf_rows,
             'bars_svg': mark_safe(svg_bar_chart(seller_bars)),
         }
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Vendedor', 'Vendas', 'Faturamento', 'Ticket Médio', 'Margem', 'Média Diária', 'Participação %'])
+            for r in perf_rows:
+                w.writerow([
+                    r['nome'], r['vendas'], f"{r['faturamento']:.2f}", f"{r['ticket_medio']:.2f}", f"{r['margem']:.2f}", f"{r['media_diaria']:.2f}", f"{r['participacao']:.2f}"
+                ])
+            csv_bytes = out.getvalue().encode('utf-8-sig')
+            filename = f"performance_vendedor_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+
         html_string = render_to_string('reports/seller_performance.html', context)
         base_css = '''
             @page { size: A4; margin: 12mm; }
@@ -1150,6 +1227,21 @@ class StockPositionPDFView(APIView):
             'sem_giro': sem_giro,
             'rows': rows[:1000],
         }
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Código', 'Nome', 'Estoque', 'Estoque Mínimo', 'Custo Médio', 'Valor Estoque', 'Preço Venda', 'Margem %', 'Cobertura (dias)', 'Status'])
+            for r in rows:
+                w.writerow([
+                    r['codigo'], r['nome'], r['estoque'], r['estoque_min'], f"{r['custo_medio']:.2f}", f"{r['valor_estoque']:.2f}", f"{r['preco_venda']:.2f}", f"{r['margem_pct']:.2f}", (f"{r['cobertura']:.2f}" if r['cobertura'] is not None else ''), r['status']
+                ])
+            csv_bytes = out.getvalue().encode('utf-8-sig')
+            filename = f"posicao_estoque_{timezone.now().date().isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+
         html_string = render_to_string('reports/stock_position.html', context)
         base_css = '''
             @page { size: A4; margin: 10mm; }
@@ -1436,6 +1528,22 @@ class KardexPDFView(APIView):
                 'saldo_final': saldo_final,
             }
         }
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Data', 'Tipo', 'Documento', 'Produto', 'Quantidade', 'Saldo Aproximado', 'Obs'])
+            for m in movimentos:
+                w.writerow([
+                    m['data'].strftime('%d/%m/%Y %H:%M') if m['data'] else '',
+                    m['tipo'], m['documento'], m['produto'], m['qtd'], m['saldo_aprox'] if m['saldo_aprox'] is not None else '', m['obs']
+                ])
+            csv_bytes = out.getvalue().encode('utf-8-sig')
+            filename = f"kardex_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+
         html_string = render_to_string('reports/kardex.html', context)
         base_css = '''
             @page { size: A4; margin: 10mm; }
@@ -1496,6 +1604,28 @@ class DresimplificadaPDFView(APIView):
         receita_liquida = receita_bruta  # sem deduções configuradas
         resultado_operacional = float(lucro_bruto) - float(despesas_op)
         resultado_liquido = resultado_operacional + float(outras_rec)
+
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(['Período', start.strftime('%d/%m/%Y') if start else '-', end.strftime('%d/%m/%Y') if end else '-'])
+            w.writerow(['Emitido em', timezone.now().strftime('%d/%m/%Y %H:%M')])
+            w.writerow([])
+            w.writerow(['Conta', 'Valor'])
+            w.writerow(['Receita Bruta', f"{float(receita_bruta):.2f}"])
+            w.writerow(['(-) Deduções', f"{0:.2f}"])
+            w.writerow(['= Receita Líquida', f"{float(receita_liquida):.2f}"])
+            w.writerow(['(-) CMV', f"{float(cmv):.2f}"])
+            w.writerow(['= Lucro Bruto', f"{float(lucro_bruto):.2f}"])
+            w.writerow(['(-) Despesas Operacionais', f"{float(despesas_op):.2f}"])
+            w.writerow(['= Resultado Operacional', f"{float(resultado_operacional):.2f}"])
+            w.writerow(['(+/-) Outras Receitas', f"{float(outras_rec):.2f}"])
+            w.writerow(['= Resultado Líquido', f"{float(resultado_liquido):.2f}"])
+            data = out.getvalue().encode('utf-8-sig')
+            resp = HttpResponse(data, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="dre_simplificada_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"'
+            return resp
 
         context = {
             'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
