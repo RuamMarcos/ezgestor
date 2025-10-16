@@ -2,7 +2,7 @@ from datetime import datetime, date, time, timedelta
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.db.models import Sum, F, Count, DecimalField, ExpressionWrapper, Value
+from django.db.models import Sum, F, Count, DecimalField, ExpressionWrapper, Value, Max, Q
 from django.db.models.functions import Coalesce, TruncDate
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -426,7 +426,7 @@ class ProductRankingPDFView(APIView):
             output_field=DecimalField(max_digits=12, decimal_places=2)
         )
         ranking = (
-            vendas.values('produto__id', 'produto__nome', 'produto__quantidade_estoque', 'produto__quantidade_minima_estoque')
+            vendas.values('produto__id_produto', 'produto__nome', 'produto__quantidade_estoque', 'produto__quantidade_minima_estoque')
             .annotate(unidades=Sum('quantidade'), faturamento=Sum('preco_total'), margem=Sum(lucro_expr))
             .order_by('-faturamento')
         )
@@ -455,7 +455,7 @@ class ProductRankingPDFView(APIView):
                 r['abc'] = 'C'
 
         # Produtos sem giro
-        vendidos_ids = {r['produto__id'] for r in ranking}
+        vendidos_ids = {r['produto__id_produto'] for r in ranking}
         produtos_sem_giro = Produto.objects.all()
         if empresa:
             produtos_sem_giro = produtos_sem_giro.filter(empresa_id=empresa)
@@ -496,6 +496,9 @@ class ReportsBundleZipView(APIView):
     def get(self, request, *args, **kwargs):
         start = parse_date(request.GET.get('start'))
         end = parse_date(request.GET.get('end'))
+        vendedores_param = request.GET.get('vendedor')  # csv: emails or ids
+        cliente_param = request.GET.get('cliente')
+        produto_param = request.GET.get('produto')
         if end and start and end < start:
             return HttpResponseBadRequest('Parâmetros inválidos: end < start')
 
@@ -507,7 +510,18 @@ class ReportsBundleZipView(APIView):
             e = end or today
 
             # 1) Exec Summary (lightweight)
-            vendas_qs = Venda.objects.filter(data_venda__date__gte=s, data_venda__date__lte=e)
+            vendas_qs = Venda.objects.select_related('produto', 'vendedor').filter(data_venda__date__gte=s, data_venda__date__lte=e)
+            empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+            if empresa:
+                vendas_qs = vendas_qs.filter(produto__empresa_id=empresa)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vendas_qs = vendas_qs.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vendas_qs = vendas_qs.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vendas_qs = vendas_qs.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
             total = float(
                 vendas_qs.aggregate(
                     t=Coalesce(
@@ -546,14 +560,422 @@ class ReportsBundleZipView(APIView):
             pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial; font-size: 11px; }')
             files.append((f'03_ranking_produtos_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
-            # 4-10 placeholders as PDFs
-            for idx, name in enumerate([
-                '04_performance_vendedor', '05_vendas_por_cliente', '06_posicao_valuation_estoque',
-                '07_sugestao_compra', '08_fluxo_caixa', '09_kardex', '10_dre_simplificada'
-            ], start=4):
-                html = f"<html><body><h1>{name.replace('_', ' ').title()}</h1><p>Relatório em desenvolvimento</p></body></html>"
-                pdf = render_pdf_bytes(html, '@page { size: A4; margin: 20mm; } body { font-family: Arial; }')
-                files.append((f'{name}.pdf', pdf))
+            # 4) Performance por Vendedor (real)
+            tz = timezone.get_current_timezone()
+            start_dt = timezone.make_aware(datetime.combine(s, time.min), tz) if s else None
+            end_dt = timezone.make_aware(datetime.combine(e, time.max), tz) if e else None
+            empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+            vendas = Venda.objects.select_related('vendedor', 'produto').all()
+            if empresa:
+                vendas = vendas.filter(produto__empresa_id=empresa)
+            if start_dt:
+                vendas = vendas.filter(data_venda__gte=start_dt)
+            if end_dt:
+                vendas = vendas.filter(data_venda__lte=end_dt)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vendas = vendas.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vendas = vendas.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vendas = vendas.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
+            receita_total_periodo = vendas.aggregate(t=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+            lucro_expr = ExpressionWrapper(
+                F('quantidade') * (F('produto__preco_venda') - Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2))),
+                output_field=DecimalField(max_digits=12, decimal_places=2)
+            )
+            by_seller = (
+                vendas
+                .values('vendedor__first_name', 'vendedor__email')
+                .annotate(
+                    vendas_count=Count('id_venda'),
+                    faturamento=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                    margem=Coalesce(Sum(lucro_expr), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                )
+                .order_by('-faturamento')
+            )
+            days_span = max(1, (e - s).days + 1)
+            perf_rows, seller_bars = [], []
+            for r in by_seller:
+                faturamento = float(r['faturamento'] or 0)
+                vendas_count = int(r['vendas_count'] or 0)
+                ticket_medio = (faturamento / vendas_count) if vendas_count else 0.0
+                media_diaria = faturamento / days_span if days_span else 0.0
+                nome = r.get('vendedor__first_name') or (r.get('vendedor__email') or 'N/A')
+                part = (faturamento / float(receita_total_periodo) * 100.0) if float(receita_total_periodo) else 0.0
+                perf_rows.append({
+                    'nome': nome,
+                    'vendas': vendas_count,
+                    'faturamento': faturamento,
+                    'ticket_medio': ticket_medio,
+                    'margem': float(r['margem'] or 0),
+                    'media_diaria': media_diaria,
+                    'participacao': part,
+                })
+                seller_bars.append(faturamento)
+            html = render_to_string('reports/seller_performance.html', {
+                'periodo_inicio': s.strftime('%d/%m/%Y'),
+                'periodo_fim': e.strftime('%d/%m/%Y'),
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'rows': perf_rows,
+                'bars_svg': mark_safe(svg_bar_chart(seller_bars)),
+            })
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+            files.append((f'04_performance_vendedor_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+
+            # 5) Vendas por Cliente (real)
+            vendas_cli = Venda.objects.all()
+            if empresa:
+                vendas_cli = vendas_cli.filter(produto__empresa_id=empresa)
+            if start_dt:
+                vendas_cli = vendas_cli.filter(data_venda__gte=start_dt)
+            if end_dt:
+                vendas_cli = vendas_cli.filter(data_venda__lte=end_dt)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vendas_cli = vendas_cli.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vendas_cli = vendas_cli.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vendas_cli = vendas_cli.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
+            by_client = (
+                vendas_cli.values('cliente_nome')
+                .annotate(
+                    compras=Count('id_venda'),
+                    faturamento=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                    ultima_compra=Max('data_venda')
+                )
+                .order_by('-faturamento')
+            )
+            today = timezone.now().date()
+            gap_days = 30
+            rows, top10, recuperaveis = [], [], []
+            for idx, r in enumerate(by_client[:50]):
+                nome = r['cliente_nome'] or '—'
+                fatura = float(r['faturamento'] or 0)
+                compras = int(r['compras'] or 0)
+                ticket = (fatura / compras) if compras else 0.0
+                last = r['ultima_compra'].date() if r['ultima_compra'] else None
+                recencia = (today - last).days if last else None
+                obs = 'VIP' if idx < 10 else ('engajar' if (recencia and recencia >= gap_days) else '')
+                row = {
+                    'cliente': nome,
+                    'ultima_compra': last.strftime('%d/%m/%Y') if last else '—',
+                    'compras': compras,
+                    'faturamento': fatura,
+                    'ticket_medio': ticket,
+                    'observacoes': obs,
+                }
+                rows.append(row)
+                if idx < 10:
+                    top10.append(row)
+                if recencia and recencia >= gap_days:
+                    recuperaveis.append(row)
+            html = render_to_string('reports/sales_by_customer.html', {
+                'periodo_inicio': s.strftime('%d/%m/%Y'),
+                'periodo_fim': e.strftime('%d/%m/%Y'),
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'rows': rows, 'top10': top10, 'recuperaveis': recuperaveis,
+            })
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+            files.append((f'05_vendas_por_cliente_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+
+            # 6) Posição/Valuation de Estoque (real)
+            base_days = 30
+            start_dt_sp = start_dt or (timezone.now() - timedelta(days=base_days))
+            end_dt_sp = end_dt or timezone.now()
+            produtos = Produto.objects.all()
+            if empresa:
+                produtos = produtos.filter(empresa_id=empresa)
+            produtos = produtos.filter(ativo=True)
+            vend_sp = Venda.objects.select_related('produto').filter(data_venda__gte=start_dt_sp, data_venda__lte=end_dt_sp)
+            if empresa:
+                vend_sp = vend_sp.filter(produto__empresa_id=empresa)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vend_sp = vend_sp.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vend_sp = vend_sp.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vend_sp = vend_sp.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
+            by_prod = (
+                vend_sp.values('produto__id_produto')
+                .annotate(qtd=Coalesce(Sum('quantidade'), Value(0)))
+                .values('produto__id_produto', 'qtd')
+            )
+            qtd_map = {r['produto__id_produto']: int(r['qtd'] or 0) for r in by_prod}
+            days_cov = max(1, (end_dt_sp.date() - start_dt_sp.date()).days or base_days)
+            rows_sp = []
+            valor_total_custo = 0.0
+            baixo_estoque = 0
+            sem_giro = 0
+            for p in produtos:
+                avg = (qtd_map.get(p.id_produto, 0) / days_cov) if days_cov else 0.0
+                custo = float(p.preco_custo or 0)
+                valor_estoque = float(p.quantidade_estoque) * custo
+                valor_total_custo += valor_estoque
+                margem_pct = ((float(p.preco_venda) - custo) / float(p.preco_venda) * 100.0) if float(p.preco_venda or 0) else 0.0
+                cobertura = (float(p.quantidade_estoque) / avg) if avg else None
+                status = 'baixo' if p.quantidade_estoque <= (p.quantidade_minima_estoque or 0) else ('excesso' if (cobertura and cobertura > 90) else 'ok')
+                if status == 'baixo':
+                    baixo_estoque += 1
+                if (qtd_map.get(p.id_produto, 0) or 0) == 0:
+                    sem_giro += 1
+                rows_sp.append({
+                    'codigo': p.codigo_do_produto or p.id_produto,
+                    'nome': p.nome,
+                    'estoque': p.quantidade_estoque,
+                    'estoque_min': p.quantidade_minima_estoque,
+                    'custo_medio': custo,
+                    'valor_estoque': valor_estoque,
+                    'preco_venda': float(p.preco_venda or 0),
+                    'margem_pct': margem_pct,
+                    'cobertura': cobertura,
+                    'status': status,
+                })
+            html = render_to_string('reports/stock_position.html', {
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'valor_total_custo': valor_total_custo,
+                'baixo_estoque': baixo_estoque,
+                'sem_giro': sem_giro,
+                'rows': rows_sp[:1000],
+            })
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+            files.append((f'06_posicao_valuation_estoque_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+
+            # 7) Sugestão de Reposição (real)
+            base_days_r = 30
+            lead_time = 7
+            safety = 3
+            end_dt_r = end_dt or timezone.now()
+            start_dt_r = end_dt_r - timedelta(days=base_days_r)
+            produtos_r = Produto.objects.all()
+            if empresa:
+                produtos_r = produtos_r.filter(empresa_id=empresa)
+            produtos_r = produtos_r.filter(ativo=True)
+            vend_r = Venda.objects.select_related('produto').filter(data_venda__gte=start_dt_r, data_venda__lte=end_dt_r)
+            if empresa:
+                vend_r = vend_r.filter(produto__empresa_id=empresa)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vend_r = vend_r.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vend_r = vend_r.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vend_r = vend_r.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
+            by_prod_r = (
+                vend_r.values('produto__id_produto')
+                .annotate(qtd=Coalesce(Sum('quantidade'), Value(0)))
+                .values('produto__id_produto', 'qtd')
+            )
+            qtd_map_r = {r['produto__id_produto']: int(r['qtd'] or 0) for r in by_prod_r}
+            days_r = max(1, base_days_r)
+            suggestions = []
+            today = timezone.now().date()
+            for p in produtos_r:
+                avg = (qtd_map_r.get(p.id_produto, 0) / days_r) if days_r else 0.0
+                cobertura = (float(p.quantidade_estoque) / avg) if avg else None
+                ruptura_prevista = (today + timedelta(days=int(cobertura))) if cobertura else None
+                qtd_sugerida = max(0.0, (lead_time + safety) * avg - float(p.quantidade_estoque))
+                obs = ''
+                if cobertura is None:
+                    obs = 'Sem giro'
+                elif cobertura <= lead_time + safety:
+                    obs = 'Alta prioridade'
+                suggestions.append({
+                    'produto': p.nome,
+                    'media_diaria': avg,
+                    'estoque_atual': p.quantidade_estoque,
+                    'cobertura': cobertura,
+                    'ruptura_prevista': ruptura_prevista.strftime('%d/%m/%Y') if ruptura_prevista else '—',
+                    'qtd_sugerida': qtd_sugerida,
+                    'obs': obs,
+                })
+            suggestions.sort(key=lambda x: (x['cobertura'] if x['cobertura'] is not None else 1e9))
+            html = render_to_string('reports/replenishment.html', {
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'base_days': base_days_r, 'lead_time': lead_time, 'safety': safety,
+                'rows': suggestions[:1000],
+            })
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+            files.append((f'07_sugestao_compra_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+
+            # 8) Fluxo de Caixa (real)
+            tz = timezone.get_current_timezone()
+            start_dt = timezone.make_aware(datetime.combine(s, time.min), tz) if s else None
+            end_dt = timezone.make_aware(datetime.combine(e, time.max), tz) if e else None
+            empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+            lanc = LancamentoFinanceiro.objects.all()
+            if empresa:
+                lanc = lanc.filter(empresa_id=empresa)
+            if start_dt:
+                lanc = lanc.filter(data_lancamento__gte=start_dt)
+            if end_dt:
+                lanc = lanc.filter(data_lancamento__lte=end_dt)
+
+            total_entradas = lanc.filter(tipo='entrada').aggregate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
+            total_saidas = lanc.filter(tipo='saida').aggregate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
+            saldo = float(total_entradas) - float(total_saidas)
+
+            entradas_por_dia = (
+                lanc.filter(tipo='entrada')
+                    .annotate(day=TruncDate('data_lancamento'))
+                    .values('day')
+                    .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
+                    .order_by('day')
+            )
+            saidas_por_dia = (
+                lanc.filter(tipo='saida')
+                    .annotate(day=TruncDate('data_lancamento'))
+                    .values('day')
+                    .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
+                    .order_by('day')
+            )
+            chart_start = s
+            chart_end = e
+            ent_map = {r['day']: float(r['total'] or 0) for r in entradas_por_dia}
+            sai_map = {r['day']: float(r['total'] or 0) for r in saidas_por_dia}
+            ent_series, sai_series, saldo_series = [], [], []
+            running = 0.0
+            d = chart_start
+            while d <= chart_end:
+                e_val = ent_map.get(d, 0.0)
+                s_val = sai_map.get(d, 0.0)
+                running += e_val - s_val
+                ent_series.append(e_val)
+                sai_series.append(s_val)
+                saldo_series.append(running)
+                d += timedelta(days=1)
+            context_cf = {
+                'periodo_inicio': s.strftime('%d/%m/%Y'),
+                'periodo_fim': e.strftime('%d/%m/%Y'),
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'totais': {'entradas': total_entradas, 'saidas': total_saidas, 'saldo': saldo},
+                'entradas_series': list(entradas_por_dia),
+                'saidas_series': list(saidas_por_dia),
+                'saldo_svg': mark_safe(svg_line_chart(saldo_series)),
+                'entradas_svg': mark_safe(svg_bar_chart(ent_series)),
+                'saidas_svg': mark_safe(svg_bar_chart(sai_series)),
+                'por_categoria': list(
+                    lanc.values('categoria', 'tipo')
+                        .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
+                        .order_by('categoria', 'tipo')
+                ),
+                'lancamentos': lanc.order_by('-data_lancamento')[:500],
+            }
+            html = render_to_string('reports/cashflow.html', context_cf)
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }')
+            files.append((f'08_fluxo_caixa_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+
+            # 9) Kardex (Parcial - real)
+            vendas_k = Venda.objects.select_related('produto').all()
+            if empresa:
+                vendas_k = vendas_k.filter(produto__empresa_id=empresa)
+            if start_dt:
+                vendas_k = vendas_k.filter(data_venda__gte=start_dt)
+            if end_dt:
+                vendas_k = vendas_k.filter(data_venda__lte=end_dt)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vendas_k = vendas_k.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vendas_k = vendas_k.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vendas_k = vendas_k.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
+            movimentos = []
+            for v in vendas_k.order_by('data_venda')[:2000]:
+                movimentos.append({
+                    'data': v.data_venda,
+                    'tipo': 'saida',
+                    'documento': v.id_venda,
+                    'produto': v.produto.nome,
+                    'qtd': -int(v.quantidade or 0),
+                    'saldo_aprox': None,
+                    'obs': 'Parcial (somente saídas)'
+                })
+            entradas_total = 0
+            saidas_total = sum(-m['qtd'] for m in movimentos)
+            saldo_inicial = None
+            saldo_final = None
+            html = render_to_string('reports/kardex.html', {
+                'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'movimentos': movimentos,
+                'sumario': {
+                    'entradas': entradas_total,
+                    'saidas': saidas_total,
+                    'saldo_inicial': saldo_inicial,
+                    'saldo_final': saldo_final,
+                }
+            })
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 10mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+            files.append((f'09_kardex_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
+
+            # 10) DRE Simplificada (real)
+            vendas_d = Venda.objects.select_related('produto').all()
+            if empresa:
+                vendas_d = vendas_d.filter(produto__empresa_id=empresa)
+            if start_dt:
+                vendas_d = vendas_d.filter(data_venda__gte=start_dt)
+            if end_dt:
+                vendas_d = vendas_d.filter(data_venda__lte=end_dt)
+            if vendedores_param:
+                parts = [p.strip() for p in vendedores_param.split(',') if p.strip()]
+                id_parts = [int(p) for p in parts if p.isdigit()]
+                vendas_d = vendas_d.filter(Q(vendedor__email__in=parts) | Q(vendedor__id__in=id_parts))
+            if cliente_param:
+                vendas_d = vendas_d.filter(cliente_nome__icontains=cliente_param)
+            if produto_param:
+                vendas_d = vendas_d.filter(Q(produto__nome__icontains=produto_param) | Q(produto__id_produto=produto_param))
+            receita_bruta = vendas_d.aggregate(t=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+            cmv_expr = ExpressionWrapper(
+                F('quantidade') * Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                output_field=DecimalField(max_digits=12, decimal_places=2)
+            )
+            cmv = vendas_d.aggregate(t=Coalesce(Sum(cmv_expr), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+            lucro_bruto = float(receita_bruta) - float(cmv)
+            lanc_d = LancamentoFinanceiro.objects.all()
+            if empresa:
+                lanc_d = lanc_d.filter(empresa_id=empresa)
+            if start_dt:
+                lanc_d = lanc_d.filter(data_lancamento__gte=start_dt)
+            if end_dt:
+                lanc_d = lanc_d.filter(data_lancamento__lte=end_dt)
+            despesas_op = lanc_d.filter(tipo='saida').aggregate(t=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+            outras_rec = lanc_d.filter(tipo='entrada', venda__isnull=True).aggregate(t=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+            receita_liquida = receita_bruta
+            resultado_operacional = float(lucro_bruto) - float(despesas_op)
+            resultado_liquido = resultado_operacional + float(outras_rec)
+            html = render_to_string('reports/dre_simplificada.html', {
+                'periodo_inicio': s.strftime('%d/%m/%Y'), 'periodo_fim': e.strftime('%d/%m/%Y'),
+                'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+                'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+                'dre': {
+                    'receita_bruta': receita_bruta,
+                    'deducoes': 0,
+                    'receita_liquida': receita_liquida,
+                    'cmv': cmv,
+                    'lucro_bruto': lucro_bruto,
+                    'despesas_operacionais': despesas_op,
+                    'resultado_operacional': resultado_operacional,
+                    'outras_receitas': outras_rec,
+                    'resultado_liquido': resultado_liquido,
+                    'observacao': 'Parcial (estimado) por ausência de mapeamento completo de categorias.'
+                }
+            })
+            pdf = render_pdf_bytes(html, '@page { size: A4; margin: 12mm; } body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; } table { width: 100%; border-collapse: collapse; } th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; } th { background: #f0f3f8; }')
+            files.append((f'10_dre_simplificada_{s.isoformat()}_{e.isoformat()}.pdf', pdf))
 
         except Exception as e:
             files.append(("erro.txt", str(e).encode('utf-8')))
@@ -567,10 +989,6 @@ class ReportsBundleZipView(APIView):
         resp = HttpResponse(mem.read(), content_type='application/zip')
         resp['Content-Disposition'] = f'attachment; filename="{filename}"'
         return resp
-        filename = f"ranking_produtos_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
-        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
 
 
 # Placeholder endpoints for remaining reports (to be implemented)
@@ -578,46 +996,595 @@ class SellerPerformancePDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de Performance por Vendedor ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        start = parse_date(request.GET.get('start'))
+        end = parse_date(request.GET.get('end'))
+        vendedores = request.GET.get('vendedor')  # csv of emails or ids
+
+        if start and end and start > end:
+            return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
+
+        tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+        end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        vendas = Venda.objects.select_related('vendedor', 'produto').all()
+        if empresa:
+            vendas = vendas.filter(produto__empresa_id=empresa)
+        if start_dt:
+            vendas = vendas.filter(data_venda__gte=start_dt)
+        if end_dt:
+            vendas = vendas.filter(data_venda__lte=end_dt)
+        if vendedores:
+            parts = [p.strip() for p in vendedores.split(',') if p.strip()]
+            vendas = vendas.filter(
+                Q(vendedor__email__in=parts) | Q(vendedor__id__in=[int(p) for p in parts if p.isdigit()])
+            )
+
+        receita_total_periodo = vendas.aggregate(t=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+        lucro_expr = ExpressionWrapper(
+            F('quantidade') * (F('produto__preco_venda') - Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2))),
+            output_field=DecimalField(max_digits=12, decimal_places=2)
+        )
+        by_seller = (
+            vendas
+            .values('vendedor__first_name', 'vendedor__email')
+            .annotate(
+                vendas_count=Count('id_venda'),
+                faturamento=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                margem=Coalesce(Sum(lucro_expr), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+            )
+            .order_by('-faturamento')
+        )
+
+        days_span = ((end - start).days + 1) if (start and end) else max(1, len({v['day'] for v in vendas.annotate(day=TruncDate('data_venda')).values('day')}))
+        perf_rows = []
+        seller_bars = []
+        for r in by_seller:
+            faturamento = float(r['faturamento'] or 0)
+            vendas_count = int(r['vendas_count'] or 0)
+            ticket_medio = (faturamento / vendas_count) if vendas_count else 0.0
+            media_diaria = faturamento / days_span if days_span else 0.0
+            nome = r.get('vendedor__first_name') or (r.get('vendedor__email') or 'N/A')
+            part = (faturamento / float(receita_total_periodo) * 100.0) if float(receita_total_periodo) else 0.0
+            perf_rows.append({
+                'nome': nome,
+                'vendas': vendas_count,
+                'faturamento': faturamento,
+                'ticket_medio': ticket_medio,
+                'margem': float(r['margem'] or 0),
+                'media_diaria': media_diaria,
+                'participacao': part,
+            })
+            seller_bars.append(faturamento)
+
+        context = {
+            'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
+            'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'rows': perf_rows,
+            'bars_svg': mark_safe(svg_bar_chart(seller_bars)),
+        }
+        html_string = render_to_string('reports/seller_performance.html', context)
+        base_css = '''
+            @page { size: A4; margin: 12mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
+            h3 { margin: 10px 0 6px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"performance_vendedor_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class SalesByCustomerPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de Vendas por Cliente ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        start = parse_date(request.GET.get('start'))
+        end = parse_date(request.GET.get('end'))
+        cliente = request.GET.get('cliente')
+        top_n = int(request.GET.get('top', '50') or 50)
+        gap_days = int(request.GET.get('gap_days', '30') or 30)
+
+        if start and end and start > end:
+            return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
+
+        tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+        end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        vendas = Venda.objects.all()
+        if empresa:
+            vendas = vendas.filter(produto__empresa_id=empresa)
+        if start_dt:
+            vendas = vendas.filter(data_venda__gte=start_dt)
+        if end_dt:
+            vendas = vendas.filter(data_venda__lte=end_dt)
+        if cliente:
+            vendas = vendas.filter(cliente_nome__icontains=cliente)
+
+        # RFM simplificado
+        by_client = (
+            vendas.values('cliente_nome')
+            .annotate(
+                compras=Count('id_venda'),
+                faturamento=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+                ultima_compra=Max('data_venda')
+            )
+            .order_by('-faturamento')
+        )
+        today = timezone.now().date()
+        rows = []
+        top10 = []
+        recuperaveis = []
+        for idx, r in enumerate(by_client[:top_n]):
+            nome = r['cliente_nome'] or '—'
+            fatura = float(r['faturamento'] or 0)
+            compras = int(r['compras'] or 0)
+            ticket = (fatura / compras) if compras else 0.0
+            last = r['ultima_compra'].date() if r['ultima_compra'] else None
+            recencia = (today - last).days if last else None
+            obs = 'VIP' if idx < 10 else ('engajar' if (recencia and recencia >= gap_days) else '')
+            row = {
+                'cliente': nome,
+                'ultima_compra': last.strftime('%d/%m/%Y') if last else '—',
+                'compras': compras,
+                'faturamento': fatura,
+                'ticket_medio': ticket,
+                'observacoes': obs,
+            }
+            rows.append(row)
+            if idx < 10:
+                top10.append(row)
+            if recencia and recencia >= gap_days:
+                recuperaveis.append(row)
+
+        context = {
+            'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
+            'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'rows': rows,
+            'top10': top10,
+            'recuperaveis': recuperaveis,
+        }
+        html_string = render_to_string('reports/sales_by_customer.html', context)
+        base_css = '''
+            @page { size: A4; margin: 12mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
+            h3 { margin: 10px 0 6px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"vendas_cliente_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class StockPositionPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de Posição e Valuation de Estoque ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        base_days = int(request.GET.get('base_days', '30') or 30)
+        start = parse_date(request.GET.get('start'))
+        end = parse_date(request.GET.get('end'))
+        if start and end and start > end:
+            return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
+
+        tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else timezone.now() - timedelta(days=base_days)
+        end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else timezone.now()
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        produtos = Produto.objects.all()
+        if empresa:
+            produtos = produtos.filter(empresa_id=empresa)
+        produtos = produtos.filter(ativo=True)
+
+        # Média diária de vendas no período base por produto
+        vendas = Venda.objects.select_related('produto').filter(data_venda__gte=start_dt, data_venda__lte=end_dt)
+        if empresa:
+            vendas = vendas.filter(produto__empresa_id=empresa)
+        by_prod = (
+            vendas
+            .values('produto__id_produto')
+            .annotate(qtd=Coalesce(Sum('quantidade'), Value(0)))
+            .values('produto__id_produto', 'qtd')
+        )
+        qtd_map = {r['produto__id_produto']: int(r['qtd'] or 0) for r in by_prod}
+        days = max(1, (end_dt.date() - start_dt.date()).days or base_days)
+
+        rows = []
+        valor_total_custo = 0.0
+        baixo_estoque = 0
+        sem_giro = 0
+        for p in produtos:
+            avg = (qtd_map.get(p.id_produto, 0) / days) if days else 0.0
+            custo = float(p.preco_custo or 0)
+            valor_estoque = float(p.quantidade_estoque) * custo
+            valor_total_custo += valor_estoque
+            margem_pct = ((float(p.preco_venda) - custo) / float(p.preco_venda) * 100.0) if float(p.preco_venda or 0) else 0.0
+            cobertura = (float(p.quantidade_estoque) / avg) if avg else None
+            status = 'baixo' if p.quantidade_estoque <= (p.quantidade_minima_estoque or 0) else ('excesso' if (cobertura and cobertura > 90) else 'ok')
+            if status == 'baixo':
+                baixo_estoque += 1
+            if (qtd_map.get(p.id_produto, 0) or 0) == 0:
+                sem_giro += 1
+            rows.append({
+                'codigo': p.codigo_do_produto or p.id_produto,
+                'nome': p.nome,
+                'estoque': p.quantidade_estoque,
+                'estoque_min': p.quantidade_minima_estoque,
+                'custo_medio': custo,
+                'valor_estoque': valor_estoque,
+                'preco_venda': float(p.preco_venda or 0),
+                'margem_pct': margem_pct,
+                'cobertura': cobertura,
+                'status': status,
+            })
+
+        context = {
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'valor_total_custo': valor_total_custo,
+            'baixo_estoque': baixo_estoque,
+            'sem_giro': sem_giro,
+            'rows': rows[:1000],
+        }
+        html_string = render_to_string('reports/stock_position.html', context)
+        base_css = '''
+            @page { size: A4; margin: 10mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"posicao_estoque_{timezone.now().date().isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class ReplenishmentSuggestionPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de Sugestão de Compra ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        base_days = int(request.GET.get('base_days', '30') or 30)
+        lead_time = int(request.GET.get('lead_time', '7') or 7)
+        safety = int(request.GET.get('safety', '3') or 3)
+
+        tz = timezone.get_current_timezone()
+        end_dt = timezone.now()
+        start_dt = end_dt - timedelta(days=base_days)
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        produtos = Produto.objects.all()
+        if empresa:
+            produtos = produtos.filter(empresa_id=empresa)
+        produtos = produtos.filter(ativo=True)
+
+        vendas = Venda.objects.select_related('produto').filter(data_venda__gte=start_dt, data_venda__lte=end_dt)
+        if empresa:
+            vendas = vendas.filter(produto__empresa_id=empresa)
+        by_prod = (
+            vendas
+            .values('produto__id_produto')
+            .annotate(qtd=Coalesce(Sum('quantidade'), Value(0)))
+            .values('produto__id_produto', 'qtd')
+        )
+        qtd_map = {r['produto__id_produto']: int(r['qtd'] or 0) for r in by_prod}
+        days = max(1, base_days)
+
+        suggestions = []
+        today = timezone.now().date()
+        for p in produtos:
+            avg = (qtd_map.get(p.id_produto, 0) / days) if days else 0.0
+            cobertura = (float(p.quantidade_estoque) / avg) if avg else None
+            ruptura_prevista = (today + timedelta(days=int(cobertura))) if cobertura else None
+            qtd_sugerida = max(0.0, (lead_time + safety) * avg - float(p.quantidade_estoque))
+            obs = ''
+            if cobertura is None:
+                obs = 'Sem giro'
+            elif cobertura <= lead_time + safety:
+                obs = 'Alta prioridade'
+            suggestions.append({
+                'produto': p.nome,
+                'media_diaria': avg,
+                'estoque_atual': p.quantidade_estoque,
+                'cobertura': cobertura,
+                'ruptura_prevista': ruptura_prevista.strftime('%d/%m/%Y') if ruptura_prevista else '—',
+                'qtd_sugerida': qtd_sugerida,
+                'obs': obs,
+            })
+
+        # Ordena por menor cobertura primeiro (maior risco)
+        suggestions.sort(key=lambda x: (x['cobertura'] if x['cobertura'] is not None else 1e9))
+
+        context = {
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'base_days': base_days, 'lead_time': lead_time, 'safety': safety,
+            'rows': suggestions[:1000],
+        }
+        html_string = render_to_string('reports/replenishment.html', context)
+        base_css = '''
+            @page { size: A4; margin: 10mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"sugestao_compra_{timezone.now().date().isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class CashflowPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de Fluxo de Caixa ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        start = parse_date(request.GET.get('start'))
+        end = parse_date(request.GET.get('end'))
+
+        if start and end and start > end:
+            return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
+
+        tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+        end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        lanc = LancamentoFinanceiro.objects.all()
+        if empresa:
+            lanc = lanc.filter(empresa_id=empresa)
+        if start_dt:
+            lanc = lanc.filter(data_lancamento__gte=start_dt)
+        if end_dt:
+            lanc = lanc.filter(data_lancamento__lte=end_dt)
+
+        total_entradas = lanc.filter(tipo='entrada').aggregate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
+        total_saidas = lanc.filter(tipo='saida').aggregate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
+        saldo = float(total_entradas) - float(total_saidas)
+
+        # Séries por dia
+        entradas_por_dia = (
+            lanc.filter(tipo='entrada')
+                .annotate(day=TruncDate('data_lancamento'))
+                .values('day')
+                .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
+                .order_by('day')
+        )
+        saidas_por_dia = (
+            lanc.filter(tipo='saida')
+                .annotate(day=TruncDate('data_lancamento'))
+                .values('day')
+                .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
+                .order_by('day')
+        )
+
+        chart_start = start or (timezone.now().date() - timedelta(days=29))
+        chart_end = end or timezone.now().date()
+
+        ent_map = {r['day']: float(r['total'] or 0) for r in entradas_por_dia}
+        sai_map = {r['day']: float(r['total'] or 0) for r in saidas_por_dia}
+        days = []
+        ent_series = []
+        sai_series = []
+        saldo_series = []
+        running = 0.0
+        d = chart_start
+        while d <= chart_end:
+            e_val = ent_map.get(d, 0.0)
+            s_val = sai_map.get(d, 0.0)
+            running += e_val - s_val
+            days.append(d)
+            ent_series.append(e_val)
+            sai_series.append(s_val)
+            saldo_series.append(running)
+            d += timedelta(days=1)
+
+        # Por categoria
+        por_categoria = (
+            lanc.values('categoria', 'tipo')
+                .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
+                .order_by('categoria', 'tipo')
+        )
+
+        context = {
+            'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
+            'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'totais': {
+                'entradas': total_entradas,
+                'saidas': total_saidas,
+                'saldo': saldo,
+            },
+            'entradas_series': list(entradas_por_dia),
+            'saidas_series': list(saidas_por_dia),
+            'saldo_svg': mark_safe(svg_line_chart(saldo_series)),
+            'entradas_svg': mark_safe(svg_bar_chart(ent_series)),
+            'saidas_svg': mark_safe(svg_bar_chart(sai_series)),
+            'por_categoria': list(por_categoria),
+            'lancamentos': lanc.order_by('-data_lancamento')[:500],
+        }
+
+        html_string = render_to_string('reports/cashflow.html', context)
+        base_css = '''
+            @page { size: A4; margin: 12mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
+            h3 { margin: 10px 0 6px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"fluxo_caixa_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class KardexPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de Movimentação (Kardex) ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        start = parse_date(request.GET.get('start'))
+        end = parse_date(request.GET.get('end'))
+        produto = request.GET.get('produto')
+
+        if start and end and start > end:
+            return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
+
+        tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+        end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        vendas = Venda.objects.select_related('produto').all()
+        if empresa:
+            vendas = vendas.filter(produto__empresa_id=empresa)
+        if start_dt:
+            vendas = vendas.filter(data_venda__gte=start_dt)
+        if end_dt:
+            vendas = vendas.filter(data_venda__lte=end_dt)
+        if produto:
+            vendas = vendas.filter(Q(produto__nome__icontains=produto) | Q(produto__id_produto=produto))
+
+        # Como não temos entradas/ajustes, este Kardex é parcial (somente saídas/vendas)
+        movimentos = []
+        for v in vendas.order_by('data_venda')[:2000]:
+            movimentos.append({
+                'data': v.data_venda,
+                'tipo': 'saida',
+                'documento': v.id_venda,
+                'produto': v.produto.nome,
+                'qtd': -int(v.quantidade or 0),
+                'saldo_aprox': None,  # não calculado sem entradas/ajustes
+                'obs': 'Parcial (somente saídas)'
+            })
+
+        # Sumário parcial
+        entradas_total = 0
+        saidas_total = sum(-m['qtd'] for m in movimentos)
+        saldo_inicial = None
+        saldo_final = None
+
+        context = {
+            'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
+            'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'movimentos': movimentos,
+            'sumario': {
+                'entradas': entradas_total,
+                'saidas': saidas_total,
+                'saldo_inicial': saldo_inicial,
+                'saldo_final': saldo_final,
+            }
+        }
+        html_string = render_to_string('reports/kardex.html', context)
+        base_css = '''
+            @page { size: A4; margin: 10mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"kardex_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class DresimplificadaPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        return Response({'detail': 'Relatório de DRE Simplificada ainda não implementado.'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        start = parse_date(request.GET.get('start'))
+        end = parse_date(request.GET.get('end'))
+        if start and end and start > end:
+            return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
+
+        tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+        end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+        empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
+        vendas = Venda.objects.select_related('produto').all()
+        if empresa:
+            vendas = vendas.filter(produto__empresa_id=empresa)
+        if start_dt:
+            vendas = vendas.filter(data_venda__gte=start_dt)
+        if end_dt:
+            vendas = vendas.filter(data_venda__lte=end_dt)
+        receita_bruta = vendas.aggregate(t=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+
+        cmv_expr = ExpressionWrapper(
+            F('quantidade') * Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
+            output_field=DecimalField(max_digits=12, decimal_places=2)
+        )
+        cmv = vendas.aggregate(t=Coalesce(Sum(cmv_expr), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+        lucro_bruto = float(receita_bruta) - float(cmv)
+
+        lanc = LancamentoFinanceiro.objects.all()
+        if empresa:
+            lanc = lanc.filter(empresa_id=empresa)
+        if start_dt:
+            lanc = lanc.filter(data_lancamento__gte=start_dt)
+        if end_dt:
+            lanc = lanc.filter(data_lancamento__lte=end_dt)
+
+        # Estimado: despesas operacionais = saídas, outras receitas = entradas sem vínculo a venda
+        despesas_op = lanc.filter(tipo='saida').aggregate(t=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+        outras_rec = lanc.filter(tipo='entrada', venda__isnull=True).aggregate(t=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+
+        receita_liquida = receita_bruta  # sem deduções configuradas
+        resultado_operacional = float(lucro_bruto) - float(despesas_op)
+        resultado_liquido = resultado_operacional + float(outras_rec)
+
+        context = {
+            'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
+            'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
+            'emitido_em': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'empresa_nome': getattr(getattr(request.user, 'empresa', None), 'nome_fantasia', '—'),
+            'dre': {
+                'receita_bruta': receita_bruta,
+                'deducoes': 0,
+                'receita_liquida': receita_liquida,
+                'cmv': cmv,
+                'lucro_bruto': lucro_bruto,
+                'despesas_operacionais': despesas_op,
+                'resultado_operacional': resultado_operacional,
+                'outras_receitas': outras_rec,
+                'resultado_liquido': resultado_liquido,
+                'observacao': 'Parcial (estimado) por ausência de mapeamento completo de categorias.'
+            }
+        }
+        html_string = render_to_string('reports/dre_simplificada.html', context)
+        base_css = '''
+            @page { size: A4; margin: 12mm; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+            th { background: #f0f3f8; }
+        '''
+        pdf_bytes = render_pdf_bytes(html_string, base_css)
+        filename = f"dre_simplificada_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

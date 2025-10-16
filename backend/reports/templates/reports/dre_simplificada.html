@@ -1,0 +1,19 @@
+{% extends 'reports/base.html' %}
+{% block title %}DRE Simplificada{% endblock %}
+{% block content %}
+<h2>DRE Simplificada</h2>
+<p>Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+<table>
+  <tr><th>Conta</th><th>Valor</th></tr>
+  <tr><td>Receita Bruta</td><td>R$ {{ dre.receita_bruta|floatformat:2 }}</td></tr>
+  <tr><td>(-) Deduções</td><td>R$ {{ dre.deducoes|floatformat:2 }}</td></tr>
+  <tr><td>Receita Líquida</td><td>R$ {{ dre.receita_liquida|floatformat:2 }}</td></tr>
+  <tr><td>(-) CMV</td><td>R$ {{ dre.cmv|floatformat:2 }}</td></tr>
+  <tr><td>Lucro Bruto</td><td>R$ {{ dre.lucro_bruto|floatformat:2 }}</td></tr>
+  <tr><td>(-) Despesas Operacionais</td><td>R$ {{ dre.despesas_operacionais|floatformat:2 }}</td></tr>
+  <tr><td>Resultado Operacional</td><td>R$ {{ dre.resultado_operacional|floatformat:2 }}</td></tr>
+  <tr><td>(+) Outras Receitas</td><td>R$ {{ dre.outras_receitas|floatformat:2 }}</td></tr>
+  <tr><th>Resultado Líquido</th><th>R$ {{ dre.resultado_liquido|floatformat:2 }}</th></tr>
+</table>
+<p><em>{{ dre.observacao }}</em></p>
+{% endblock %}

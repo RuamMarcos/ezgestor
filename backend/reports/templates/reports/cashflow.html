@@ -1,0 +1,51 @@
+{% extends 'reports/base.html' %}
+{% block title %}Fluxo de Caixa{% endblock %}
+{% block content %}
+<h2>Fluxo de Caixa</h2>
+<p>Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+
+<h3>Resumo</h3>
+<table>
+  <tr><th>Entradas</th><th>Saídas</th><th>Saldo</th></tr>
+  <tr>
+    <td>R$ {{ totais.entradas|floatformat:2 }}</td>
+    <td>R$ {{ totais.saidas|floatformat:2 }}</td>
+    <td>R$ {{ totais.saldo|floatformat:2 }}</td>
+  </tr>
+</table>
+
+<h3>Evolução do Saldo</h3>
+<div>{{ saldo_svg|safe }}</div>
+
+<h3>Entradas por Dia</h3>
+<div>{{ entradas_svg|safe }}</div>
+
+<h3>Saídas por Dia</h3>
+<div>{{ saidas_svg|safe }}</div>
+
+<h3>Por Categoria</h3>
+<table>
+  <tr><th>Categoria</th><th>Tipo</th><th>Total</th></tr>
+  {% for c in por_categoria %}
+  <tr>
+    <td>{{ c.categoria|default:'—' }}</td>
+    <td>{{ c.tipo }}</td>
+    <td>R$ {{ c.total|floatformat:2 }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>Últimos Lançamentos</h3>
+<table>
+  <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr>
+  {% for l in lancamentos %}
+  <tr>
+    <td>{{ l.data_lancamento|date:'d/m/Y H:i' }}</td>
+    <td>{{ l.descricao }}</td>
+    <td>{{ l.categoria|default:'—' }}</td>
+    <td>{{ l.tipo }}</td>
+    <td>R$ {{ l.valor|floatformat:2 }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
