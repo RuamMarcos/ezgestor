@@ -34,6 +34,18 @@ function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportType, setReportType] = useState('bundle');
+  const [reportFormat, setReportFormat] = useState<'pdf'|'csv'>('pdf');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [vendedor, setVendedor] = useState<string>('');
+  const [cliente, setCliente] = useState<string>('');
+  const [produto, setProduto] = useState<string>('');
+  const [gapDays, setGapDays] = useState<number>(30);
+  const [leadTime, setLeadTime] = useState<number>(7);
+  const [safety, setSafety] = useState<number>(3);
+  const [baseDays, setBaseDays] = useState<number>(30);
 
   const handleSaleAdded = () => {
     // Recarrega KPIs após nova venda
@@ -95,6 +107,100 @@ function DashboardPage() {
     }
   };
 
+  const openReportModal = () => {
+    const now = new Date();
+    const s = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const e = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+    setStartDate(s);
+    setEndDate(e);
+    setReportType('bundle');
+    setReportFormat('pdf');
+    setReportModalOpen(true);
+  };
+
+  const generateSelectedReport = async () => {
+    try {
+      setDownloading(true);
+      const s = startDate;
+      const e = endDate;
+      let url = '';
+      let filename = '';
+      const fmt = reportFormat;
+      const params: string[] = [];
+      if (startDate) params.push(`start=${s}`);
+      if (endDate) params.push(`end=${e}`);
+      if (vendedor) params.push(`vendedor=${encodeURIComponent(vendedor)}`);
+      if (cliente) params.push(`cliente=${encodeURIComponent(cliente)}`);
+      if (produto) params.push(`produto=${encodeURIComponent(produto)}`);
+      // CSV agora suportado por todos os relatórios no backend (exceto bundle que sempre é ZIP)
+      const finalFmt = fmt;
+      switch (reportType) {
+        case 'executive':
+          url = `/relatorios/executive-summary/?${params.join('&')}&format=${finalFmt}`;
+          filename = `resumo_executivo_${s}_${e}.${finalFmt}`;
+          break;
+        case 'sales-period':
+          url = `/relatorios/sales-period/?${params.join('&')}&format=${finalFmt}`;
+          filename = `vendas_periodo_${s}_${e}.${finalFmt}`;
+          break;
+        case 'product-ranking':
+          url = `/relatorios/product-ranking/?${params.join('&')}&format=${finalFmt}`;
+          filename = `ranking_produtos_${s}_${e}.${finalFmt}`;
+          break;
+        case 'seller-performance':
+          url = `/relatorios/seller-performance/?${params.join('&')}&format=${finalFmt}`;
+          filename = `performance_vendedor_${s}_${e}.${finalFmt}`;
+          break;
+        case 'sales-by-customer':
+          if (gapDays) params.push(`gap_days=${gapDays}`);
+          url = `/relatorios/sales-by-customer/?${params.join('&')}&format=${finalFmt}`;
+          filename = `vendas_cliente_${s}_${e}.${finalFmt}`;
+          break;
+        case 'stock-position':
+          if (baseDays) params.push(`base_days=${baseDays}`);
+          url = `/relatorios/stock-position/?${params.join('&')}&format=${finalFmt}`;
+          filename = `posicao_estoque_${s}_${e}.${finalFmt}`;
+          break;
+        case 'replenishment':
+          if (leadTime) params.push(`lead_time=${leadTime}`);
+          if (safety) params.push(`safety=${safety}`);
+          if (baseDays) params.push(`base_days=${baseDays}`);
+          url = `/relatorios/replenishment-suggestion/?${params.join('&')}&format=${finalFmt}`;
+          filename = `sugestao_compra_${s}_${e}.${finalFmt}`;
+          break;
+        case 'cashflow':
+          url = `/relatorios/cashflow/?${params.join('&')}&format=${finalFmt}`;
+          filename = `fluxo_caixa_${s}_${e}.${finalFmt}`;
+          break;
+        case 'kardex':
+          url = `/relatorios/kardex/?${params.join('&')}&format=${finalFmt}`;
+          filename = `kardex_${s}_${e}.${finalFmt}`;
+          break;
+        case 'dre':
+          url = `/relatorios/dre-simplificada/?${params.join('&')}&format=${finalFmt}`;
+          filename = `dre_${s}_${e}.${finalFmt}`;
+          break;
+        case 'bundle':
+        default:
+          url = `/relatorios/bundle/?${params.join('&')}`;
+          filename = `relatorios_${s}_${e}.zip`;
+      }
+
+      const resp = await api.get(url, { responseType: 'blob' });
+      const blob = new Blob([resp.data]);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e) {
+      setError('Não foi possível gerar o relatório agora.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm">
       
@@ -146,9 +252,92 @@ function DashboardPage() {
         >
           Nova Venda
         </button>
-        <button onClick={handleGenerateReports} disabled={downloading} className={`bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg ${downloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-          {downloading ? 'Gerando…' : 'Gerar Relatórios'}
+        <button onClick={openReportModal} disabled={downloading} className={`bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg ${downloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+          {downloading ? 'Gerando…' : 'Gerar Relatório(s)'}
         </button>
+      {reportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-2xl">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gerar Relatório</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Tipo</label>
+                <select value={reportType} onChange={(e)=>setReportType(e.target.value)} className="w-full border rounded-lg p-2">
+                  <option value="bundle">Bundle (ZIP com todos)</option>
+                  <option value="executive">Resumo Executivo</option>
+                  <option value="sales-period">Vendas por Período</option>
+                  <option value="product-ranking">Ranking de Produtos</option>
+                  <option value="seller-performance">Performance por Vendedor</option>
+                  <option value="sales-by-customer">Vendas por Clientes</option>
+                  <option value="stock-position">Posição de Estoque</option>
+                  <option value="replenishment">Sugestão de Compra</option>
+                  <option value="cashflow">Fluxo de Caixa</option>
+                  <option value="kardex">Kardex</option>
+                  <option value="dre">DRE Simplificada</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Formato</label>
+                <select value={reportFormat} onChange={(e)=>setReportFormat(e.target.value as 'pdf'|'csv')} className="w-full border rounded-lg p-2" disabled={reportType === 'bundle'}>
+                  <option value="pdf">PDF</option>
+                  <option value="csv">CSV</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">CSV disponível para todos os relatórios (exceto Bundle, que gera ZIP).</p>
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Vendedor (email ou id)</label>
+                  <input type="text" value={vendedor} onChange={(e)=>setVendedor(e.target.value)} placeholder="opcional" className="w-full border rounded-lg p-2" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Cliente</label>
+                  <input type="text" value={cliente} onChange={(e)=>setCliente(e.target.value)} placeholder="opcional" className="w-full border rounded-lg p-2" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Produto (nome ou id)</label>
+                  <input type="text" value={produto} onChange={(e)=>setProduto(e.target.value)} placeholder="opcional" className="w-full border rounded-lg p-2" />
+                </div>
+              </div>
+              {reportType === 'sales-by-customer' && (
+                <div className="mt-2">
+                  <label className="block text-sm text-gray-700 mb-1">Gap dias (recuperáveis)</label>
+                  <input type="number" value={gapDays} onChange={(e)=>setGapDays(Number(e.target.value))} className="w-full border rounded-lg p-2" />
+                </div>
+              )}
+              {reportType === 'replenishment' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Base (dias)</label>
+                    <input type="number" value={baseDays} onChange={(e)=>setBaseDays(Number(e.target.value))} className="w-full border rounded-lg p-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Lead time (dias)</label>
+                    <input type="number" value={leadTime} onChange={(e)=>setLeadTime(Number(e.target.value))} className="w-full border rounded-lg p-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Safety (dias)</label>
+                    <input type="number" value={safety} onChange={(e)=>setSafety(Number(e.target.value))} className="w-full border rounded-lg p-2" />
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Início</label>
+                <input type="date" value={startDate} onChange={(e)=>setStartDate(e.target.value)} className="w-full border rounded-lg p-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Fim</label>
+                <input type="date" value={endDate} onChange={(e)=>setEndDate(e.target.value)} className="w-full border rounded-lg p-2" />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={()=>setReportModalOpen(false)} className="px-4 py-2 rounded-lg border">Cancelar</button>
+              <button onClick={generateSelectedReport} disabled={downloading} className="px-4 py-2 rounded-lg bg-green-600 text-white">
+                {downloading ? 'Gerando…' : 'Gerar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
         <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
           Emitir NF-e
         </button>
