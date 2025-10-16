@@ -183,7 +183,9 @@ STATICFILES_STORAGE = os.environ.get(
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    # Disable DRF's ?format=... override so we can use 'format' as a regular query param
+    'URL_FORMAT_OVERRIDE': None,
 }
 
 SIMPLE_JWT = {
