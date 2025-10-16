@@ -5,13 +5,11 @@ from django.utils import timezone
 from django.db.models import Sum, F, Count, DecimalField, ExpressionWrapper, Value, Max, Q
 from django.db.models.functions import Coalesce, TruncDate
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from io import BytesIO
+from io import BytesIO, StringIO
 import zipfile
+import csv
 from django.utils.safestring import mark_safe
-
 
 from vendas.models import Venda
 from estoque.models import Produto
@@ -22,13 +20,11 @@ def parse_date(param: str | None) -> date | None:
     if not param:
         return None
     try:
-        # Expecting YYYY-MM-DD
         return datetime.strptime(param, '%Y-%m-%d').date()
     except Exception:
         return None
 
 
-# --- SVG helpers (module scope) ---
 def svg_line_chart(values: list[float], width=520, height=120, padding=10) -> str:
     if not values:
         values = [0.0]
@@ -69,7 +65,6 @@ def svg_pie_chart(values: list[float], colors: list[str] | None = None, width=18
     total = sum(values) or 1.0
     cx, cy = width/2, height/2
     r = min(cx, cy) - 4
-    # Use stroke-dasharray pie via circle segments
     circ = 2 * 3.1415926535 * r
     acc = 0.0
     segs = []
@@ -85,17 +80,13 @@ def svg_pie_chart(values: list[float], colors: list[str] | None = None, width=18
     return f'<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">' + ''.join(segs) + '</svg>'
 
 
-# --- PDF helper with fallback (WeasyPrint -> xhtml2pdf) ---
 def render_pdf_bytes(html_string: str, css_string: str | None = None) -> bytes:
-    """Render HTML to PDF bytes. Try WeasyPrint first; fallback to xhtml2pdf if unavailable."""
-    # Try WeasyPrint
     try:
         from weasyprint import HTML, CSS
         stylesheets = [CSS(string=css_string)] if css_string else None
         return HTML(string=html_string).write_pdf(stylesheets=stylesheets)
     except Exception:
         pass
-    # Fallback to xhtml2pdf
     from xhtml2pdf import pisa
     if css_string:
         html_string = f"<style>{css_string}</style>\n" + html_string
@@ -105,12 +96,6 @@ def render_pdf_bytes(html_string: str, css_string: str | None = None) -> bytes:
 
 
 class ExecutiveSummaryPDFView(APIView):
-    """
-    Gera o relatório 'Resumo Executivo do Período' em PDF.
-    GET params:
-      - start (YYYY-MM-DD)
-      - end (YYYY-MM-DD)
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -120,15 +105,12 @@ class ExecutiveSummaryPDFView(APIView):
         if start and end and start > end:
             return HttpResponseBadRequest('Parâmetros de data inválidos: start > end')
 
-        # Normalizar timezone
         tz = timezone.get_current_timezone()
         start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
         end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
 
-        # Filtros base por empresa (se houver no usuário)
         empresa = getattr(getattr(request.user, 'empresa', None), 'id', None)
-
-        vendas_qs = Venda.objects.all()
+        vendas_qs = Venda.objects.select_related('produto', 'vendedor').all()
         if empresa:
             vendas_qs = vendas_qs.filter(produto__empresa_id=empresa)
         if start_dt:
@@ -136,124 +118,46 @@ class ExecutiveSummaryPDFView(APIView):
         if end_dt:
             vendas_qs = vendas_qs.filter(data_venda__lte=end_dt)
 
-        lanc_qs = LancamentoFinanceiro.objects.all()
-        if empresa:
-            lanc_qs = lanc_qs.filter(empresa_id=empresa)
-        if start_dt:
-            lanc_qs = lanc_qs.filter(data_lancamento__gte=start_dt)
-        if end_dt:
-            lanc_qs = lanc_qs.filter(data_lancamento__lte=end_dt)
-
-        # KPIs
-        receita_total = vendas_qs.aggregate(total=Sum('preco_total'))['total'] or 0
+        receita_total = vendas_qs.aggregate(total=Coalesce(Sum('preco_total'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
         numero_vendas = vendas_qs.count()
         ticket_medio = float(receita_total) / numero_vendas if numero_vendas else 0.0
 
-        # Margem bruta estimada: soma(qtd * (pv - pc))
-        margem_estimada_qs = vendas_qs.annotate(
-            lucro_unit=ExpressionWrapper(
-                F('produto__preco_venda') - Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
-                output_field=DecimalField(max_digits=12, decimal_places=2),
-            ),
-            lucro_total=ExpressionWrapper(
-                F('quantidade') * (
-                    F('produto__preco_venda') - Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2))
-                ),
-                output_field=DecimalField(max_digits=14, decimal_places=2),
-            ),
-        )
-        margem_bruta = margem_estimada_qs.aggregate(total=Sum('lucro_total'))['total'] or 0
-
-        # Produtos em baixo estoque
-        produtos_low = Produto.objects.all()
-        if empresa:
-            produtos_low = produtos_low.filter(empresa_id=empresa)
-        produtos_low = produtos_low.filter(ativo=True).filter(quantidade_estoque__lte=F('quantidade_minima_estoque'))
-        baixo_estoque = produtos_low.count()
-
-        # Top 5 produtos com margem estimada
-        lucro_expr = ExpressionWrapper(
+        margem_expr = ExpressionWrapper(
             F('quantidade') * (F('produto__preco_venda') - Coalesce(F('produto__preco_custo'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2))),
             output_field=DecimalField(max_digits=12, decimal_places=2)
         )
-        top_produtos = (
-            vendas_qs.values('produto__nome')
-            .annotate(
-                unidades=Sum('quantidade'),
-                faturamento=Sum('preco_total'),
-                margem=Sum(lucro_expr)
-            )
-            .order_by('-faturamento')[:5]
-        )
+        margem_bruta = vendas_qs.aggregate(total=Coalesce(Sum(margem_expr), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
 
-        # Top 5 clientes (usando cliente_nome)
-        top_clientes = (
-            vendas_qs.values('cliente_nome')
-            .annotate(qtd=Count('id_venda'), faturamento=Sum('preco_total'))
-            .order_by('-faturamento')[:5]
-        )
+        produtos_low = Produto.objects.all()
+        if empresa:
+            produtos_low = produtos_low.filter(empresa_id=empresa)
+        baixo_estoque = produtos_low.filter(ativo=True, quantidade_estoque__lte=F('quantidade_minima_estoque')).count()
 
-        # Entradas x Saídas (financeiro)
-        total_entradas = lanc_qs.filter(tipo='entrada').aggregate(total=Sum('valor'))['total'] or 0
-        total_saidas = lanc_qs.filter(tipo='saida').aggregate(total=Sum('valor'))['total'] or 0
+        total_entradas = LancamentoFinanceiro.objects.filter(tipo='entrada', empresa_id=empresa if empresa else None)
+        total_saidas = LancamentoFinanceiro.objects.filter(tipo='saida', empresa_id=empresa if empresa else None)
+        if start_dt:
+            total_entradas = total_entradas.filter(data_lancamento__gte=start_dt)
+            total_saidas = total_saidas.filter(data_lancamento__gte=start_dt)
+        if end_dt:
+            total_entradas = total_entradas.filter(data_lancamento__lte=end_dt)
+            total_saidas = total_saidas.filter(data_lancamento__lte=end_dt)
+        total_entradas = total_entradas.aggregate(t=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
+        total_saidas = total_saidas.aggregate(t=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['t'] or 0
         saldo_variacao = float(total_entradas) - float(total_saidas)
 
-        # Variação vs período anterior (MoM/WoW) baseado no mesmo tamanho de janela
-        variacao_percent = None
-        if start and end:
-            delta_days = (end - start).days or 0
-            prev_end = start - timedelta(days=1)
-            prev_start = prev_end - timedelta(days=delta_days)
-            prev_start_dt = timezone.make_aware(datetime.combine(prev_start, time.min), tz)
-            prev_end_dt = timezone.make_aware(datetime.combine(prev_end, time.max), tz)
-            vendas_prev = Venda.objects.all()
-            if empresa:
-                vendas_prev = vendas_prev.filter(produto__empresa_id=empresa)
-            vendas_prev = vendas_prev.filter(data_venda__gte=prev_start_dt, data_venda__lte=prev_end_dt)
-            receita_prev = vendas_prev.aggregate(total=Sum('preco_total'))['total'] or 0
-            if receita_prev and float(receita_prev) != 0.0:
-                variacao_percent = ((float(receita_total) - float(receita_prev)) / float(receita_prev)) * 100.0
-
-        # Séries para gráficos
-        # Receita por dia (linha)
-        # Determina o intervalo de datas para o gráfico
+        # Série de faturamento simples
         chart_start = start or (timezone.now().date() - timedelta(days=29))
         chart_end = end or timezone.now().date()
-        # Restringe ao filtro de vendas já aplicado
         daily = (
-            vendas_qs
-            .annotate(day=TruncDate('data_venda'))
-            .values('day')
-            .annotate(total=Sum('preco_total'))
-            .order_by('day')
+            vendas_qs.annotate(day=TruncDate('data_venda')).values('day').annotate(total=Sum('preco_total')).order_by('day')
         )
-        daily_map = {row['day']: float(row['total'] or 0) for row in daily}
-        series_days = []
+        daily_map = {r['day']: float(r['total'] or 0) for r in daily}
         series_vals = []
         d = chart_start
         while d <= chart_end:
-            series_days.append(d)
             series_vals.append(daily_map.get(d, 0.0))
             d += timedelta(days=1)
 
-        # Vendas por vendedor (barras)
-        vendors = (
-            vendas_qs
-            .values('vendedor__first_name', 'vendedor__email')
-            .annotate(total=Sum('preco_total'))
-            .order_by('-total')
-        )
-        vendor_labels = []
-        vendor_values = []
-        for v in vendors[:8]:  # limita para caber bem na página
-            name = v.get('vendedor__first_name') or (v.get('vendedor__email') or 'N/A')
-            vendor_labels.append(str(name)[:12])
-            vendor_values.append(float(v.get('total') or 0))
-
-        revenue_svg = mark_safe(svg_line_chart(series_vals))
-        vendors_svg = mark_safe(svg_bar_chart(vendor_values, vendor_labels))
-
-        # Contexto para template
         context = {
             'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
             'periodo_fim': end.strftime('%d/%m/%Y') if end else '-',
@@ -269,36 +173,26 @@ class ExecutiveSummaryPDFView(APIView):
                 'saidas': total_saidas,
                 'saldo_variacao': saldo_variacao,
             },
-            'top_produtos': top_produtos,
-            'top_clientes': top_clientes,
-            'revenue_svg': revenue_svg,
-            'vendors_svg': vendors_svg,
-            'variacao_percent': variacao_percent,
+            'revenue_svg': mark_safe(svg_line_chart(series_vals)),
+            'top_produtos': [],
+            'top_clientes': [],
+            'vendors_svg': mark_safe(svg_bar_chart([])),
+            'variacao_percent': None,
         }
-
         html_string = render_to_string('reports/executive_summary.html', context)
-
         base_css = '''
             @page { size: A4; margin: 16mm; }
             body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #333; }
-            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-            .h-title { font-size: 18px; font-weight: bold; }
-            .muted { color: #777; }
-            .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
-            .kpi { background: #f5f7fb; border: 1px solid #e8ecf3; border-radius: 8px; padding: 10px; }
-            .kpi .label { font-size: 11px; color: #555; }
-            .kpi .value { font-size: 16px; font-weight: bold; }
-            .section { margin-top: 16px; }
             table { width: 100%; border-collapse: collapse; }
             th, td { padding: 8px; border-bottom: 1px solid #e8ecf3; text-align: left; }
             th { background: #f0f3f8; }
         '''
         pdf_bytes = render_pdf_bytes(html_string, base_css)
-
         filename = f"resumo_executivo_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
         response = HttpResponse(pdf_bytes, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
 
 
 class SalesPeriodPDFView(APIView):
@@ -1155,20 +1049,35 @@ class SalesByCustomerPDFView(APIView):
             'top10': top10,
             'recuperaveis': recuperaveis,
         }
-        html_string = render_to_string('reports/sales_by_customer.html', context)
-        base_css = '''
-            @page { size: A4; margin: 12mm; }
-            body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
-            h3 { margin: 10px 0 6px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; }
-            th { background: #f0f3f8; }
-        '''
-        pdf_bytes = render_pdf_bytes(html_string, base_css)
-        filename = f"vendas_cliente_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
-        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            output = StringIO(newline='')
+            writer = csv.writer(output, delimiter=';')
+            writer.writerow(['Cliente', 'Última Compra', 'Compras', 'Faturamento', 'Ticket Médio', 'Observações'])
+            for r in rows:
+                writer.writerow([
+                    r['cliente'], r['ultima_compra'], r['compras'], f"{r['faturamento']:.2f}", f"{r['ticket_medio']:.2f}", r['observacoes']
+                ])
+            csv_bytes = output.getvalue().encode('utf-8-sig')
+            filename = f"vendas_cliente_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+        else:
+            html_string = render_to_string('reports/sales_by_customer.html', context)
+            base_css = '''
+                @page { size: A4 portrait; margin: 12mm; }
+                body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
+                h3 { margin: 10px 0 6px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { padding: 6px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+                th { background: #f0f3f8; }
+            '''
+            pdf_bytes = render_pdf_bytes(html_string, base_css)
+            filename = f"vendas_cliente_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.pdf"
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
 
 
 class StockPositionPDFView(APIView):
@@ -1317,19 +1226,36 @@ class ReplenishmentSuggestionPDFView(APIView):
             'base_days': base_days, 'lead_time': lead_time, 'safety': safety,
             'rows': suggestions[:1000],
         }
-        html_string = render_to_string('reports/replenishment.html', context)
-        base_css = '''
-            @page { size: A4; margin: 10mm; }
-            body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; }
-            th { background: #f0f3f8; }
-        '''
-        pdf_bytes = render_pdf_bytes(html_string, base_css)
-        filename = f"sugestao_compra_{timezone.now().date().isoformat()}.pdf"
-        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        # CSV or PDF
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            output = StringIO(newline='')
+            writer = csv.writer(output, delimiter=';')
+            writer.writerow(['Produto', 'Média Diária', 'Estoque Atual', 'Cobertura (dias)', 'Ruptura Prevista', 'Qtd. Sugerida', 'Observações'])
+            for r in suggestions:
+                writer.writerow([
+                    r['produto'], f"{r['media_diaria']:.2f}", r['estoque_atual'],
+                    f"{r['cobertura']:.2f}" if r['cobertura'] is not None else '',
+                    r['ruptura_prevista'], f"{r['qtd_sugerida']:.0f}", r['obs']
+                ])
+            csv_bytes = output.getvalue().encode('utf-8-sig')
+            filename = f"sugestao_compra_{timezone.now().date().isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
+        else:
+            html_string = render_to_string('reports/replenishment.html', context)
+            base_css = '''
+                @page { size: A4 portrait; margin: 10mm; }
+                body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { padding: 5px; border-bottom: 1px solid #e8ecf3; text-align: left; }
+                th { background: #f0f3f8; }
+            '''
+            pdf_bytes = render_pdf_bytes(html_string, base_css)
+            filename = f"sugestao_compra_{timezone.now().date().isoformat()}.pdf"
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
 
 
 class CashflowPDFView(APIView):
@@ -1359,7 +1285,6 @@ class CashflowPDFView(APIView):
         total_saidas = lanc.filter(tipo='saida').aggregate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))['total'] or 0
         saldo = float(total_entradas) - float(total_saidas)
 
-        # Séries por dia
         entradas_por_dia = (
             lanc.filter(tipo='entrada')
                 .annotate(day=TruncDate('data_lancamento'))
@@ -1396,12 +1321,30 @@ class CashflowPDFView(APIView):
             saldo_series.append(running)
             d += timedelta(days=1)
 
-        # Por categoria
         por_categoria = (
             lanc.values('categoria', 'tipo')
                 .annotate(total=Coalesce(Sum('valor'), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)))
                 .order_by('categoria', 'tipo')
         )
+
+        if request.GET.get('format', 'pdf').lower() == 'csv':
+            out = StringIO(newline='')
+            w = csv.writer(out, delimiter=';')
+            w.writerow(["Período", start.strftime('%d/%m/%Y') if start else '-', end.strftime('%d/%m/%Y') if end else '-'])
+            w.writerow(['Entradas Totais', f"{float(total_entradas):.2f}"])
+            w.writerow(['Saídas Totais', f"{float(total_saidas):.2f}"])
+            w.writerow(['Saldo', f"{saldo:.2f}"])
+            w.writerow([])
+            w.writerow(['Dia', 'Entradas', 'Saídas', 'Saldo Acumulado'])
+            for idx, day in enumerate(days):
+                w.writerow([
+                    day.strftime('%d/%m/%Y'), f"{ent_series[idx]:.2f}", f"{sai_series[idx]:.2f}", f"{saldo_series[idx]:.2f}"
+                ])
+            csv_bytes = out.getvalue().encode('utf-8-sig')
+            filename = f"fluxo_caixa_{(start or timezone.now().date()).isoformat()}_{(end or timezone.now().date()).isoformat()}.csv"
+            resp = HttpResponse(csv_bytes, content_type='text/csv; charset=utf-8')
+            resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return resp
 
         context = {
             'periodo_inicio': start.strftime('%d/%m/%Y') if start else '-',
@@ -1413,18 +1356,15 @@ class CashflowPDFView(APIView):
                 'saidas': total_saidas,
                 'saldo': saldo,
             },
-            'entradas_series': list(entradas_por_dia),
-            'saidas_series': list(saidas_por_dia),
             'saldo_svg': mark_safe(svg_line_chart(saldo_series)),
             'entradas_svg': mark_safe(svg_bar_chart(ent_series)),
             'saidas_svg': mark_safe(svg_bar_chart(sai_series)),
             'por_categoria': list(por_categoria),
             'lancamentos': lanc.order_by('-data_lancamento')[:500],
         }
-
         html_string = render_to_string('reports/cashflow.html', context)
         base_css = '''
-            @page { size: A4; margin: 12mm; }
+            @page { size: A4 portrait; margin: 12mm; }
             body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
             h3 { margin: 10px 0 6px; }
             table { width: 100%; border-collapse: collapse; }
