@@ -1,0 +1,101 @@
+{% extends 'reports/base.html' %}
+
+{% block title %}Vendas por Período{% endblock %}
+
+{% block content %}
+  <div class="header">
+    <div>
+      <div class="h-title">Vendas por Período</div>
+      <div class="muted">Empresa: {{ empresa_nome }}</div>
+    </div>
+    <div class="muted">
+      Período: {{ periodo_inicio }} — {{ periodo_fim }}<br/>
+      Emitido em: {{ emitido_em }}
+    </div>
+  </div>
+
+  <div>
+    <table>
+      <tbody>
+        <tr>
+          <th>Receita total</th><td>R$ {{ sumario.receita_total|floatformat:2 }}</td>
+          <th>Nº vendas</th><td>{{ sumario.numero_vendas }}</td>
+          <th>Ticket médio</th><td>R$ {{ sumario.ticket_medio|floatformat:2 }}</td>
+        </tr>
+        <tr>
+          <th>Unidades vendidas</th><td>{{ sumario.unidades }}</td>
+          <th>Desconto total</th><td>R$ {{ sumario.desconto_total|floatformat:2 }}</td>
+          <th>Margem estimada</th><td>R$ {{ sumario.margem_total|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Faturamento por Dia</h3>
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Faturamento (R$)</th></tr>
+    </thead>
+    <tbody>
+      {% for d in daily %}
+      <tr>
+        <td>{{ d.day|date:'d/m/Y' }}</td>
+        <td>{{ d.total|floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2">Sem dados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Participação por Produto</h3>
+  <table>
+    <thead>
+      <tr><th>Produto</th><th>Faturamento (R$)</th></tr>
+    </thead>
+    <tbody>
+      {% for p in by_product %}
+      <tr>
+        <td>{{ p.produto__nome }}</td>
+        <td>{{ p.total|floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2">Sem dados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Vendas (Detalhado)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>ID</th>
+        <th>Produto</th>
+        <th>Qtd</th>
+        <th>Preço Unit.</th>
+        <th>Desconto</th>
+        <th>Total</th>
+        <th>Vendedor</th>
+        <th>Cliente</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vendas %}
+      <tr>
+        <td>{{ v.data_venda|date:'d/m/Y H:i' }}</td>
+        <td>{{ v.id_venda }}</td>
+        <td>{{ v.produto.nome }}</td>
+        <td>{{ v.quantidade }}</td>
+        <td>{{ v.produto.preco_venda|floatformat:2 }}</td>
+        <td>—</td>
+        <td>{{ v.preco_total|floatformat:2 }}</td>
+        <td>{% if v.vendedor %}{{ v.vendedor.first_name|default:v.vendedor.email }}{% else %}—{% endif %}</td>
+        <td>{{ v.cliente_nome|default:'—' }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9">Sem vendas</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

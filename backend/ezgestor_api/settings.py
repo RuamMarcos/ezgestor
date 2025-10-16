@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'estoque',
     'vendas',
     'financeiro',
+    'reports',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework',

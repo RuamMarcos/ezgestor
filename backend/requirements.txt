@@ -10,3 +10,5 @@ dj-database-url==2.2.0
 djangorestframework_simplejwt==5.5.1
 mysqlclient==2.2.4
 Pillow
+WeasyPrint==61.2
+xhtml2pdf==0.2.15

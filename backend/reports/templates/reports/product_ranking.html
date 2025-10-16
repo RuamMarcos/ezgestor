@@ -1,0 +1,82 @@
+{% extends 'reports/base.html' %}
+
+{% block title %}Ranking de Produtos{% endblock %}
+
+{% block content %}
+  <div class="header">
+    <div>
+      <div class="h-title">Ranking de Produtos</div>
+      <div class="muted">Empresa: {{ empresa_nome }}</div>
+    </div>
+    <div class="muted">
+      Período: {{ periodo_inicio }} — {{ periodo_fim }}<br/>
+      Emitido em: {{ emitido_em }}
+    </div>
+  </div>
+
+  <h3>Resumo</h3>
+  <table>
+    <tbody>
+      <tr>
+        <th>Receita no Período</th>
+        <td>R$ {{ receita_periodo|floatformat:2 }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Ranking (Top)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Unidades</th>
+        <th>Faturamento (R$)</th>
+        <th>Margem Est. (R$)</th>
+        <th>% Part.</th>
+        <th>Estoque Atual</th>
+        <th>Status</th>
+        <th>Classe ABC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in ranking %}
+      <tr>
+        <td>{{ r.produto__nome }}</td>
+        <td>{{ r.unidades }}</td>
+        <td>{{ r.faturamento|floatformat:2 }}</td>
+        <td>{{ r.margem|floatformat:2 }}</td>
+        <td>{{ r.participacao|floatformat:1 }}%</td>
+        <td>{{ r.produto__quantidade_estoque }}</td>
+        <td>{% if r.status == 'baixo_estoque' %}Baixo Estoque{% else %}OK{% endif %}</td>
+        <td>{{ r.abc }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8">Sem dados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Produtos sem Giro</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Código/ID</th>
+        <th>Produto</th>
+        <th>Estoque</th>
+        <th>Estoque Mínimo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in produtos_sem_giro %}
+      <tr>
+        <td>{{ p.id_produto }}</td>
+        <td>{{ p.nome }}</td>
+        <td>{{ p.quantidade_estoque }}</td>
+        <td>{{ p.quantidade_minima_estoque }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">Sem produtos</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

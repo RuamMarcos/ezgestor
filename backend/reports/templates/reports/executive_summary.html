@@ -1,0 +1,91 @@
+{% extends 'reports/base.html' %}
+{% load static %}
+
+{% block title %}Resumo Executivo do Período{% endblock %}
+
+{% block content %}
+  <div class="header">
+    <div>
+      <div class="h-title">Resumo Executivo do Período</div>
+      <div class="muted">Empresa: {{ empresa_nome }}</div>
+    </div>
+    <div class="muted">
+      Período: {{ periodo_inicio }} — {{ periodo_fim }}<br/>
+      Emitido em: {{ emitido_em }}
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">Receita</div><div class="value">R$ {{ kpis.receita_total|floatformat:2 }}</div></div>
+    <div class="kpi"><div class="label">Vendas</div><div class="value">{{ kpis.numero_vendas }}</div></div>
+    <div class="kpi"><div class="label">Ticket Médio</div><div class="value">R$ {{ kpis.ticket_medio|floatformat:2 }}</div></div>
+    <div class="kpi"><div class="label">Margem Bruta Est.</div><div class="value">R$ {{ kpis.margem_bruta|floatformat:2 }}</div></div>
+    <div class="kpi"><div class="label">Produtos Baixo Estoque</div><div class="value">{{ kpis.baixo_estoque }}</div></div>
+    <div class="kpi"><div class="label">Saldo Entradas−Saídas</div><div class="value">R$ {{ kpis.saldo_variacao|floatformat:2 }}</div></div>
+  </div>
+
+  {% if variacao_percent is not None %}
+  <div class="muted">Variação vs período anterior: {{ variacao_percent|floatformat:1 }}%</div>
+  {% endif %}
+
+  <div class="section">
+    <h3>Top 5 Produtos por Faturamento</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Unidades</th>
+          <th>Faturamento (R$)</th>
+          <th>Margem Estimada (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in top_produtos %}
+        <tr>
+          <td>{{ p.produto__nome }}</td>
+          <td>{{ p.unidades }}</td>
+          <td>{{ p.faturamento|floatformat:2 }}</td>
+          <td>{{ p.margem|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">Sem dados para o período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>Top 5 Clientes</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Nº Compras</th>
+          <th>Faturamento (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in top_clientes %}
+        <tr>
+          <td>{{ c.cliente_nome|default:'—' }}</td>
+          <td>{{ c.qtd }}</td>
+          <td>{{ c.faturamento|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">Sem dados para o período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>Receita por Dia</h3>
+    {{ revenue_svg|safe }}
+  </div>
+
+  <div class="section">
+    <h3>Vendas por Vendedor</h3>
+    {{ vendors_svg|safe }}
+  </div>
+
+{% endblock %}

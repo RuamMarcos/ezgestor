@@ -33,6 +33,7 @@ function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const handleSaleAdded = () => {
     // Recarrega KPIs após nova venda
@@ -64,6 +65,34 @@ function DashboardPage() {
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  const handleGenerateReports = async () => {
+    try {
+      setDownloading(true);
+      // Default period: current month
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+      const response = await api.get(`/relatorios/bundle/?start=${start}&end=${end}`, {
+        responseType: 'blob',
+      });
+
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorios_${start}_${end}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setError('Não foi possível gerar os relatórios agora.');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -117,8 +146,8 @@ function DashboardPage() {
         >
           Nova Venda
         </button>
-        <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
-          Gerar Relatório
+        <button onClick={handleGenerateReports} disabled={downloading} className={`bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg ${downloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+          {downloading ? 'Gerando…' : 'Gerar Relatórios'}
         </button>
         <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
           Emitir NF-e
