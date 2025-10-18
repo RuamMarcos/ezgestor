@@ -7,5 +7,4 @@ urlpatterns = [
     path('stats/', FinancialStatsView.as_view(), name='financial-stats'), 
     path('dashboard/', DashboardStatsView.as_view(), name='dashboard-stats'),
     path('categorias/', LancamentoCategoriasView.as_view(), name='list-categorias-lancamentos'),
-
 ]

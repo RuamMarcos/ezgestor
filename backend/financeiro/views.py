@@ -12,7 +12,7 @@ from django.utils import timezone
 from vendas.models import Venda
 from estoque.models import Produto
 
-class LancamentoFinanceiroListView(generics.ListAPIView):
+class LancamentoFinanceiroListView(generics.ListCreateAPIView):
     """
     View para listar os lançamentos financeiros (extrato do fluxo de caixa).
     Filtra os lançamentos pela empresa do usuário logado.
