@@ -48,24 +48,35 @@ export default function DashboardScreen() {
     setError(null);
     try {
       const [
-        financial,
-        vendasResp,
-        lowStockResp,
-        recentResp,
-        chartResp, // Adicionado
+        financial,        // 1) Estatísticas financeiras
+        vendasResp,       // 2) Total de vendas (count)
+        lowStockResp,     // 3) Produtos em baixo estoque (count)
+        recentResp,       // 4) Vendas recentes (últimas 5)
+        chartResp,        // 5) Dados para o gráfico de vendas diárias
       ] = await Promise.all([
+        // 1) Estatísticas financeiras (Entradas, Saídas, Saldo)
         getFinancialStats(),
+        
+        // 2) Total de vendas (usa paginação para obter apenas o count)
         api.get('/vendas/', { params: { page_size: 1 } }),
+        
+        // 3) Produtos em baixo estoque (usa filtro + page_size=1 para pegar apenas o count)
         api.get('/estoque/produtos/', { params: { em_baixo_estoque: true, page_size: 1 } }),
+        
+        // 4) Vendas recentes (pega as 5 mais recentes)
         api.get('/vendas/', { params: { page_size: 5 } }),
-        api.get('/vendas/daily-summary-last-7-days/'), // Adicionado
+        
+        // 5) Resumo de vendas para o gráfico dos últimos 7 dias
+        api.get('/vendas/daily-summary-last-7-days/'),
       ]);
 
+      // Atualiza os estados com os resultados recebidos
       setStats(financial);
       setTotalVendas(Number(vendasResp.data?.count ?? 0));
       setLowStockCount(Number(lowStockResp.data?.count ?? 0));
       setRecentSales(recentResp.data?.results ?? []);
       setChartData(chartResp.data ?? []);
+
     } catch (e: any) {
       const msg = e?.response?.data?.detail || e.message || 'Falha ao carregar o dashboard.';
       setError(msg);
@@ -130,7 +141,7 @@ export default function DashboardScreen() {
       <Text style={styles.title}>Dashboard</Text>
 
       {error ? (
-        <Text style={{ color: 'red', marginHorizontal: 16 }}>{error}</Text>
+        <Text style={{ color: 'red', marginHorizontal: 16 }}>{error} </Text>
       ) : null}
 
       <View style={styles.cardsGrid}>

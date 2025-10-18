@@ -60,11 +60,4 @@ export const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 8,
   },
-  // chartTitle: {
-  //   fontSize: 22,
-  //   fontWeight: 'bold',
-  //   color: '#333',
-  //   marginBottom: 16,
-  //   paddingHorizontal: 16,
-  // },
 });

@@ -36,7 +36,6 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
 
   const formattedData = data.map(item => ({
     ...item,
-    // Formata a data para "dd/MM" para o eixo X
     shortDate: format(new Date(item.date), 'dd/MM'),
   }));
 

@@ -58,9 +58,8 @@ function DashboardPage() {
   const [chartError, setChartError] = useState<string | null>(null);
 
   const handleSaleAdded = () => {
-    // Recarrega KPIs e gráfico após nova venda
     fetchDashboard();
-    fetchChartData(); // Adicionado
+    fetchChartData();
   };
   const fetchDashboard = async () => {
     try {
