@@ -44,5 +44,21 @@ export const styles = StyleSheet.create({
 	footerLoader: {
 		marginVertical: 20,
 	},
+	fab: {
+		position: 'absolute',
+		width: 56,
+		height: 56,
+		alignItems: 'center',
+		justifyContent: 'center',
+		right: 20,
+		bottom: 20,
+		backgroundColor: DashboardColors.headerBlue,
+		borderRadius: 28,
+		elevation: 8,
+		shadowColor: '#000',
+		shadowOpacity: 0.3,
+		shadowRadius: 4,
+		shadowOffset: { width: 1, height: 2 },
+	},
 });
 

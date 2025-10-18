@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { getLancamentos, getFinancialStats, createLancamento, updateLancamento, deleteLancamento } from '@/services/FinancialService';
 import type { LancamentoFinanceiro, FinancialStats, LancamentoFinanceiroData } from '@/services/FinancialService';
 import SummaryCard from '@/components/dashboard/SummaryCard';
@@ -9,6 +9,7 @@ import FinancialsHeader from '@/components/financials/FinancialsHeader';
 import FinancialChart from '@/components/financials/FinancialChart';
 import { styles } from '@/styles/financial/FinancialStyles';
 import AddEditLancamentoModal from '@/components/financials/AddEditLancamentoModal';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
 const formatCurrency = (value: number): string => {
@@ -130,6 +131,13 @@ export default function FinancialScreen() {
 
     // Função para abrir o modal para EDITAR
     const openEditModal = (item: LancamentoFinanceiro) => {
+        if (item.venda !== null) {
+            Alert.alert(
+                "Ação não permitida",
+                "Lançamentos gerados automaticamente por vendas não podem ser editados ou excluídos manualmente."
+            );
+            return;
+        }
         setEditingLancamento(item);
         setIsModalOpen(true);
     };
@@ -193,6 +201,9 @@ export default function FinancialScreen() {
                 onDelete={handleDelete}
                 initialData={editingLancamento}
             />
+            <TouchableOpacity style={styles.fab} onPress={openAddModal}>
+                <MaterialCommunityIcons name="plus" size={24} color="white" />
+            </TouchableOpacity>
         </View>
     );
 }

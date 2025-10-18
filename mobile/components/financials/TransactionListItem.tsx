@@ -6,6 +6,7 @@ import { TouchableOpacity } from 'react-native';
 
 interface Props {
     item: LancamentoFinanceiro;
+    onPress: () => void;
 }
 
 interface ItemProps {
@@ -22,7 +23,7 @@ const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('pt-BR');
 };
 
-const TransactionListItem = ({ item }: Props) => {
+const TransactionListItem = ({ item, onPress }: Props) => {
     const isEntrada = item.tipo === 'entrada';
     const color = isEntrada ? DashboardColors.green : DashboardColors.orange;
     const valorFormatado = formatCurrency(parseFloat(item.valor));
