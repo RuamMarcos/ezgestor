@@ -44,6 +44,19 @@ class LancamentoFinanceiroListView(generics.ListAPIView):
             
         return queryset
     
+class LancamentoFinanceiroDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View para ler, atualizar ou deletar um lançamento financeiro específico.
+    """
+    serializer_class = LancamentoFinanceiroSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Garante que o usuário só possa acessar/modificar
+        # lançamentos da sua própria empresa.
+        empresa_usuario = self.request.user.empresa
+        return LancamentoFinanceiro.objects.filter(empresa=empresa_usuario)
+
 class LancamentoCategoriasView(views.APIView):
     """
     Retorna uma lista de todas as categorias de lançamento distintas
