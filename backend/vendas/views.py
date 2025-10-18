@@ -9,6 +9,10 @@ from .serializers import VendaSerializer, VendaCreateSerializer
 from estoque.models import Produto
 from estoque.serializers import ProdutoSerializer
 from financeiro.models import LancamentoFinanceiro
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models.functions import TruncDate
+from django.db.models import Sum
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -58,6 +62,45 @@ class VendaViewSet(viewsets.ModelViewSet):
         
         serializer = ProdutoSerializer(produtos, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='daily-summary-last-7-days')
+    def daily_summary_last_7_days(self, request):
+        """
+        Retorna o total de vendas para cada um dos últimos 7 dias.
+        Inclui dias sem vendas com valor zero.
+        """
+        user = request.user
+        today = timezone.now().date()
+        seven_days_ago = today - timedelta(days=6)
+
+        # Filtra as vendas da empresa do usuário nos últimos 7 dias
+        queryset = Venda.objects.filter(
+            produto__empresa=user.empresa,
+            data_venda__date__range=[seven_days_ago, today]
+        )
+
+        # Agrupa por dia e soma o preço total
+        sales_by_day = queryset.annotate(
+            day=TruncDate('data_venda')
+        ).values('day').annotate(
+            total=Sum('preco_total')
+        ).order_by('day')
+
+        # Cria um dicionário com todos os 7 dias e vendas zeradas para garantir que todos os dias apareçam
+        summary_dict = {
+            (seven_days_ago + timedelta(days=i)).strftime('%Y-%m-%d'): 0
+            for i in range(7)
+        }
+
+        # Atualiza o dicionário com os dados do banco
+        for entry in sales_by_day:
+            day_str = entry['day'].strftime('%Y-%m-%d')
+            summary_dict[day_str] = entry['total']
+        
+        # Converte o dicionário para a lista de objetos no formato final
+        final_summary = [{'date': day, 'total': total} for day, total in summary_dict.items()]
+
+        return Response(final_summary)
 
     def update(self, request, *args, **kwargs):
         """
