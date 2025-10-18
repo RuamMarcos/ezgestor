@@ -10,6 +10,13 @@ export interface LancamentoFinanceiro {
   categoria: string;
 }
 
+export interface LancamentoFinanceiroData {
+  descricao: string;
+  valor: number;
+  tipo: 'entrada' | 'saida';
+  categoria?: string;
+}
+
 export interface FinancialStats {
   total_entradas: number;
   total_saidas: number;
@@ -43,4 +50,18 @@ export const getFinancialStats = async (): Promise<FinancialStats> => {
 export const getLancamentoCategorias = async (): Promise<string[]> => {
     const response = await api.get('/financeiro/categorias/');
     return response.data;
+};
+
+export const createLancamento = async (data: LancamentoFinanceiroData): Promise<LancamentoFinanceiro> => {
+  const response = await api.post('/financeiro/lancamentos/', data);
+  return response.data;
+};
+
+export const updateLancamento = async (id: number, data: LancamentoFinanceiroData): Promise<LancamentoFinanceiro> => {
+  const response = await api.patch(`/financeiro/lancamentos/${id}/`, data);
+  return response.data;
+};
+
+export const deleteLancamento = async (id: number): Promise<void> => {
+  await api.delete(`/financeiro/lancamentos/${id}/`);
 };

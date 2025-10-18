@@ -12,7 +12,7 @@ from django.utils import timezone
 from vendas.models import Venda
 from estoque.models import Produto
 
-class LancamentoFinanceiroListView(generics.ListAPIView):
+class LancamentoFinanceiroListView(generics.ListCreateAPIView):
     """
     View para listar os lançamentos financeiros (extrato do fluxo de caixa).
     Filtra os lançamentos pela empresa do usuário logado.
@@ -44,6 +44,19 @@ class LancamentoFinanceiroListView(generics.ListAPIView):
             
         return queryset
     
+class LancamentoFinanceiroDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View para ler, atualizar ou deletar um lançamento financeiro específico.
+    """
+    serializer_class = LancamentoFinanceiroSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Garante que o usuário só possa acessar/modificar
+        # lançamentos da sua própria empresa.
+        empresa_usuario = self.request.user.empresa
+        return LancamentoFinanceiro.objects.filter(empresa=empresa_usuario)
+
 class LancamentoCategoriasView(views.APIView):
     """
     Retorna uma lista de todas as categorias de lançamento distintas

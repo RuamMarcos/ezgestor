@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import TransactionsTable from '../components/financials/TransactionsTable';
 import StatCard from '../components/StatCard';
 import FinancialChart from '../components/financials/FinancialChart';
-import { getLancamentos, getFinancialStats, getLancamentoCategorias } from '../services/financialService';
-import type { LancamentoFinanceiro, FinancialStats } from '../services/financialService';
+import { getLancamentos, getFinancialStats, getLancamentoCategorias, createLancamento, updateLancamento, deleteLancamento, } from '../services/financialService';
+import type { LancamentoFinanceiro, FinancialStats, LancamentoFinanceiroData } from '../services/financialService';
 import FinancialsHeader from '../components/financials/FinancialsHeader';
 import FinancialsPagination from '../components/financials/FinancialsPagination';
+import AddEditLancamentoModal from '../components/financials/AddEditLancamentoModal';
 
 function FinancialsPage() {
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
@@ -23,6 +24,18 @@ function FinancialsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLancamento, setEditingLancamento] = useState<LancamentoFinanceiro | null>(null);
+  
+  const fetchStats = async () => {
+    try {
+      const statsData = await getFinancialStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error);
+    }
+  };
+  
   // 3. Atualizar a função de busca
   const fetchLancamentos = useCallback(async (page: number, search: string, categoria: string, tipo: string) => {
     try {
@@ -53,6 +66,10 @@ function FinancialsPage() {
           getFinancialStats(),
           getLancamentoCategorias()
         ]);
+        await Promise.all([
+          fetchStats(),
+          getLancamentoCategorias().then(setCategories)
+        ]);
         setStats(statsData);
         setCategories(categoriesData);
       } catch (error) {
@@ -77,11 +94,61 @@ function FinancialsPage() {
     fetchLancamentos(currentPage, searchTerm, selectedCategory, selectedType);
   }, [currentPage, fetchLancamentos, searchTerm, selectedCategory, selectedType]);
 
+  const handleOpenCreateModal = () => {
+    setEditingLancamento(null); // Garante que é 'novo'
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (lancamento: LancamentoFinanceiro) => {
+    setEditingLancamento(lancamento); // Define o item para edição
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingLancamento(null); // Limpa o estado
+  };
+
+  const refreshData = () => {
+    fetchLancamentos(currentPage, searchTerm, selectedCategory, selectedType);
+    fetchStats();
+    getLancamentoCategorias().then(setCategories);
+  };
+
+  const handleSave = async (data: LancamentoFinanceiroData) => {
+    try {
+      if (editingLancamento) {
+        await updateLancamento(editingLancamento.id_lancamento, data);
+      } else {
+        await createLancamento(data);
+      }
+      handleCloseModal();
+      refreshData();
+    } catch (error) {
+      console.error("Erro ao salvar lançamento:", error);
+      alert("Não foi possível salvar o lançamento.");
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+
+    if (window.confirm("Tem certeza que deseja excluir este lançamento?")) {
+      try {
+        await deleteLancamento(id);
+        refreshData();
+      } catch (error) {
+        console.error("Erro ao excluir lançamento:", error);
+        alert("Não foi possível excluir o lançamento.");
+      }
+    }
+  };
+
   const handlePageChange = (page: number) => {
     if (page > 0 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
+
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -129,14 +196,16 @@ function FinancialsPage() {
         selectedType={selectedType}
         onTypeChange={setSelectedType}
         categories={categories}
-        onAddTransaction={() => { /* Lógica para abrir modal aqui */ }}
+        onAddTransaction={() => { handleOpenCreateModal(); }}
       />
 
       {lancamentosLoading ? (
         <p>Carregando extrato...</p>
       ) : (
         <>
-          <TransactionsTable lancamentos={lancamentos} />
+          <TransactionsTable lancamentos={lancamentos}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDelete} />
           {/* 6. Adicionar o componente de paginação */}
           <FinancialsPagination
             currentPage={currentPage}
@@ -148,6 +217,12 @@ function FinancialsPage() {
           />
         </>
       )}
+      <AddEditLancamentoModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSave}
+        initialData={editingLancamento}
+      />
     </div>
   );
 }

@@ -2,9 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LancamentoFinanceiro } from '@/services/FinancialService';
 import { DashboardColors } from '@/constants/DashboardColors';
+import { TouchableOpacity } from 'react-native';
 
 interface Props {
     item: LancamentoFinanceiro;
+    onPress: () => void;
+}
+
+interface ItemProps {
+    item: LancamentoFinanceiro;
+    onPress: () => void; 
 }
 
 const formatCurrency = (value: string): string => {
@@ -16,11 +23,14 @@ const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('pt-BR');
 };
 
-const TransactionListItem = ({ item }: Props) => {
+const TransactionListItem = ({ item, onPress }: Props) => {
     const isEntrada = item.tipo === 'entrada';
     const color = isEntrada ? DashboardColors.green : DashboardColors.orange;
+    const valorFormatado = formatCurrency(parseFloat(item.valor));
+    const dataFormatada = new Date(item.data_lancamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
     return (
+        <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
         <View style={styles.container}>
             <View style={styles.info}>
                 <Text style={styles.description}>{item.descricao}</Text>
@@ -31,6 +41,7 @@ const TransactionListItem = ({ item }: Props) => {
                 {formatCurrency(item.valor)}
             </Text>
         </View>
+        </TouchableOpacity>
     );
 };
 

@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Alert } from 'react-native';
-import { getLancamentos, getFinancialStats } from '@/services/FinancialService';
-import type { LancamentoFinanceiro, FinancialStats } from '@/services/FinancialService';
+import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { getLancamentos, getFinancialStats, createLancamento, updateLancamento, deleteLancamento } from '@/services/FinancialService';
+import type { LancamentoFinanceiro, FinancialStats, LancamentoFinanceiroData } from '@/services/FinancialService';
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import TransactionListItem from '@/components/financials/TransactionListItem';
 import FinancialsPagination from '@/components/financials/FinancialsPagination';
 import FinancialsHeader from '@/components/financials/FinancialsHeader';
 import FinancialChart from '@/components/financials/FinancialChart';
 import { styles } from '@/styles/financial/FinancialStyles';
+import AddEditLancamentoModal from '@/components/financials/AddEditLancamentoModal';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 
 const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -26,6 +29,9 @@ export default function FinancialScreen() {
     // Paginação
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingLancamento, setEditingLancamento] = useState<LancamentoFinanceiro | null>(null);
 
     const fetchFinancials = useCallback(async (page: number, search: string, tipo: string) => {
         setListLoading(true);
@@ -63,6 +69,78 @@ export default function FinancialScreen() {
         fetchFinancials(currentPage, searchTerm, selectedType);
     }, [currentPage]);
 
+    const handleSave = async (data: LancamentoFinanceiroData) => {
+        try {
+            setListLoading(true); // Mostra loading na lista
+            if (editingLancamento) {
+                await updateLancamento(editingLancamento.id_lancamento, data);
+                Alert.alert("Sucesso", "Lançamento atualizado.");
+            } else {
+                await createLancamento(data);
+                Alert.alert("Sucesso", "Lançamento criado.");
+            }
+            setIsModalOpen(false);
+            setEditingLancamento(null);
+            
+            // Recarrega os dados da primeira página e as stats
+            if (currentPage !== 1) {
+                setCurrentPage(1); 
+            } else {
+                // Força o recarregamento se já estiver na página 1
+                fetchFinancials(1, searchTerm, selectedType);
+            }
+            // Recarrega as stats
+            const statsData = await getFinancialStats();
+            setStats(statsData);
+
+        } catch (error) {
+            Alert.alert("Erro", "Não foi possível salvar o lançamento.");
+            setListLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            setListLoading(true);
+            await deleteLancamento(id);
+            Alert.alert("Sucesso", "Lançamento excluído.");
+            setIsModalOpen(false);
+            setEditingLancamento(null);
+            
+            // Recarrega os dados
+            if (currentPage !== 1) {
+                setCurrentPage(1);
+            } else {
+                fetchFinancials(1, searchTerm, selectedType);
+            }
+            // Recarrega as stats
+            const statsData = await getFinancialStats();
+            setStats(statsData);
+
+        } catch (error) {
+            Alert.alert("Erro", "Não foi possível excluir o lançamento.");
+            setListLoading(false);
+        }
+    };
+
+    // Função para abrir o modal para ADICIONAR
+    const openAddModal = () => {
+        setEditingLancamento(null);
+        setIsModalOpen(true);
+    };
+
+    // Função para abrir o modal para EDITAR
+    const openEditModal = (item: LancamentoFinanceiro) => {
+        if (item.venda !== null) {
+            Alert.alert(
+                "Ação não permitida",
+                "Lançamentos gerados automaticamente por vendas não podem ser editados ou excluídos manualmente."
+            );
+            return;
+        }
+        setEditingLancamento(item);
+        setIsModalOpen(true);
+    };
 
     if (initialLoading) {
         return <ActivityIndicator size="large" style={{ flex: 1 }} />;
@@ -73,7 +151,7 @@ export default function FinancialScreen() {
             <FlatList
                 data={lancamentos}
                 keyExtractor={(item) => item.id_lancamento.toString()}
-                renderItem={({ item }) => <TransactionListItem item={item} />}
+                renderItem={({ item }) => <TransactionListItem item={item} onPress={() => openEditModal(item)} />}
                 ListHeaderComponent={
                     <View>
                         <View style={styles.headerSpacing}>
@@ -98,7 +176,7 @@ export default function FinancialScreen() {
                             onSearchChange={setSearchTerm}
                             selectedType={selectedType}
                             onTypeChange={setSelectedType}
-                            onAddTransaction={() => Alert.alert("WIP", "Modal de novo lançamento")} 
+                            onAddTransaction={openAddModal} // ATUALIZE AQUI
                         />
                         <Text style={styles.listTitle}>Histórico de Transações</Text>
                     </View>
@@ -113,7 +191,19 @@ export default function FinancialScreen() {
                     )
                 }
                 contentContainerStyle={styles.listContent}
+                refreshing={listLoading}
+                onRefresh={() => fetchFinancials(currentPage, searchTerm, selectedType)}
             />
+            <AddEditLancamentoModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                initialData={editingLancamento}
+            />
+            <TouchableOpacity style={styles.fab} onPress={openAddModal}>
+                <MaterialCommunityIcons name="plus" size={24} color="white" />
+            </TouchableOpacity>
         </View>
     );
 }
