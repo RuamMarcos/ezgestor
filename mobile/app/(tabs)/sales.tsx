@@ -182,6 +182,8 @@ export default function VendasScreen() {
                   </View>
                 ) : null
               }
+              refreshing={loading}
+              onRefresh={() => buscarVendas(currentPage, busca)}
             />
         )}
       </View>
