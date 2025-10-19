@@ -23,6 +23,13 @@ export interface FinancialStats {
   saldo_atual: number;
 }
 
+export interface CashflowPoint {
+  period: string;
+  inflows: number;
+  outflows: number;
+  net: number;
+}
+
 export interface PaginatedLancamentos {
   count: number;
   next: string | null;
@@ -64,4 +71,11 @@ export const updateLancamento = async (id: number, data: LancamentoFinanceiroDat
 
 export const deleteLancamento = async (id: number): Promise<void> => {
   await api.delete(`/financeiro/lancamentos/${id}/`);
+};
+
+export const getCashflowSeries = async (
+  timeframe: '7days' | '30days' | 'currentMonth' | '12months' = '12months'
+): Promise<CashflowPoint[]> => {
+  const response = await api.get('/financeiro/cashflow/', { params: { timeframe } });
+  return response.data.data as CashflowPoint[];
 };

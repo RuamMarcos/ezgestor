@@ -3,7 +3,7 @@ from .models import LancamentoFinanceiro
 from .serializers import LancamentoFinanceiroSerializer
 from rest_framework import views
 from rest_framework.response import Response
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 from django.db.models.functions import Coalesce
 from django.db.models import DecimalField
 from rest_framework.pagination import PageNumberPagination
@@ -11,6 +11,9 @@ from vendas.views import StandardResultsSetPagination
 from django.utils import timezone
 from vendas.models import Venda
 from estoque.models import Produto
+from django.db.models.functions import TruncDate, TruncMonth
+
+from datetime import timedelta, date
 
 class LancamentoFinanceiroListView(generics.ListCreateAPIView):
     """
@@ -185,3 +188,116 @@ class DashboardStatsView(views.APIView):
         }
 
         return Response(data)
+
+
+class CashFlowSeriesView(views.APIView):
+    """
+    Aggregated time series for inflows vs outflows for the authenticated user's empresa.
+    Query params:
+      - timeframe: '7days' | '30days' | 'currentMonth' | '12months'
+    Response shape:
+      { timeframe, start, end, data: [{ period, inflows, outflows, net }] }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        empresa = request.user.empresa
+        timeframe = request.query_params.get('timeframe', '30days')
+
+        now = timezone.localtime()
+
+        # Determine range and bucket function
+        if timeframe == '7days':
+            end_date = now.date()
+            start_date = end_date - timedelta(days=6)
+            bucket = TruncDate('data_lancamento')
+            label_fn = lambda d: f"{d.day:02d}/{d.month:02d}"
+            periods = [start_date + timedelta(days=i) for i in range(0, 7)]
+            is_monthly = False
+        elif timeframe == 'currentMonth':
+            end_date = now.date()
+            start_date = date(now.year, now.month, 1)
+            days = (end_date - start_date).days + 1
+            bucket = TruncDate('data_lancamento')
+            label_fn = lambda d: f"{d.day:02d}/{d.month:02d}"
+            periods = [start_date + timedelta(days=i) for i in range(0, days)]
+            is_monthly = False
+        elif timeframe == '12months':
+            # Last 12 months including current
+            end_date = date(now.year, now.month, 1)
+            # start at 11 months ago first day
+            start_year = end_date.year if end_date.month > 1 else end_date.year - 1
+            start_month = ((end_date.month - 11 - 1) % 12) + 1
+            if end_date.month - 11 <= 0:
+                start_year = end_date.year - 1
+            start_date = date(start_year, start_month, 1)
+            bucket = TruncMonth('data_lancamento')
+            month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+            def add_months(y: int, m: int, add: int):
+                total = (y * 12 + (m - 1)) + add
+                ny = total // 12
+                nm = (total % 12) + 1
+                return ny, nm
+            periods = []
+            for i in range(12):
+                y, m = add_months(start_date.year, start_date.month, i)
+                periods.append(date(y, m, 1))
+            label_fn = lambda d: f"{month_names[d.month-1]}/{str(d.year)[-2:]}"
+            is_monthly = True
+        else:  # default to 30days
+            end_date = now.date()
+            start_date = end_date - timedelta(days=29)
+            bucket = TruncDate('data_lancamento')
+            label_fn = lambda d: f"{d.day:02d}/{d.month:02d}"
+            periods = [start_date + timedelta(days=i) for i in range(0, 30)]
+            is_monthly = False
+
+        # Base queryset within range (date range on date part for performance)
+        base_filter = {
+            'empresa': empresa,
+            'data_lancamento__date__gte': start_date,
+            'data_lancamento__date__lte': end_date if timeframe != '12months' else (now.date()),
+        }
+        qs = LancamentoFinanceiro.objects.filter(**base_filter)
+
+        agg = (
+            qs
+            .annotate(bucket=bucket)
+            .values('bucket')
+            .annotate(
+                inflows=Coalesce(Sum('valor', filter=Q(tipo='entrada')), 0, output_field=DecimalField()),
+                outflows=Coalesce(Sum('valor', filter=Q(tipo='saida')), 0, output_field=DecimalField()),
+            )
+            .order_by('bucket')
+        )
+
+        bucket_to_vals = {}
+        for row in agg:
+            b = row['bucket']
+            # Normalize bucket to date for mapping
+            if is_monthly:
+                normalized = date(b.year, b.month, 1)
+            else:
+                normalized = b if isinstance(b, date) else b.date()
+            bucket_to_vals[normalized] = {
+                'inflows': float(row['inflows']),
+                'outflows': float(row['outflows']),
+            }
+
+        data = []
+        for d in periods:
+            vals = bucket_to_vals.get(d, {'inflows': 0.0, 'outflows': 0.0})
+            net = vals['inflows'] - vals['outflows']
+            data.append({
+                'period': label_fn(d),
+                'inflows': round(vals['inflows'], 2),
+                'outflows': round(vals['outflows'], 2),
+                'net': round(net, 2),
+            })
+
+        return Response({
+            'timeframe': timeframe,
+            'start': start_date,
+            'end': end_date,
+            'data': data,
+        })

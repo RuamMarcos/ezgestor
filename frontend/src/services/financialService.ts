@@ -30,6 +30,13 @@ export interface FinancialStats {
   saldo_atual: number;
 }
 
+export interface CashflowPoint {
+  period: string;
+  inflows: number;
+  outflows: number;
+  net: number;
+}
+
 interface LancamentosParams {
   search?: string;
   categoria?: string;
@@ -49,6 +56,11 @@ export const getFinancialStats = async (): Promise<FinancialStats> => {
 export const getLancamentoCategorias = async (): Promise<string[]> => {
     const response = await api.get('/financeiro/categorias/');
     return response.data;
+};
+
+export const getCashflowSeries = async (timeframe: '7days' | '30days' | 'currentMonth' | '12months' = '12months'): Promise<CashflowPoint[]> => {
+  const response = await api.get('/financeiro/cashflow/', { params: { timeframe } });
+  return response.data.data as CashflowPoint[];
 };
 
 export const createLancamento = async (data: LancamentoFinanceiroData): Promise<LancamentoFinanceiro> => {
