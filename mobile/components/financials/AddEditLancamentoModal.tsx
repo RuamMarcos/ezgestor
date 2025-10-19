@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { confirm } from '@/utils/confirm';
 import type { LancamentoFinanceiro, LancamentoFinanceiroData } from '@/services/FinancialService';
 import { styles } from '@/styles/financial/AddEditModalStyles';
 
@@ -56,16 +57,16 @@ export default function AddEditLancamentoModal({ isOpen, onClose, onSave, onDele
     });
   };
 
-  const handleDelete = () => {
-    if (isEditing && onDelete) {
-        Alert.alert(
-            "Confirmar Exclusão",
-            "Tem certeza que deseja excluir este lançamento?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", style: "destructive", onPress: () => onDelete(initialData.id_lancamento) }
-            ]
-        );
+  const handleDelete = async () => {
+    if (isEditing && onDelete && initialData) {
+      const ok = await confirm({
+        title: 'Confirmar Exclusão',
+        message: 'Tem certeza que deseja excluir este lançamento?',
+        okText: 'Excluir',
+        cancelText: 'Cancelar',
+        destructive: true,
+      });
+      if (ok) onDelete(initialData.id_lancamento);
     }
   };
 

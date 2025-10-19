@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { updateSale, deleteSale } from '../../services/SalesService';
+import { confirm } from '@/utils/confirm';
 
 interface VendaDetail {
   id_venda: number;
@@ -56,18 +57,22 @@ export default function EditSaleModal({ visible, sale, onClose, onSaved, onDelet
   };
 
   const handleDelete = async () => {
-    Alert.alert('Confirmar', 'Deseja excluir esta venda?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: async () => {
-        try {
-          await deleteSale(sale.id_venda);
-          onDeleted();
-          onClose();
-        } catch {
-          Alert.alert('Erro', 'Falha ao excluir.');
-        }
-      }}
-    ]);
+    const ok = await confirm({
+      title: 'Confirmar',
+      message: 'Deseja excluir esta venda?',
+      okText: 'Excluir',
+      cancelText: 'Cancelar',
+      destructive: true,
+    });
+    if (ok) {
+      try {
+        await deleteSale(sale.id_venda);
+        onDeleted();
+        onClose();
+      } catch {
+        Alert.alert('Erro', 'Falha ao excluir.');
+      }
+    }
   };
 
   return (

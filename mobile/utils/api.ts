@@ -87,10 +87,16 @@ function getApiBaseUrl() {
     return url;
   }
 
-  // 2. Para mobile: tenta detecção automática do IP
+  // 2. Para mobile: tenta detecção automática do IP, com ajustes para emuladores
   const hostIp = getHostIp();
   if (hostIp) {
-    const url = `http://${hostIp}:${BACKEND_PORT}`;
+    let resolvedHost = hostIp;
+    // Em emulador Android, localhost/127.0.0.1/::1 precisam virar 10.0.2.2
+    if (Platform.OS === 'android' && (hostIp === 'localhost' || hostIp === '127.0.0.1' || hostIp === '::1')) {
+      resolvedHost = '10.0.2.2';
+      console.log(`🔁 Ajustando host para emulador Android: ${hostIp} -> ${resolvedHost}`);
+    }
+    const url = `http://${resolvedHost}:${BACKEND_PORT}`;
     console.log(`📱 URL automática para mobile: ${url}`);
     return url;
   }
