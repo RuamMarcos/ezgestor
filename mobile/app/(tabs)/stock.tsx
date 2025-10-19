@@ -1,6 +1,7 @@
 // mobile/app/(tabs)/stock.tsx
 import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
+import { confirm } from '@/utils/confirm';
 import { useFocusEffect} from '@react-navigation/native';
 import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct, quickAddProduct } from '../../services/StockService'; // Importe addStockToProduct
 import ProductList from '../../components/stock/ProductList';
@@ -154,15 +155,15 @@ export default function StockScreen() {
         }
     };
 
-    const handleDeleteProduct = (productId: number) => {
-        Alert.alert(
-            "Confirmar Exclusão",
-            "Tem certeza que deseja excluir este produto?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", onPress: () => proceedWithDelete(productId), style: "destructive" }
-            ]
-        );
+    const handleDeleteProduct = async (productId: number) => {
+        const ok = await confirm({
+            title: 'Confirmar Exclusão',
+            message: 'Tem certeza que deseja excluir este produto?',
+            okText: 'Excluir',
+            cancelText: 'Cancelar',
+            destructive: true,
+        });
+        if (ok) await proceedWithDelete(productId);
     };
 
     // Função para abrir o modal de adicionar estoque

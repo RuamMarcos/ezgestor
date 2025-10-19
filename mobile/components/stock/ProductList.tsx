@@ -4,6 +4,7 @@ import { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/ProductListStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DashboardColors } from '@/constants/DashboardColors';
+import { confirm } from '@/utils/confirm';
 
 interface ProductListProps {
   products: Product[];
@@ -27,21 +28,21 @@ const ProductList: React.FC<ProductListProps> = ({
   ListFooterComponent 
 }) => {
 
-  const handleDelete = (productId: number) => {
-    Alert.alert(
-      "Confirmar Exclusão",
-      "Tem certeza que deseja excluir este produto?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", onPress: () => {
-          try {
-            onDeleteProduct(productId);
-          } catch (error) {
-            Alert.alert("Erro", "Não foi possível excluir o produto.");
-          }
-        }, style: "destructive" }
-      ]
-    );
+  const handleDelete = async (productId: number) => {
+    const ok = await confirm({
+      title: 'Confirmar Exclusão',
+      message: 'Tem certeza que deseja excluir este produto?',
+      okText: 'Excluir',
+      cancelText: 'Cancelar',
+      destructive: true,
+    });
+    if (ok) {
+      try {
+        onDeleteProduct(productId);
+      } catch (error) {
+        Alert.alert('Erro', 'Não foi possível excluir o produto.');
+      }
+    }
   };
 
   const renderItem = ({ item }: { item: Product }) => (
@@ -63,7 +64,7 @@ const ProductList: React.FC<ProductListProps> = ({
       <View style={styles.cardActions}>
         <TouchableOpacity onPress={() => onAddStock(item)}><MaterialCommunityIcons name="plus-box-outline" size={22} color={DashboardColors.green} /></TouchableOpacity>
         <TouchableOpacity onPress={() => onEditProduct(item)}><MaterialCommunityIcons name="pencil-outline" size={22} color={DashboardColors.headerBlue} /></TouchableOpacity>
-        <TouchableOpacity onPress={() => onDeleteProduct(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={DashboardColors.grayText} /></TouchableOpacity>
+  <TouchableOpacity onPress={() => handleDelete(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={DashboardColors.grayText} /></TouchableOpacity>
       </View>
     </View>
   );
