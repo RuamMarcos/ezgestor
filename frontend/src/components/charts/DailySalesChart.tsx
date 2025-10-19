@@ -34,10 +34,21 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
     );
   }
 
-  const formattedData = data.map(item => ({
-    ...item,
-    shortDate: format(new Date(item.date), 'dd/MM'),
-  }));
+    // Função para extrair manualmente o dia e mês da string de data
+    const getShortDate = (dateStr: string) => {
+      const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        return `${match[3]}/${match[2]}`;
+      }
+      return dateStr;
+    };
+
+    const sortedData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const formattedData = sortedData.map(item => ({
+      ...item,
+      shortDate: getShortDate(item.date),
+    }));
 
   return (
     <ResponsiveContainer width="100%" height={256}>

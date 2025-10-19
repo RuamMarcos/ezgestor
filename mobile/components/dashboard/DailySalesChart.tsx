@@ -25,8 +25,17 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
     return <Text style={{ textAlign: 'center', marginVertical: 40, color: '#666' }}>Sem dados de vendas.</Text>;
   }
 
+  // Função para extrair manualmente o dia e mês da string de data
+  const getShortDate = (dateStr: string) => {
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      return `${match[3]}/${match[2]}`;
+    }
+    return dateStr;
+  };
+
   const chartData = {
-    labels: data.map(item => format(new Date(item.date), 'dd/MM')),
+    labels: data.map(item => getShortDate(item.date)),
     datasets: [
       {
         data: data.map(item => item.total),
