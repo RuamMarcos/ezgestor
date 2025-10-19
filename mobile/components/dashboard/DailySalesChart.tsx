@@ -47,19 +47,26 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
     <View>
       <BarChart
         data={chartData}
-        width={screenWidth}
+        width={screenWidth - 16}
         height={220}
         yAxisLabel="R$"
         yAxisSuffix=""
         chartConfig={{
-          backgroundColor: '#ffffff',
-          backgroundGradientFrom: '#ffffff',
-          backgroundGradientTo: '#ffffff',
+          backgroundColor: DashboardColors.background,
+          backgroundGradientFrom: DashboardColors.background,
+          backgroundGradientTo: DashboardColors.background,
           decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+          color: (opacity = 1) => `rgba(111, 66, 193, ${opacity})`,
+          barPercentage: 1.0,
+          barRadius: 5,
+          fillShadowGradientFrom: DashboardColors.purple,
+          fillShadowGradientFromOpacity: 1,
+          fillShadowGradientTo: DashboardColors.purple,
+          fillShadowGradientToOpacity: 1,
           labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
           style: {
             borderRadius: 16,
+            paddingRight: 16,
           },
           propsForDots: {
             r: '6',
@@ -73,7 +80,7 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
         style={{
           marginVertical: 8,
           borderRadius: 16,
-          marginLeft: -40,
+          marginLeft: -10,
         }}
       />
     </View>

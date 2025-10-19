@@ -161,7 +161,7 @@ export default function DashboardScreen() {
         ))}
       </View>
 
-      <View style={styles.chartContainer}> 
+      <View style={[styles.chartContainer, { alignItems: 'center' }]}> 
         <Text style={styles.title}>Vendas (Últimos 7 dias)</Text>
         <DailySalesChart data={chartData} loading={chartLoading} />
       </View>
