@@ -2,11 +2,13 @@ from rest_framework import serializers
 from django.db import transaction
 from .models import Venda
 from estoque.models import Produto
+from financeiro.models import LancamentoFinanceiro
 
 class VendaSerializer(serializers.ModelSerializer):
     nome_produto = serializers.CharField(source='produto.nome', read_only=True)
     nome_vendedor = serializers.SerializerMethodField()
     pago = serializers.SerializerMethodField()
+    imagem_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Venda
@@ -18,6 +20,7 @@ class VendaSerializer(serializers.ModelSerializer):
             'preco_total', 
             'data_venda',
             'pago',
+            'imagem_url',
             'cliente_nome',
             'cliente_email',
             'cliente_telefone',
@@ -31,6 +34,17 @@ class VendaSerializer(serializers.ModelSerializer):
     def get_pago(self, obj):
         # Por decisão de design, toda venda listada é considerada paga
         return True
+
+    def get_imagem_url(self, obj):
+        request = self.context.get('request')
+        try:
+            imagem = obj.produto.imagem
+            if imagem and hasattr(imagem, 'url'):
+                url = imagem.url
+                return request.build_absolute_uri(url) if request else url
+        except Exception:
+            pass
+        return None
 
 
 class VendaCreateSerializer(serializers.ModelSerializer):
@@ -77,10 +91,8 @@ class VendaCreateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        # Extract fields and clean non-model keys to avoid TypeError
         produto = validated_data.pop('produto')
         quantidade = validated_data.pop('quantidade')
-        # Remove write-only helper field that doesn't exist on model
         validated_data.pop('produto_id', None)
         user = self.context['request'].user
 
@@ -92,16 +104,25 @@ class VendaCreateSerializer(serializers.ModelSerializer):
             # Calcula o preço total
             preco_total = produto.preco_venda * quantidade
 
-            # Cria a venda com campos explícitos apenas
+            # Cria a venda
             venda = Venda.objects.create(
                 vendedor=user,
                 produto=produto,
                 quantidade=quantidade,
                 preco_total=preco_total,
-                # Campos opcionais de cliente (não obrigatórios)
                 cliente_nome=validated_data.get('cliente_nome'),
                 cliente_email=validated_data.get('cliente_email'),
                 cliente_telefone=validated_data.get('cliente_telefone'),
+            )
+
+           
+            LancamentoFinanceiro.objects.create(
+                empresa=user.empresa, 
+                venda=venda,
+                descricao=f"Venda do produto: {produto.nome}",
+                valor=preco_total,
+                tipo='entrada',
+                categoria='Vendas'
             )
 
         return venda

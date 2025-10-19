@@ -1,15 +1,19 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/ProductListStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DashboardColors } from '@/constants/DashboardColors';
+import { confirm } from '@/utils/confirm';
 
 interface ProductListProps {
   products: Product[];
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (productId: number) => void;
-  onAddStock: (product: Product) => void; // Nova propriedade
+  onAddStock: (product: Product) => void; 
+  ListFooterComponent?: React.ReactElement | null;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const formatCurrency = (value: number | string | undefined): string => {
@@ -18,62 +22,69 @@ const formatCurrency = (value: number | string | undefined): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
 };
 
-const ProductList: React.FC<ProductListProps> = ({ products, onEditProduct, onDeleteProduct, onAddStock }) => {
+const ProductList: React.FC<ProductListProps> = ({ 
+  products, 
+  onEditProduct, 
+  onDeleteProduct, 
+  onAddStock,
+  ListFooterComponent,
+  refreshing = false,
+  onRefresh
+}) => {
 
-  const handleDelete = (productId: number) => {
-    Alert.alert(
-      "Confirmar Exclusão",
-      "Tem certeza que deseja excluir este produto?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", onPress: () => {
-          try {
-            onDeleteProduct(productId);
-          } catch (error) {
-            Alert.alert("Erro", "Não foi possível excluir o produto.");
-          }
-        }, style: "destructive" }
-      ]
-    );
+  const handleDelete = async (productId: number) => {
+    const ok = await confirm({
+      title: 'Confirmar Exclusão',
+      message: 'Tem certeza que deseja excluir este produto?',
+      okText: 'Excluir',
+      cancelText: 'Cancelar',
+      destructive: true,
+    });
+    if (ok) {
+      try {
+        onDeleteProduct(productId);
+      } catch (error) {
+        Alert.alert('Erro', 'Não foi possível excluir o produto.');
+      }
+    }
   };
 
   const renderItem = ({ item }: { item: Product }) => (
-    <View style={styles.itemContainer}>
-      <View style={styles.itemInfo}>
-        <Text style={styles.itemName}>{item.nome}</Text>
-        <Text style={styles.itemSku}>SKU: {item.codigo_do_produto || 'N/A'}</Text>
+    <View style={styles.card}>
+      <View style={styles.imageWrapper}>
+        {item.imagem_url ? (
+          <Image source={{ uri: item.imagem_url }} style={styles.image} />
+        ) : (
+          <MaterialCommunityIcons name="image-off-outline" size={42} color="#cbd5e1" />
+        )}
       </View>
-      <View style={styles.itemDetails}>
-         <Text style={styles.itemQuantity}>{item.quantidade_estoque} un</Text>
-         <Text style={styles.itemPrice}>{formatCurrency(item.preco_venda)}</Text>
+      <Text style={styles.cardTitle} numberOfLines={1}>{item.nome}</Text>
+      <Text style={styles.cardSub} numberOfLines={1}>SKU: {item.codigo_do_produto || 'N/A'}</Text>
+      <Text style={styles.cardSub}>Qtd: {item.quantidade_estoque} • {formatCurrency(item.preco_venda)}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+        <View style={[styles.statusDot, { backgroundColor: item.em_baixo_estoque ? '#ef4444' : '#10b981' }]} />
+        <Text style={styles.cardStatus}>{item.em_baixo_estoque ? 'Baixo' : 'Bom'}</Text>
       </View>
-      <View style={[styles.statusBadge, item.em_baixo_estoque ? styles.statusLow : styles.statusOk]}>
-        <Text style={[styles.statusText, { color: item.em_baixo_estoque ? '#991b1b' : '#15803d' }]}>
-          {item.em_baixo_estoque ? 'Baixo' : 'Ok'}
-        </Text>
-      </View>
-      <View style={styles.actionsContainer}>
-          {/* Novo Botão de Adicionar Estoque */}
-          <TouchableOpacity style={styles.actionButton} onPress={() => onAddStock(item)}>
-              <MaterialCommunityIcons name="plus-box-outline" size={22} color={DashboardColors.green} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => onEditProduct(item)}>
-              <MaterialCommunityIcons name="pencil-outline" size={22} color={DashboardColors.headerBlue} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => onDeleteProduct(item.id_produto!)}>
-              <MaterialCommunityIcons name="trash-can-outline" size={22} color={DashboardColors.grayText} />
-          </TouchableOpacity>
+      <View style={styles.cardActions}>
+        <TouchableOpacity onPress={() => onAddStock(item)}><MaterialCommunityIcons name="plus-box-outline" size={22} color={DashboardColors.green} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => onEditProduct(item)}><MaterialCommunityIcons name="pencil-outline" size={22} color={DashboardColors.headerBlue} /></TouchableOpacity>
+  <TouchableOpacity onPress={() => handleDelete(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={DashboardColors.grayText} /></TouchableOpacity>
       </View>
     </View>
   );
 
-  return (
-     <FlatList
+    return (
+    <FlatList
       data={products}
       renderItem={renderItem}
       keyExtractor={(item) => item.id_produto!.toString()}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={styles.grid}
+      numColumns={2}
+      columnWrapperStyle={{ gap: 12 }}
       ListEmptyComponent={<Text style={styles.emptyText}>Nenhum produto encontrado.</Text>}
+      ListFooterComponent={ListFooterComponent}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
     />
   );
 };

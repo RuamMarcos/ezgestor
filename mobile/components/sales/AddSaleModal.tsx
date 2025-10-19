@@ -175,11 +175,11 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
       if (email) payload.cliente_email = email;
 
       console.log('Enviando venda:', payload);
-      await api.post('/vendas/', payload);
+  await api.post('/vendas/', payload);
 
-      Alert.alert('Sucesso', 'Venda registrada com sucesso!');
-      onSaleAdded();
-      onClose();
+  Alert.alert('Sucesso', 'Venda registrada com sucesso!');
+  onSaleAdded();
+  onClose();
     } catch (error: any) {
       console.error('Erro ao criar venda:', error);
       

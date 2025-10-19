@@ -3,10 +3,16 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
+from django.db import transaction
 from .models import Venda
 from .serializers import VendaSerializer, VendaCreateSerializer
 from estoque.models import Produto
 from estoque.serializers import ProdutoSerializer
+from financeiro.models import LancamentoFinanceiro
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models.functions import TruncDate
+from django.db.models import Sum
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -50,8 +56,128 @@ class VendaViewSet(viewsets.ModelViewSet):
         """
         produtos = Produto.objects.filter(
             empresa=request.user.empresa,
+            ativo=True,
             quantidade_estoque__gt=0
         ).order_by('nome')
         
         serializer = ProdutoSerializer(produtos, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='daily-summary-last-7-days')
+    def daily_summary_last_7_days(self, request):
+        """
+        Retorna o total de vendas para cada um dos últimos 7 dias.
+        Inclui dias sem vendas com valor zero.
+        """
+        user = request.user
+        today = timezone.now().date()
+        seven_days_ago = today - timedelta(days=6)
+
+        # Filtra as vendas da empresa do usuário nos últimos 7 dias
+        queryset = Venda.objects.filter(
+            produto__empresa=user.empresa,
+            data_venda__date__range=[seven_days_ago, today]
+        )
+
+        # Agrupa por dia e soma o preço total
+        sales_by_day = queryset.annotate(
+            day=TruncDate('data_venda')
+        ).values('day').annotate(
+            total=Sum('preco_total')
+        ).order_by('day')
+
+        # Cria um dicionário com todos os 7 dias e vendas zeradas para garantir que todos os dias apareçam
+        summary_dict = {
+            (seven_days_ago + timedelta(days=i)).strftime('%Y-%m-%d'): 0
+            for i in range(7)
+        }
+
+        # Atualiza o dicionário com os dados do banco
+        for entry in sales_by_day:
+            day_str = entry['day'].strftime('%Y-%m-%d')
+            summary_dict[day_str] = entry['total']
+        
+        # Converte o dicionário para a lista de objetos no formato final
+        final_summary = [{'date': day, 'total': total} for day, total in summary_dict.items()]
+
+        return Response(final_summary)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Atualiza uma venda. Permite editar quantidade e dados do cliente.
+        - Ajusta o estoque do produto.
+        - Recalcula o preço total.
+        - Atualiza o lançamento financeiro correspondente.
+        """
+        partial = kwargs.pop('partial', True)
+        instance: Venda = self.get_object()
+
+        old_qty = instance.quantidade
+        produto: Produto = instance.produto
+
+        new_qty = request.data.get('quantidade', old_qty)
+        try:
+            new_qty = int(new_qty)
+            if new_qty <= 0:
+                return Response({"quantidade": "A quantidade deve ser maior que zero."}, status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError):
+            return Response({"quantidade": "Quantidade inválida."}, status=status.HTTP_400_BAD_REQUEST)
+
+        diff = new_qty - old_qty
+
+        with transaction.atomic():
+            if diff != 0:
+                if diff > 0 and produto.quantidade_estoque < diff:
+                    return Response(
+                        {"quantidade": f"Estoque insuficiente. Disponível: {produto.quantidade_estoque} unidades."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                produto.quantidade_estoque -= diff
+                produto.save(update_fields=['quantidade_estoque'])
+
+            instance.cliente_nome = request.data.get('cliente_nome', instance.cliente_nome)
+            instance.cliente_email = request.data.get('cliente_email', instance.cliente_email)
+            instance.cliente_telefone = request.data.get('cliente_telefone', instance.cliente_telefone)
+
+            instance.quantidade = new_qty
+            instance.preco_total = produto.preco_venda * new_qty
+            instance.save()
+
+            lancamento, created = LancamentoFinanceiro.objects.update_or_create(
+                venda=instance,
+                empresa=instance.produto.empresa,
+                defaults={
+                    'valor': instance.preco_total,
+                    'descricao': f"Venda do produto: {instance.produto.nome}",
+                    'tipo': 'entrada',
+                    'categoria': 'Vendas'
+                }
+            )
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        # Encaminha para a mesma lógica de update permitindo parciais
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Ao excluir uma venda:
+        - Devolve a quantidade vendida para o estoque do produto.
+        - Exclui o lançamento financeiro associado a esta venda.
+        """
+        instance: Venda = self.get_object()
+        with transaction.atomic():
+            produto: Produto = instance.produto
+            produto.quantidade_estoque = produto.quantidade_estoque + instance.quantidade
+            produto.save(update_fields=['quantidade_estoque'])
+
+            # Encontra e deleta todos os lançamentos associados a esta venda.
+            LancamentoFinanceiro.objects.filter(venda=instance).delete()
+
+            # Exclui a própria venda
+            instance.delete()
+            
+        return Response(status=status.HTTP_204_NO_CONTENT)

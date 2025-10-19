@@ -1,18 +1,23 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/sales/SaleListItemStyles';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 
 interface Venda {
+  id_venda?: number;
   nome_produto: string;
   nome_vendedor: string;
   preco_total: string;
   data_venda: string;
   pago: boolean;
   quantidade?: number;
+  imagem_url?: string | null;
 }
 
 interface SaleListItemProps {
   item: Venda;
+  onPress?: (item: any) => void;
 }
 
 const formatarData = (dataString: string) => {
@@ -27,29 +32,21 @@ const formatCurrency = (value: string) => {
     }).format(parseFloat(value));
   };
 
-const SaleListItem = ({ item }: SaleListItemProps) => {
+const SaleListItem = ({ item, onPress }: SaleListItemProps) => {
   return (
-    <View style={styles.itemContainer}>
-      <View style={styles.infoContainer}>
-        <Text style={styles.productName}>{item.nome_produto}</Text>
-        <Text style={styles.saleDetail}>
-          Vendido por {item.nome_vendedor} em {formatarData(item.data_venda)}
-        </Text>
-        <View style={styles.badgeRow}>
-          <View style={styles.paidBadge}>
-            <Text style={styles.paidBadgeText}>● Pago</Text>
-          </View>
-          {typeof item.quantidade === 'number' && (
-            <View style={styles.quantityBadge}>
-              <Text style={styles.quantityBadgeText}>
-                {item.quantidade} {item.quantidade === 1 ? 'unidade' : 'unidades'}
-              </Text>
-            </View>
-          )}
-        </View>
+    <TouchableOpacity onPress={() => onPress && onPress(item)} activeOpacity={0.8} style={styles.card}>
+      <View style={styles.imageWrapper}>
+        {item.imagem_url ? (
+          <Image source={{ uri: item.imagem_url }} style={styles.image} />
+        ) : (
+          <MaterialCommunityIcons name="image-off-outline" size={40} color="#cbd5e1" />
+        )}
       </View>
-      <Text style={styles.price}>{formatCurrency(item.preco_total)}</Text>
-    </View>
+      <Text style={styles.cardTitle} numberOfLines={1}>{item.nome_produto}</Text>
+      <Text style={styles.cardSub} numberOfLines={1}>por {item.nome_vendedor}</Text>
+      <Text style={styles.cardSub}>{formatarData(item.data_venda)} • {typeof item.quantidade === 'number' ? `${item.quantidade} un` : ''}</Text>
+      <Text style={styles.cardPrice}>{formatCurrency(item.preco_total)}</Text>
+    </TouchableOpacity>
   );
 };
 

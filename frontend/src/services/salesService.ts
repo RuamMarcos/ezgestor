@@ -8,6 +8,9 @@ export interface Sale {
   preco_unitario?: number;
   preco_total?: number;
   data_venda?: string;
+  cliente_nome?: string | null;
+  cliente_email?: string | null;
+  cliente_telefone?: string | null;
 }
 
 export interface Product {
@@ -21,10 +24,19 @@ export interface Product {
 export interface SaleResponse {
   id_venda: number;
   nome_produto: string;
+  nome_vendedor?: string;
   quantidade: number;
   preco_unitario: number;
   preco_total: number;
   data_venda: string;
+  cliente_nome?: string | null;
+  cliente_email?: string | null;
+  cliente_telefone?: string | null;
+}
+
+export interface DailySaleSummary {
+  date: string;
+  total: number;
 }
 
 // Buscar produtos disponíveis para venda
@@ -47,5 +59,31 @@ export const getSales = async (page: number = 1, search: string = '') => {
       search,
     },
   });
+  return response.data;
+};
+
+// Buscar venda por ID
+export const getSaleById = async (id: number): Promise<SaleResponse> => {
+  const response = await api.get(`/vendas/${id}/`);
+  return response.data;
+};
+
+// Atualizar venda (quantidade e dados do cliente)
+export const updateSale = async (
+  id: number,
+  data: Partial<Pick<Sale, 'quantidade' | 'cliente_nome' | 'cliente_email' | 'cliente_telefone'>>
+): Promise<SaleResponse> => {
+  const response = await api.patch(`/vendas/${id}/`, data);
+  return response.data;
+};
+
+// Excluir venda
+export const deleteSale = async (id: number): Promise<void> => {
+  await api.delete(`/vendas/${id}/`);
+};
+
+// Buscar resumo de vendas dos últimos 7 dias
+export const getDailySalesSummary = async (): Promise<DailySaleSummary[]> => {
+  const response = await api.get('/vendas/daily-summary-last-7-days/');
   return response.data;
 };

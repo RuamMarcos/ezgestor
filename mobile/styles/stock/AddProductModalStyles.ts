@@ -54,4 +54,25 @@ export const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  imagePreview: {
+    width: '100%',
+    height: 160,
+    borderRadius: 10,
+    marginBottom: 12,
+    backgroundColor: '#f3f4f6',
+  },
+  imageHint: {
+    color: '#6b7280',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  imagePickerButton: {
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
 });

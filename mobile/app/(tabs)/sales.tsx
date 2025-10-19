@@ -12,7 +12,8 @@ import api from '../../utils/api';
 import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
 import AddSaleModal from '@/components/sales/AddSaleModal';
-import { styles } from '../../styles/sales/salesStyles';
+import EditSaleModal from '@/components/sales/EditSaleModal';
+import { styles } from '../../styles/sales/SalesStyles';
 import { DashboardColors } from '@/constants/DashboardColors';
 
 interface Venda {
@@ -22,6 +23,8 @@ interface Venda {
   preco_total: string;
   data_venda: string;
   pago: boolean;
+  quantidade?: number;
+  imagem_url?: string | null;
 }
 
 export default function VendasScreen() {
@@ -32,6 +35,7 @@ export default function VendasScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [editSale, setEditSale] = useState<Venda | null>(null);
 
   const buscarVendas = async (page: number, searchTerm: string) => {
     if (loading) return;
@@ -61,9 +65,20 @@ export default function VendasScreen() {
     }
   };
 
-  const handleSaleAdded = () => {
+  const handleSaleAdded = async () => {
+    // Fecha o modal e navega para a última página, onde a nova venda estará
     setModalVisible(false);
-    buscarVendas(1, busca); // Recarrega as vendas
+    try {
+      const resp = await api.get('/vendas/', { params: { page: 1, search: busca } });
+      const totalItems = resp.data?.count ?? 0;
+      const lastPage = Math.max(1, Math.ceil(totalItems / 10));
+      setCurrentPage(lastPage);
+      // Opcional: chamada direta para atualização imediata
+      // buscarVendas(lastPage, busca);
+    } catch (e) {
+      // Se falhar, mantenha o refresh na página atual
+      buscarVendas(currentPage, busca);
+    }
   };
 
   useEffect(() => {
@@ -78,7 +93,6 @@ export default function VendasScreen() {
   }, [busca]);
 
   useEffect(() => {
-    // CORREÇÃO: Remove a condição e sempre busca quando a página muda
     buscarVendas(currentPage, busca);
   }, [currentPage]);
 
@@ -88,8 +102,15 @@ export default function VendasScreen() {
     return (
       <View style={styles.paginationContainer}>
         <TouchableOpacity
-          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-          // CORREÇÃO: Simplifica a lógica de navegação
+          style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+          onPress={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.smallNavButtonText}>|&lt;</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
           onPress={() => {
             if (currentPage > 1) {
               setCurrentPage(currentPage - 1);
@@ -100,13 +121,10 @@ export default function VendasScreen() {
           <Text style={styles.paginationButtonText}>Anterior</Text>
         </TouchableOpacity>
 
-        <Text style={styles.paginationText}>
-          {currentPage} de {totalPages}
-        </Text>
+        <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
 
         <TouchableOpacity
-          style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
-          // CORREÇÃO: Simplifica a lógica de navegação
+          style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
           onPress={() => {
             if (currentPage < totalPages) {
               setCurrentPage(currentPage + 1);
@@ -115,6 +133,14 @@ export default function VendasScreen() {
           disabled={currentPage === totalPages}
         >
           <Text style={styles.paginationButtonText}>Próximo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+          onPress={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.smallNavButtonText}>&gt;|</Text>
         </TouchableOpacity>
       </View>
     );
@@ -141,8 +167,13 @@ export default function VendasScreen() {
         ) : (
             <FlatList
               data={vendas}
-              renderItem={({ item }) => <SaleListItem item={item} />}
+              renderItem={({ item }) => (
+                <SaleListItem item={item} onPress={(v) => setEditSale(v)} />
+              )}
               keyExtractor={(item) => item.id_venda.toString()}
+              numColumns={2}
+              columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
+              contentContainerStyle={{ paddingVertical: 8, gap: 12 }}
               ListFooterComponent={renderPagination}
               ListEmptyComponent={
                 !loading ? (
@@ -151,6 +182,8 @@ export default function VendasScreen() {
                   </View>
                 ) : null
               }
+              refreshing={loading}
+              onRefresh={() => buscarVendas(currentPage, busca)}
             />
         )}
       </View>
@@ -158,6 +191,13 @@ export default function VendasScreen() {
         visible={isModalVisible}
         onClose={() => setModalVisible(false)}
         onSaleAdded={handleSaleAdded}
+      />
+      <EditSaleModal
+        visible={!!editSale}
+        sale={editSale as any}
+        onClose={() => setEditSale(null)}
+        onSaved={() => buscarVendas(currentPage, busca)}
+        onDeleted={() => buscarVendas(currentPage, busca)}
       />
     </SafeAreaView>
   );

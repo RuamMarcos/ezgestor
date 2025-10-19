@@ -43,6 +43,10 @@ ALLOWED_HOSTS = [
 # Permite hosts de rede privada (importante para mobile)
 ALLOWED_HOSTS.extend(['10.0.2.2', 'localhost', '127.0.0.1', '::1', '192.168.10.104'])
 
+# Em desenvolvimento, permita qualquer host para facilitar testes em rede local/LAN
+if DEBUG and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('*')
+
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://127.0.0.1:8081').split(',')
     if o.strip()
@@ -60,6 +64,8 @@ INSTALLED_APPS = [
     'handler',
     'estoque',
     'vendas',
+    'financeiro',
+    'reports',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework',
@@ -177,7 +183,9 @@ STATICFILES_STORAGE = os.environ.get(
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    # Disable DRF's ?format=... override so we can use 'format' as a regular query param
+    'URL_FORMAT_OVERRIDE': None,
 }
 
 SIMPLE_JWT = {
@@ -234,3 +242,7 @@ CORS_ALLOW_PRIVATE_NETWORK = True  # Importante para desenvolvimento local
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.Usuario'
+
+# Media files (uploaded product images)
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

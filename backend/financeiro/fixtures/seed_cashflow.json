@@ -1,0 +1,655 @@
+[
+  {
+    "model": "accounts.empresa",
+    "pk": 2000,
+    "fields": {
+      "nome_fantasia": "Empresa Cashflow",
+      "razao_social": "Empresa Cashflow LTDA",
+      "cnpj": "11.222.333/0001-44",
+      "data_cadastro": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.usuario",
+    "pk": 2000,
+    "fields": {
+      "password": "pbkdf2_sha256$720000$2GoetH4aCbEvRoz5ICkP5q$KHURKtE2zOHn7yCMVUSOSueKnRoQP6ygZcs6TAZR/bU=",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Teste",
+      "last_name": "Cashflow",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2025-01-01T00:00:00Z",
+      "email": "cashflow@example.com",
+      "nivel_acesso": "administrador",
+      "empresa": 2000,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200000,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Dia 1",
+      "valor": "1500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-01T10:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200001,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Dia 1",
+      "valor": "500.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-01T15:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200002,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Dia 10",
+      "valor": "2000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-10T11:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200003,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Dia 10",
+      "valor": "700.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-10T16:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200004,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Dia 20",
+      "valor": "1800.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-20T12:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200005,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Dia 20",
+      "valor": "600.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-20T18:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200006,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Jan",
+      "valor": "10000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-01-15T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200007,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Jan",
+      "valor": "3000.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-01-20T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200008,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Jun",
+      "valor": "12000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-06-10T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200009,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Jun",
+      "valor": "4000.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-06-18T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200010,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Dia 5",
+      "valor": "900.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-05T14:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200011,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Dia 5",
+      "valor": "300.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-05T17:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200012,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Dia 15",
+      "valor": "2500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-15T10:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200013,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Dia 15",
+      "valor": "800.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-15T13:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200014,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Dia 19",
+      "valor": "2200.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-19T11:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200015,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Dia 19",
+      "valor": "450.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-19T16:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200016,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Feb",
+      "valor": "8000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-02-12T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200017,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Feb",
+      "valor": "2500.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-02-18T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200018,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Apr",
+      "valor": "11000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-04-08T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200019,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Apr",
+      "valor": "3500.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-04-22T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200020,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Aug",
+      "valor": "14000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-08-05T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200021,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Aug",
+      "valor": "5000.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-08-25T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200022,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Oct",
+      "valor": "13000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-08T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200023,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Oct",
+      "valor": "4200.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-12T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200024,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 7 Days (Oct 13)",
+      "valor": "1600.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-13T10:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200025,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 7 Days (Oct 13)",
+      "valor": "400.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-13T15:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200026,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 7 Days (Oct 16)",
+      "valor": "2100.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-16T11:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200027,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 7 Days (Oct 16)",
+      "valor": "550.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-16T14:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200028,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 7 Days (Oct 18)",
+      "valor": "1900.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-10-18T12:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200029,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 7 Days (Oct 18)",
+      "valor": "650.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-10-18T17:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200030,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 30 Days (Sep 20)",
+      "valor": "1700.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-09-20T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200031,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 30 Days (Sep 20)",
+      "valor": "450.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-09-20T13:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200032,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 30 Days (Sep 25)",
+      "valor": "2300.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-09-25T10:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200033,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 30 Days (Sep 25)",
+      "valor": "750.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-09-25T16:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200034,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 30 Days (Sep 28)",
+      "valor": "1400.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-09-28T11:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200035,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 30 Days (Sep 28)",
+      "valor": "350.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-09-28T14:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200036,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 12 Months (Nov 2024)",
+      "valor": "9000.00",
+      "tipo": "entrada",
+      "data_lancamento": "2024-11-15T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200037,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 12 Months (Nov 2024)",
+      "valor": "2800.00",
+      "tipo": "saida",
+      "data_lancamento": "2024-11-20T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200038,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 12 Months (Dec 2024)",
+      "valor": "9500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2024-12-10T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200039,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 12 Months (Dec 2024)",
+      "valor": "3200.00",
+      "tipo": "saida",
+      "data_lancamento": "2024-12-18T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200040,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 12 Months (Mar 2025)",
+      "valor": "10500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-03-12T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200041,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 12 Months (Mar 2025)",
+      "valor": "3800.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-03-22T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200042,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 12 Months (May 2025)",
+      "valor": "11500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-05-08T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200043,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 12 Months (May 2025)",
+      "valor": "4100.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-05-20T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200044,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 12 Months (Jul 2025)",
+      "valor": "12500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-07-15T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200045,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 12 Months (Jul 2025)",
+      "valor": "4500.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-07-25T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200046,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Entrada - Last 12 Months (Sep 2025)",
+      "valor": "13500.00",
+      "tipo": "entrada",
+      "data_lancamento": "2025-09-10T09:00:00Z",
+      "categoria": "Vendas"
+    }
+  },
+  {
+    "model": "financeiro.lancamentofinanceiro",
+    "pk": 200047,
+    "fields": {
+      "empresa": 2000,
+      "venda": null,
+      "descricao": "Saída - Last 12 Months (Sep 2025)",
+      "valor": "4800.00",
+      "tipo": "saida",
+      "data_lancamento": "2025-09-22T09:00:00Z",
+      "categoria": "Despesas"
+    }
+  }
+]

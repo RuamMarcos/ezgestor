@@ -1,0 +1,57 @@
+{% extends 'reports/base.html' %}
+{% block title %}Fluxo de Caixa{% endblock %}
+{% block content %}
+<h2 class="page-title">Fluxo de Caixa</h2>
+<p class="muted">Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+
+<h3 class="section-title">Resumo</h3>
+<table>
+  <tr><th>Entradas</th><th>Saídas</th><th>Saldo</th></tr>
+  <tr>
+    <td>R$ {{ totais.entradas|floatformat:2 }}</td>
+    <td>R$ {{ totais.saidas|floatformat:2 }}</td>
+    <td>R$ {{ totais.saldo|floatformat:2 }}</td>
+  </tr>
+</table>
+
+<div class="section card">
+  <h3 class="section-title">Evolução do Saldo</h3>
+  <div>{{ saldo_svg|safe }}</div>
+  </div>
+
+<div class="section card">
+  <h3 class="section-title">Entradas por Dia</h3>
+  <div>{{ entradas_svg|safe }}</div>
+  </div>
+
+<div class="section card">
+  <h3 class="section-title">Saídas por Dia</h3>
+  <div>{{ saidas_svg|safe }}</div>
+  </div>
+
+<h3 class="section-title">Por Categoria</h3>
+<table>
+  <tr><th>Categoria</th><th>Tipo</th><th>Total</th></tr>
+  {% for c in por_categoria %}
+  <tr>
+    <td>{{ c.categoria|default:'—' }}</td>
+    <td>{{ c.tipo }}</td>
+    <td>R$ {{ c.total|floatformat:2 }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3 class="section-title">Últimos Lançamentos</h3>
+<table>
+  <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr>
+  {% for l in lancamentos %}
+  <tr>
+    <td>{{ l.data_lancamento|date:'d/m/Y H:i' }}</td>
+    <td>{{ l.descricao }}</td>
+    <td>{{ l.categoria|default:'—' }}</td>
+    <td>{{ l.tipo }}</td>
+    <td>R$ {{ l.valor|floatformat:2 }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

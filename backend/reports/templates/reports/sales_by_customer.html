@@ -1,0 +1,50 @@
+{% extends 'reports/base.html' %}
+{% block title %}Vendas por Cliente{% endblock %}
+{% block content %}
+<h2 class="page-title">Vendas por Cliente</h2>
+<p class="muted">Período: {{ periodo_inicio }} a {{ periodo_fim }} | Emitido em {{ emitido_em }}</p>
+<h3 class="section-title">Top 10</h3>
+<table>
+  <tr><th>Cliente</th><th>Última Compra</th><th>Compras</th><th>Faturamento</th><th>Ticket Médio</th><th>Obs</th></tr>
+  {% for r in top10 %}
+  <tr>
+    <td>{{ r.cliente }}</td>
+    <td>{{ r.ultima_compra }}</td>
+    <td>{{ r.compras }}</td>
+    <td>R$ {{ r.faturamento|floatformat:2 }}</td>
+    <td>R$ {{ r.ticket_medio|floatformat:2 }}</td>
+    <td>{{ r.observacoes }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3 class="section-title">Recuperáveis (sem compra há tempo)</h3>
+<table>
+  <tr><th>Cliente</th><th>Última Compra</th><th>Compras</th><th>Faturamento</th><th>Ticket Médio</th><th>Obs</th></tr>
+  {% for r in recuperaveis %}
+  <tr>
+    <td>{{ r.cliente }}</td>
+    <td>{{ r.ultima_compra }}</td>
+    <td>{{ r.compras }}</td>
+    <td>R$ {{ r.faturamento|floatformat:2 }}</td>
+    <td>R$ {{ r.ticket_medio|floatformat:2 }}</td>
+    <td>{{ r.observacoes }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3 class="section-title">Lista</h3>
+<table>
+  <tr><th>Cliente</th><th>Última Compra</th><th>Compras</th><th>Faturamento</th><th>Ticket Médio</th><th>Obs</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.cliente }}</td>
+    <td>{{ r.ultima_compra }}</td>
+    <td>{{ r.compras }}</td>
+    <td>R$ {{ r.faturamento|floatformat:2 }}</td>
+    <td>R$ {{ r.ticket_medio|floatformat:2 }}</td>
+    <td>{{ r.observacoes }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

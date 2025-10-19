@@ -43,10 +43,9 @@ Os Requisitos Funcionais são especificações claras e detalhadas sobre o que o
 |RF08|Gerenciamento de Múltiplos Usuários e Permissões|O sistema deve permitir que o administrador cadastre múltiplos usuários (funcionários) e defina níveis de acesso para cada um.|
 |RF09|Acesso via Aplicativo Móvel|O sistema deve ser totalmente funcional em um aplicativo móvel (iOS e Android), permitindo a gestão do negócio de qualquer lugar.|
 |RF10|Configurações da Conta e da Empresa|O sistema deve permitir que o usuário configure informações da sua empresa, como logo, endereço, dados fiscais e preferências de operação.|
-|RF11|Configurações do PDV (Ponto de Venda)|O sistema deve permitir que o administrador configure quais formas de pagamento são aceitas no PDV (ponto de venda), por meio de toggles na tela de configurações gerais, para que o PDV apresente apenas as opções selecionadas ao operador.|
-|RF12|Sistema de Notificações e Alertas|O sistema deve enviar notificações proativas sobre eventos importantes, como estoque baixo, metas de vendas atingidas.|
-|RF13|Finalização de Cadastro e Pagamento|O sistema deve permitir que o usuário finalize o cadastro e assine um plano diretamente na tela de pagamento, oferecendo opções como Cartão, PIX e Boleto, l.|
-|RF14|Gerenciamento da Assinatura do Usuário| O sistema deve permitir que o usuário visualize e gerencie sua assinatura, altere o plano, atualize dados de pagamento e acesse o histórico de faturas.|
+|RF11|Sistema de Notificações e Alertas|O sistema deve enviar notificações proativas sobre eventos importantes, como estoque baixo, metas de vendas atingidas.|
+|RF12|Finalização de Cadastro e Pagamento|O sistema deve permitir que o usuário finalize o cadastro e assine um plano diretamente na tela de pagamento, oferecendo opções como Cartão, PIX e Boleto, l.|
+|RF13|Gerenciamento da Assinatura do Usuário| O sistema deve permitir que o usuário visualize e gerencie sua assinatura, altere o plano, atualize dados de pagamento e acesse o histórico de faturas.|
 
 
 ### 🎥 **User Stories**
@@ -65,10 +64,9 @@ As User Stories são descrições breves e objetivas de funcionalidades do siste
 |RF08: Gerenciamento de Múltiplos Usuários e Permissões|**Eu, como administrador,** desejo cadastrar meus funcionários no sistema e limitar o acesso deles apenas aos módulos de Vendas e Estoque, **para** delegar tarefas operacionais com segurança, sem expor dados financeiros sensíveis.|
 |RF09: Acesso via Aplicativo Móvel|**Eu, como usuário (administrador ou funcionário),** desejo acessar as funcionalidades essenciais do sistema através de um aplicativo no meu celular, **para** poder gerenciar o negócio ou realizar uma venda mesmo estando longe do computador.|
 |RF10: Configurações da Conta e da Empresa|**Eu, como administrador,** desejo configurar os dados da minha empresa, como logotipo e endereço, em uma área de configurações, **para** personalizar documentos e garantir que todas as informações oficiais estejam corretas.|
-|RF11: Configurações do PDV (Ponto de Venda)|**Eu, como administrador,** desejo poder ativar e desativar as formas de pagamento aceitas na minha loja (ex: PIX, Cartão, Dinheiro), **para** garantir que o Ponto de Venda mostre aos meus funcionários apenas as opções que realmente oferecemos.|
-|RF12: Sistema de Notificações e Alertas|**Eu, como administrador,** desejo receber um alerta automático quando um produto atingir um nível de estoque baixo, **para** que eu possa tomar uma ação de compra proativa e evitar a falta de mercadoria.|
-|RF13: Finalização de Cadastro e Pagamento|**Eu, como novo administrador,** desejo poder escolher o plano e realizar o pagamento da assinatura de forma segura durante o processo de cadastro, **para** ativar minha conta e obter acesso completo ao sistema sem interrupções.|
-|RF14: Gerenciamento da Assinatura do Usuário|**Eu, como administrador,** desejo acessar uma página onde eu possa ver meu plano atual, meu histórico de faturas e atualizar meus dados de pagamento, **para** ter total controle sobre minha assinatura da plataforma.|
+|RF11: Sistema de Notificações e Alertas|**Eu, como administrador,** desejo receber um alerta automático quando um produto atingir um nível de estoque baixo, **para** que eu possa tomar uma ação de compra proativa e evitar a falta de mercadoria.|
+|RF12: Finalização de Cadastro e Pagamento|**Eu, como novo administrador,** desejo poder escolher o plano e realizar o pagamento da assinatura de forma segura durante o processo de cadastro, **para** ativar minha conta e obter acesso completo ao sistema sem interrupções.|
+|RF13: Gerenciamento da Assinatura do Usuário|**Eu, como administrador,** desejo acessar uma página onde eu possa ver meu plano atual, meu histórico de faturas e atualizar meus dados de pagamento, **para** ter total controle sobre minha assinatura da plataforma.|
 
 ---
 
@@ -84,7 +82,7 @@ As User Stories são descrições breves e objetivas de funcionalidades do siste
 
 -   **RF01 – Autenticação de Usuário**: Implementar as telas e a lógica para cadastro e login de novos usuários.
     
--   **RF13 – Finalização de Cadastro e Pagamento**: Desenvolver o fluxo para o usuário selecionar um plano e informar os dados de pagamento para ativar a assinatura.
+-   **RF12 – Finalização de Cadastro e Pagamento**: Desenvolver o fluxo para o usuário selecionar um plano e informar os dados de pagamento para ativar a assinatura.
     
 -   **RF10 – Configurações da Conta e da Empresa**: Garantir que os dados da empresa informados no cadastro sejam salvos e estruturados.
     
@@ -124,7 +122,7 @@ As User Stories são descrições breves e objetivas de funcionalidades do siste
     
 -   **RF07 – Relatórios e Análises**: Criar os primeiros endpoints de agregação de dados que servirão de base para o dashboard e futuros relatórios mais detalhados.
     
--   **RF12 – Sistema de Notificações e Alertas**: Exibir alertas importantes, como "Estoque Baixo", diretamente no dashboard principal para ações proativas.
+-   **RF11 – Sistema de Notificações e Alertas**: Exibir alertas importantes, como "Estoque Baixo", diretamente no dashboard principal para ações proativas.
 
 [📄 Relatório](./relatorios/iteracao_3.md)
 

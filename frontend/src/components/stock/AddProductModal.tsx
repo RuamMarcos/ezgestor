@@ -20,6 +20,7 @@ function AddProductModal({ onClose, onSave }: ModalProps) {
     preco_custo: '',
     quantidade_estoque: '',
     quantidade_minima_estoque: '',
+    imagem: null,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +68,16 @@ function AddProductModal({ onClose, onSave }: ModalProps) {
               type="number" name="preco_custo" placeholder="Preço de Custo (Opcional)"
               value={formData.preco_custo} onChange={handleChange}
               className="w-1/2 px-4 py-2 border rounded-lg" step="0.01"
+            />
+          </div>
+          <div className="flex gap-4">
+            <input
+              type="file" name="imagem" accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setFormData(prev => ({ ...prev, imagem: file as any }));
+              }}
+              className="w-full px-4 py-2 border rounded-lg"
             />
           </div>
           <div className="flex gap-4">

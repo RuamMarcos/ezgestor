@@ -1,6 +1,7 @@
 // mobile/app/(tabs)/stock.tsx
 import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
+import { confirm } from '@/utils/confirm';
 import { useFocusEffect} from '@react-navigation/native';
 import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct, quickAddProduct } from '../../services/StockService'; // Importe addStockToProduct
 import ProductList from '../../components/stock/ProductList';
@@ -79,24 +80,28 @@ export default function StockScreen() {
 
     const handleAddProduct = async (newProduct: Product) => {
         try {
+            // Fecha o modal imediatamente para sensação de resposta rápida
+            setIsAddModalOpen(false);
             await createProduct(newProduct);
-            setIsModalOpen(false);
             
             // Busca o total atualizado para calcular a última página (onde o produto foi inserido)
             const data = await getProducts({ page: 1, search: busca });
             const totalItems = data.count || 0;
-            const lastPage = Math.ceil(totalItems / 10);
+            const lastPage = Math.max(1, Math.ceil(totalItems / 10));
             
-            // Navega para a última página (onde o novo produto estará)
+            // Navega e atualiza a lista imediatamente para mostrar o novo item
             setCurrentPage(lastPage);
+            await fetchProducts(lastPage, busca);
             
-            Alert.alert("Sucesso", "Produto adicionado!");
+            Alert.alert("Sucesso", "Produto cadastrado com sucesso!");
         } catch (error: any) {
             let message = "Falha ao adicionar produto.";
             if (error.response?.data?.codigo_do_produto) {
                 message = error.response.data.codigo_do_produto[0];
             }
             Alert.alert("Erro", message);
+            // Reabre o modal em caso de erro para facilitar a correção
+            setIsAddModalOpen(true);
         }
     };
     
@@ -150,15 +155,15 @@ export default function StockScreen() {
         }
     };
 
-    const handleDeleteProduct = (productId: number) => {
-        Alert.alert(
-            "Confirmar Exclusão",
-            "Tem certeza que deseja excluir este produto?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", onPress: () => proceedWithDelete(productId), style: "destructive" }
-            ]
-        );
+    const handleDeleteProduct = async (productId: number) => {
+        const ok = await confirm({
+            title: 'Confirmar Exclusão',
+            message: 'Tem certeza que deseja excluir este produto?',
+            okText: 'Excluir',
+            cancelText: 'Cancelar',
+            destructive: true,
+        });
+        if (ok) await proceedWithDelete(productId);
     };
 
     // Função para abrir o modal de adicionar estoque
@@ -196,17 +201,61 @@ export default function StockScreen() {
       }
     };
     
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        
+        return (
+            <View style={styles.paginationContainer}>
+                <TouchableOpacity
+                    style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+                    onPress={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                >
+                    <Text style={styles.smallNavButtonText}>|&lt;</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+                    onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    <Text style={styles.paginationButtonText}>Anterior</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.paginationText}>
+                    {currentPage} de {totalPages}
+                </Text>
+
+                <TouchableOpacity
+                    style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+                    onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    <Text style={styles.paginationButtonText}>Próximo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+                    onPress={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    <Text style={styles.smallNavButtonText}>&gt;|</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+    
     return (
         <View style={styles.container}>
             <View style={styles.pageHeader}>
                 <Text style={styles.title}>Estoque</Text>
                 <View style={{flexDirection: 'row'}}>
-                <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
-                    <Text style={styles.addButtonText}>Entrada Rápida</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
-                    <Text style={styles.addButtonText}>Adicionar</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
+                        <Text style={styles.addButtonText}>Entrada Rápida</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
+                        <Text style={styles.addButtonText}>Adicionar</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -224,83 +273,21 @@ export default function StockScreen() {
                 products={products} 
                 onEditProduct={handleEditProduct}
                 onDeleteProduct={handleDeleteProduct}
-                onAddStock={handleAddStock} // Passando a nova função
+                onAddStock={handleAddStock}
+                ListFooterComponent={renderPagination()}
+                refreshing={loading}
+                onRefresh={() => fetchProducts(currentPage, busca)}
             />
 
-            {totalPages > 1 && (
-                <View style={styles.paginationContainer}>
-                    {/* Botão Primeira Página */}
-                    <TouchableOpacity
-                        style={[styles.paginationIconButton, currentPage === 1 && styles.disabledButton]}
-                        onPress={() => currentPage > 1 && setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                    >
-                        <Svg width="20" height="20" viewBox="0 0 24 24" fill={currentPage === 1 ? "#999" : "#FFF"}>
-                            <Path d="M18.41 16.59L13.82 12l4.59-4.59L17 6l-6 6 6 6 1.41-1.41zM6 6h2v12H6V6z"/>
-                        </Svg>
-                    </TouchableOpacity>
-                    
-                    {/* Botão Anterior */}
-                    <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-                        onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                    >
-                        <Text style={styles.paginationButtonText}>Anterior</Text>
-                    </TouchableOpacity>
-                    
-                    <Text style={styles.paginationText}>
-                        {currentPage} de {totalPages}
-                    </Text>
-                    
-                    {/* Botão Próximo */}
-                    <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === totalPages && styles.disabledButton]}
-                        onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                    >
-                        <Text style={styles.paginationButtonText}>Próximo</Text>
-                    </TouchableOpacity>
-                    
-                    {/* Botão Última Página */}
-                    <TouchableOpacity
-                        style={[styles.paginationIconButton, currentPage === totalPages && styles.disabledButton]}
-                        onPress={() => currentPage < totalPages && setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                    >
-                        <Svg width="20" height="20" viewBox="0 0 24 24" fill={currentPage === totalPages ? "#999" : "#FFF"}>
-                            <Path d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6-1.41 1.41zM16 6h2v12h-2V6z"/>
-                        </Svg>
-                    </TouchableOpacity>
-                </View>
-            )}
-
+            
+            {/* Rest of your modals and overlays */}
             <AddProductModal 
                 visible={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSave={handleAddProduct}
             />
 
-            {/* Overlay de Loading */}
-            {loading && (
-                <View style={styles.loadingOverlay}>
-                    <Animated.View
-                        style={{
-                            transform: [
-                                {
-                                    rotate: spinValue.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ['0deg', '360deg'],
-                                    }),
-                                },
-                            ],
-                        }}
-                    >
-                        <ActivityIndicator size="large" color="#FFFFFF" />
-                    </Animated.View>
-                </View>
-            )}
-             <QuickAddModal
+            <QuickAddModal
                 visible={isQuickAddModalOpen}
                 onClose={() => setIsQuickAddModalOpen(false)}
                 onSave={handleQuickAddSave}
@@ -313,13 +300,12 @@ export default function StockScreen() {
                 onSave={handleUpdateProduct}
             />
             
-            {/* Novo Modal para Adicionar Estoque */}
             <QuickAddProductModal
                 product={selectedProduct}
                 visible={isQuickAddProductModalOpen}
                 onClose={() => setIsQuickAddProductModalOpen(false)}
                 onSave={handleQuickAddProductSave}
-            />
+            />       
 
             {loading && (
                 <View style={styles.loadingOverlay}>

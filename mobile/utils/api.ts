@@ -61,6 +61,25 @@ function tryGetDevConfig() {
 function getApiBaseUrl() {
   const BACKEND_PORT = 8000;
 
+  // 0. Highest priority: explicit public env var provided by Expo (build/runtime)
+  // Accept either a full URL (http://host:port) or just a hostname/IP (192.168.x.x)
+  const envBase = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (envBase && typeof envBase === "string" && envBase.trim()) {
+    const val = envBase.trim();
+    const isFullUrl = /^https?:\/\//i.test(val);
+    const url = isFullUrl ? val.replace(/\/$/, "") : `http://${val}:${BACKEND_PORT}`;
+    console.log(`🔧 URL da API via EXPO_PUBLIC_API_BASE_URL: ${url}`);
+    return url;
+  }
+
+  // 0.1 Alternate env just for host/ip
+  const envHost = process.env.EXPO_PUBLIC_API_HOST;
+  if (envHost && typeof envHost === "string" && envHost.trim()) {
+    const url = `http://${envHost.trim()}:${BACKEND_PORT}`;
+    console.log(`🔧 URL da API via EXPO_PUBLIC_API_HOST: ${url}`);
+    return url;
+  }
+
   // 1. Para ambiente web (frontend React)
   if (typeof window !== "undefined" && window.location) {
     const url = `http://${window.location.hostname}:${BACKEND_PORT}`;
@@ -68,10 +87,16 @@ function getApiBaseUrl() {
     return url;
   }
 
-  // 2. Para mobile: tenta detecção automática do IP
+  // 2. Para mobile: tenta detecção automática do IP, com ajustes para emuladores
   const hostIp = getHostIp();
   if (hostIp) {
-    const url = `http://${hostIp}:${BACKEND_PORT}`;
+    let resolvedHost = hostIp;
+    // Em emulador Android, localhost/127.0.0.1/::1 precisam virar 10.0.2.2
+    if (Platform.OS === 'android' && (hostIp === 'localhost' || hostIp === '127.0.0.1' || hostIp === '::1')) {
+      resolvedHost = '10.0.2.2';
+      console.log(`🔁 Ajustando host para emulador Android: ${hostIp} -> ${resolvedHost}`);
+    }
+    const url = `http://${resolvedHost}:${BACKEND_PORT}`;
     console.log(`📱 URL automática para mobile: ${url}`);
     return url;
   }
@@ -102,9 +127,6 @@ console.log(`API_BASE_URL configurada como: ${API_BASE_URL}`);
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`, // Adiciona o /api ao final da URL base
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Interceptor para debug (muito útil para ver as requisições saindo)

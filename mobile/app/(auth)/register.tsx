@@ -55,49 +55,36 @@ export default function RegisterScreen() {
     try {
       const [firstName, ...lastNameParts] = formData.admin_first_name.trim().split(' ');
       const lastName = lastNameParts.join(' ') || firstName;
+      const cnpjDigits = formData.cnpj.replace(/\D/g, '');
 
       const apiData = {
         nome_fantasia: formData.nome_fantasia,
         razao_social: `${formData.nome_fantasia} LTDA`,
-        cnpj: formData.cnpj,
+        cnpj: cnpjDigits,
         admin_email: formData.admin_email,
         admin_first_name: firstName,
         admin_last_name: lastName,
         admin_password: formData.admin_password,
       };
 
-      // 3. Chamar a função register do contexto
       await register(apiData);
 
       Alert.alert("Sucesso!", "Sua conta foi criada. Agora escolha seu plano.");
-      router.push('/(auth)/plans');
+      router.replace('/(auth)/plans');
     } catch (error: any) {
-      let errorMessage = "Ocorreu um erro inesperado.";
-      const errorTitle = "Erro no Cadastro";
-
-      if (error.response && error.response.data) {
-        // O servidor respondeu com um status de erro e dados
-        console.error("Erro do servidor:", error.response.data);
-        const errorData = error.response.data;
-        
-        // Concatena todas as mensagens de erro dos campos em uma única string
-        const fieldErrors = Object.values(errorData).flat().join(' ');
-        if (fieldErrors) {
-          errorMessage = fieldErrors;
-        } else {
-          errorMessage = "Não foi possível criar a conta. Verifique os dados e tente novamente.";
+      console.error("Erro ao registrar:", error);
+      let errorMessage = 'Não foi possível criar sua conta.';
+      if (error?.response?.data) {
+        const data = error.response.data;
+        if (typeof data === 'object') {
+          const firstKey = Object.keys(data)[0];
+          const detail = data[firstKey] ?? data.detail;
+          errorMessage = Array.isArray(detail) ? detail[0] : String(detail || errorMessage);
         }
-      } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
-        console.error("Erro de rede:", error.request);
-        errorMessage = "Não foi possível se conectar ao servidor. Verifique sua conexão com a internet.";
-      } else {
-        // Algo aconteceu ao configurar a requisição
-        console.error("Erro:", error.message);
+      } else if (error?.message) {
         errorMessage = error.message;
       }
-      
-      Alert.alert(errorTitle, errorMessage);
+      Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
     }
