@@ -8,6 +8,7 @@ import ReportModal from '@/components/shared/ReportModal';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { getFinancialStats, FinancialStats } from '@/services/FinancialService';
 import api from '@/utils/api';
+import DailySalesChart from '@/components/dashboard/DailySalesChart';
 import { router } from 'expo-router';
 
 type RecentSale = {
@@ -17,6 +18,11 @@ type RecentSale = {
   preco_total: string; // vem como string do backend
   data_venda: string;
   cliente_nome?: string | null;
+};
+
+type ChartData = {
+  date: string;
+  total: number;
 };
 
 const formatCurrency = (value: number | string): string => {
@@ -33,31 +39,50 @@ export default function DashboardScreen() {
   const [lowStockCount, setLowStockCount] = useState<number>(0);
   const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [chartLoading, setChartLoading] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
+    setChartLoading(true);
     setError(null);
     try {
-      // 1) Estatísticas financeiras (Entradas, Saídas, Saldo)
-      const financial = await getFinancialStats();
+      const [
+        financial,        // 1) Estatísticas financeiras
+        vendasResp,       // 2) Total de vendas (count)
+        lowStockResp,     // 3) Produtos em baixo estoque (count)
+        recentResp,       // 4) Vendas recentes (últimas 5)
+        chartResp,        // 5) Dados para o gráfico de vendas diárias
+      ] = await Promise.all([
+        // 1) Estatísticas financeiras (Entradas, Saídas, Saldo)
+        getFinancialStats(),
+        
+        // 2) Total de vendas (usa paginação para obter apenas o count)
+        api.get('/vendas/', { params: { page_size: 1 } }),
+        
+        // 3) Produtos em baixo estoque (usa filtro + page_size=1 para pegar apenas o count)
+        api.get('/estoque/produtos/', { params: { em_baixo_estoque: true, page_size: 1 } }),
+        
+        // 4) Vendas recentes (pega as 5 mais recentes)
+        api.get('/vendas/', { params: { page_size: 5 } }),
+        
+        // 5) Resumo de vendas para o gráfico dos últimos 7 dias
+        api.get('/vendas/daily-summary-last-7-days/'),
+      ]);
+
+      // Atualiza os estados com os resultados recebidos
       setStats(financial);
-
-      // 2) Total de vendas (usa paginação para obter apenas o count)
-      const vendasResp = await api.get('/vendas/', { params: { page_size: 1 } });
       setTotalVendas(Number(vendasResp.data?.count ?? 0));
-
-      // 3) Produtos em baixo estoque (usa filtro + page_size=1 para pegar apenas o count)
-      const lowStockResp = await api.get('/estoque/produtos/', { params: { em_baixo_estoque: true, page_size: 1 } });
       setLowStockCount(Number(lowStockResp.data?.count ?? 0));
-
-      // 4) Vendas recentes (pega as 5 mais recentes)
-      const recentResp = await api.get('/vendas/', { params: { page_size: 5 } });
       setRecentSales(recentResp.data?.results ?? []);
+      setChartData(chartResp.data ?? []);
+
     } catch (e: any) {
       const msg = e?.response?.data?.detail || e.message || 'Falha ao carregar o dashboard.';
       setError(msg);
     } finally {
       setLoading(false);
+      setChartLoading(false);
     }
   };
 
@@ -99,7 +124,7 @@ export default function DashboardScreen() {
     { id: '2', label: 'Atualizar', iconName: 'refresh' as const, onPress: loadData },
   ], []);
 
-  if (loading) {
+  if (loading && !stats) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={DashboardColors.headerBlue} />
@@ -116,7 +141,7 @@ export default function DashboardScreen() {
       <Text style={styles.title}>Dashboard</Text>
 
       {error ? (
-        <Text style={{ color: 'red', marginHorizontal: 16 }}>{error}</Text>
+        <Text style={{ color: 'red', marginHorizontal: 16 }}>{error} </Text>
       ) : null}
 
       <View style={styles.cardsGrid}>
@@ -134,6 +159,11 @@ export default function DashboardScreen() {
             onPress={item.onPress}
           />
         ))}
+      </View>
+
+      <View style={[styles.chartContainer, { alignItems: 'center' }]}> 
+        <Text style={styles.title}>Vendas (Últimos 7 dias)</Text>
+        <DailySalesChart data={chartData} loading={chartLoading} />
       </View>
 
       <View style={styles.recentSalesContainer}>

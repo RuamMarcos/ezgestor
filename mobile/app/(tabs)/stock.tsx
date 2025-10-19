@@ -274,7 +274,9 @@ export default function StockScreen() {
                 onEditProduct={handleEditProduct}
                 onDeleteProduct={handleDeleteProduct}
                 onAddStock={handleAddStock}
-                ListFooterComponent={renderPagination()} 
+                ListFooterComponent={renderPagination()}
+                refreshing={loading}
+                onRefresh={() => fetchProducts(currentPage, busca)}
             />
 
             

@@ -34,6 +34,11 @@ export interface SaleResponse {
   cliente_telefone?: string | null;
 }
 
+export interface DailySaleSummary {
+  date: string;
+  total: number;
+}
+
 // Buscar produtos disponíveis para venda
 export const getAvailableProducts = async (): Promise<Product[]> => {
   const response = await api.get('/vendas/produtos_disponiveis/');
@@ -75,4 +80,10 @@ export const updateSale = async (
 // Excluir venda
 export const deleteSale = async (id: number): Promise<void> => {
   await api.delete(`/vendas/${id}/`);
+};
+
+// Buscar resumo de vendas dos últimos 7 dias
+export const getDailySalesSummary = async (): Promise<DailySaleSummary[]> => {
+  const response = await api.get('/vendas/daily-summary-last-7-days/');
+  return response.data;
 };

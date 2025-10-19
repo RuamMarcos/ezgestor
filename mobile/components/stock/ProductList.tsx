@@ -11,7 +11,9 @@ interface ProductListProps {
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (productId: number) => void;
   onAddStock: (product: Product) => void; 
-  ListFooterComponent?: React.ReactElement | null; 
+  ListFooterComponent?: React.ReactElement | null;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const formatCurrency = (value: number | string | undefined): string => {
@@ -25,7 +27,9 @@ const ProductList: React.FC<ProductListProps> = ({
   onEditProduct, 
   onDeleteProduct, 
   onAddStock,
-  ListFooterComponent 
+  ListFooterComponent,
+  refreshing = false,
+  onRefresh
 }) => {
 
   const handleDelete = async (productId: number) => {
@@ -78,7 +82,9 @@ const ProductList: React.FC<ProductListProps> = ({
       numColumns={2}
       columnWrapperStyle={{ gap: 12 }}
       ListEmptyComponent={<Text style={styles.emptyText}>Nenhum produto encontrado.</Text>}
-      ListFooterComponent={ListFooterComponent} 
+      ListFooterComponent={ListFooterComponent}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
     />
   );
 };

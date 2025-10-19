@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Footer from '../components/Footer';
 import StatCard from '../components/StatCard';
 import AddSaleModal from '../components/sales/AddSaleModal';
+import { getDailySalesSummary } from '../services/salesService';
+import DailySalesChart from '../components/charts/DailySalesChart';
 import api from '../api';
 
 // Tipos para os dados do dashboard
@@ -28,6 +30,11 @@ const emptyDashboardData: DashboardData = {
   recentSales: [],
 };
 
+interface DailyChartData {
+  date: string;
+  total: number;
+}
+
 function DashboardPage() {
   const [data, setData] = useState<DashboardData>(emptyDashboardData);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,10 +53,13 @@ function DashboardPage() {
   const [leadTime, setLeadTime] = useState<number>(7);
   const [safety, setSafety] = useState<number>(3);
   const [baseDays, setBaseDays] = useState<number>(30);
+  const [chartData, setChartData] = useState<DailyChartData[]>([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartError, setChartError] = useState<string | null>(null);
 
   const handleSaleAdded = () => {
-    // Recarrega KPIs após nova venda
     fetchDashboard();
+    fetchChartData();
   };
   const fetchDashboard = async () => {
     try {
@@ -70,9 +80,22 @@ function DashboardPage() {
       setLoading(false);
     }
   };
+  const fetchChartData = async () => {
+    try {
+      setChartLoading(true);
+      setChartError(null);
+      const resp = await getDailySalesSummary();
+      setChartData(resp);
+    } catch (e) {
+      setChartError('Não foi possível carregar o gráfico.');
+    } finally {
+      setChartLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchDashboard();
+    fetchChartData();
   }, []);
 
   const formatCurrency = (value: number): string => {
@@ -241,11 +264,12 @@ function DashboardPage() {
       <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Vendas dos Últimos 7 Dias</h3>
         
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl h-64 flex items-center justify-center border border-gray-200">
-          <div className="text-center">
-            <div className="text-gray-800 text-lg font-medium">Gráfico de Vendas Diárias</div>
-            <div className="text-gray-600 text-sm mt-2">Visualização em desenvolvimento</div>
-          </div>
+        <div className="h-64">
+          {chartError ? (
+            <div className="text-center text-red-500">{chartError}</div>
+          ) : (
+            <DailySalesChart data={chartData} loading={chartLoading} />
+          )}
         </div>
       </div>
 
