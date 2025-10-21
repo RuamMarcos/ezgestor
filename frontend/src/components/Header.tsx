@@ -3,11 +3,11 @@ import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CogIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard' },
-  { path: '/vendas', label: 'Vendas' },
-  { path: '/stock', label: 'Estoque' }, 
-  { path: '/fluxo-de-caixa', label: 'Fluxo de Caixa' },
+const allNavItems = [
+  { path: '/dashboard', label: 'Dashboard', allowedRoles: ['administrador'] },
+  { path: '/vendas', label: 'Vendas', allowedRoles: ['administrador', 'funcionario'] },
+  { path: '/stock', label: 'Estoque', allowedRoles: ['administrador', 'funcionario'] }, 
+  { path: '/fluxo-de-caixa', label: 'Fluxo de Caixa', allowedRoles: ['administrador'] },
 ];
 
 const UserIcon = () => (
@@ -31,6 +31,10 @@ function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout, user } = useAuth(); 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const navItems = allNavItems.filter(item => 
+    user?.nivel_acesso && item.allowedRoles.includes(user.nivel_acesso)
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

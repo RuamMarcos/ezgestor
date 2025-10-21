@@ -3,14 +3,16 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const AdminProtectedRoute: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (user?.nivel_acesso !== 'administrador') {
-    // Redireciona para o dashboard se não for admin
-    return <Navigate to="/dashboard" replace />;
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
 
-  // Renderiza o conteúdo da rota (Outlet) se for admin
+  if (user?.nivel_acesso !== 'administrador') {
+    return <Navigate to="/vendas" replace />;
+  }
+
   return <Outlet />;
 };
 

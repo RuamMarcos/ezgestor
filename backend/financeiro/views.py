@@ -12,6 +12,7 @@ from django.utils import timezone
 from vendas.models import Venda
 from estoque.models import Produto
 from django.db.models.functions import TruncDate, TruncMonth
+from accounts.permissions import IsAdminUser
 
 from datetime import timedelta, date
 
@@ -22,7 +23,7 @@ class LancamentoFinanceiroListView(generics.ListCreateAPIView):
     Suporte a filtros: search (busca na descrição) e categoria.
     """
     serializer_class = LancamentoFinanceiroSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
@@ -52,7 +53,7 @@ class LancamentoFinanceiroDetailView(generics.RetrieveUpdateDestroyAPIView):
     View para ler, atualizar ou deletar um lançamento financeiro específico.
     """
     serializer_class = LancamentoFinanceiroSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         # Garante que o usuário só possa acessar/modificar
@@ -65,7 +66,7 @@ class LancamentoCategoriasView(views.APIView):
     Retorna uma lista de todas as categorias de lançamento distintas
     para a empresa do usuário logado.
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
@@ -88,7 +89,7 @@ class FinancialStatsView(views.APIView):
     - Total de Saídas
     - Saldo Atual
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
@@ -128,7 +129,7 @@ class DashboardStatsView(views.APIView):
     - estimatedProfit: Aproximação de lucro (Σ (preco_venda - preco_custo) * quantidade) no mês atual
     - recentSales: Últimas vendas (id, clientName, description, value)
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
@@ -198,7 +199,7 @@ class CashFlowSeriesView(views.APIView):
     Response shape:
       { timeframe, start, end, data: [{ period, inflows, outflows, net }] }
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
