@@ -11,6 +11,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['first_name'] = user.first_name
         token['email'] = user.email
 
+        token['nivel_acesso'] = user.nivel_acesso
+
         # Adicionar status da assinatura ao token
         has_active_subscription = False
         if user.empresa:

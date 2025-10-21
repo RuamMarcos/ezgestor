@@ -1,11 +1,19 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import api from "../api"; 
+import api from "../api";
+
+interface User {
+  first_name: string;
+  email: string;
+  has_active_subscription: boolean;
+  nivel_acesso: 'administrador' | 'funcionario';
+  [key: string]: any; 
+}
 
 interface AuthContextType {
-  user: any;
+  user: User | null; // 
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>; 
+  login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>;
   register: (data: any) => Promise<void>;
   logout: () => void;
 }
@@ -13,7 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const accessToken = localStorage.getItem("access");
       if (accessToken) {
         try {
-          const decodedToken: any = jwtDecode(accessToken);
+          const decodedToken: User = jwtDecode(accessToken); 
           const isExpired = decodedToken.exp * 1000 < Date.now();
           if (!isExpired) {
             setUser(decodedToken);
@@ -33,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           logout();
         }
       }
-      setLoading(false); 
+      setLoading(false);
     };
 
     checkUserStatus();
@@ -66,9 +74,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('refresh', refresh);
     api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-    const decodedToken: any = jwtDecode(access);
+    const decodedToken: User = jwtDecode(access); // <-- Alterar 'any' para 'User'
     setUser(decodedToken);
-    
+
     // Retorna o status da assinatura do payload do token
     return { hasActiveSubscription: decodedToken.has_active_subscription };
   };

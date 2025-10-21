@@ -11,6 +11,11 @@ import StockPage from './pages/StockPage';
 import SalesPage from './pages/SalesPage';
 import FinancialsPage from './pages/FinancialsPage';
 
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import SettingsLayout from './layouts/SettingsLayout';
+import TeamManagementPage from './pages/TeamManagementPage';
+import MyAccountPage from './pages/MyAccountPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -35,6 +40,14 @@ function App() {
           <Route path="/vendas" element={<SalesPage />} />
           <Route path="/fluxo-de-caixa" element={<FinancialsPage />} />
         </Route>
+
+        <Route element={<AdminProtectedRoute />}>
+            <Route path="/configuracoes" element={<SettingsLayout />}>
+              <Route index element={<Navigate to="conta" replace />} /> 
+              <Route path="usuarios" element={<TeamManagementPage />} />
+              <Route path="conta" element={<MyAccountPage />} />
+            </Route>
+          </Route>
 
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />

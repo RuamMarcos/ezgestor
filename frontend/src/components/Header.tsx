@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom'; 
 import { useAuth } from '../context/AuthContext';
+import { CogIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard' },
-  { path: '/vendas', label: 'Vendas' }, 
-  { path: '/stock', label: 'Estoque' },
+  { path: '/vendas', label: 'Vendas' },
+  { path: '/stock', label: 'Estoque' }, 
   { path: '/fluxo-de-caixa', label: 'Fluxo de Caixa' },
 ];
 
@@ -28,7 +29,7 @@ const UserIcon = () => (
 
 function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth(); 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,12 +77,31 @@ function Header() {
             >
               <UserIcon />
             </button>
+            
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                
+                {/* Link de Configurações */}
+                {user?.nivel_acesso === 'administrador' && (
+                  <Link
+                    to="/configuracoes"
+                    onClick={() => setIsDropdownOpen(false)} 
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <CogIcon className="w-5 h-5" />
+                    Configurações
+                  </Link>
+                )}
+
+                {/* Botão de Logout */}
                 <button
-                  onClick={logout}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => {
+                    logout();
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                 >
+                  <ArrowLeftOnRectangleIcon className="w-5 h-5" />
                   Logout
                 </button>
               </div>
