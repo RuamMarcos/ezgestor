@@ -12,10 +12,21 @@ from .serializers import (
     ProcessarPagamentoSerializer, 
     TeamMemberSerializer,
     UserProfileSerializer,
-    ChangePasswordSerializer
+    ChangePasswordSerializer,
+    EmpresaSerializer
 )
 from .models import Empresa, Usuario, Plano, Assinatura, Pagamento 
 from .permissions import IsAdminUser
+
+class EmpresaProfileView(generics.RetrieveUpdateAPIView):
+    """
+    Endpoint para um administrador visualizar e editar os dados da sua empresa.
+    """
+    serializer_class = EmpresaSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+
+    def get_object(self):
+        return self.request.user.empresa
 
 # View de login (obtenção de token)
 @method_decorator(csrf_exempt, name='dispatch')

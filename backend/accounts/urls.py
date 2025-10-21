@@ -7,7 +7,8 @@ from .views import (
     LogoutView,
     UserProfileView,
     ChangePasswordView,
-    ProcessarPagamentoView
+    ProcessarPagamentoView,
+    EmpresaProfileView
 )
 
 urlpatterns = [
@@ -16,11 +17,11 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
-    # User Management
+    # User & Empresa Management
     path('profile/', UserProfileView.as_view(), name='user_profile'),
     path('profile/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('register/', EmpresaRegistrationView.as_view(), name='empresa_register'),
     path('team/add/', TeamMemberCreateView.as_view(), name='team_member_add'),
     path('payment/process/', ProcessarPagamentoView.as_view(), name='processar_pagamento'),
+    path('profile/empresa/', EmpresaProfileView.as_view(), name='empresa_profile'),
 ]
-

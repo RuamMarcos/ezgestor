@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>; 
   register: (data: any) => Promise<void>;
   logout: () => void;
+  refreshFromServer: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -93,8 +94,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   };
 
+  const refreshFromServer = async () => {
+    const accessToken = localStorage.getItem("access");
+    if (accessToken) {
+      try {
+        // O ideal é ter um endpoint que retorne os dados atualizados do usuário
+        const response = await api.get('/accounts/profile/'); // Supondo que este endpoint retorne os dados do usuário
+        setUser(response.data);
+      } catch (error) {
+        console.error("Erro ao atualizar dados do usuário:", error);
+        logout(); // Desloga se houver erro na atualização
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshFromServer }}>
       {children}
     </AuthContext.Provider>
   );

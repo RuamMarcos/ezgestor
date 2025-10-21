@@ -10,6 +10,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import StockPage from './pages/StockPage'; 
 import SalesPage from './pages/SalesPage';
 import FinancialsPage from './pages/FinancialsPage';
+import CompanyProfilePage from './pages/CompanyProfilePage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/stock" element={<StockPage />} />
           <Route path="/vendas" element={<SalesPage />} />
           <Route path="/fluxo-de-caixa" element={<FinancialsPage />} />
+          <Route path="/settings/company-profile" element={<CompanyProfilePage />} />
         </Route>
 
         {/* Fallback Route */}

@@ -3,6 +3,23 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from .models import Empresa, Usuario, Plano
 
+class EmpresaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para visualizar e editar os dados da empresa.
+    """
+    class Meta:
+        model = Empresa
+        fields = [
+            'id', 'nome_fantasia', 'razao_social', 'cnpj', 'logotipo', 
+            'inscricao_estadual', 'endereco', 'cep', 'bairro', 'cidade', 
+            'estado', 'pais', 'telefone', 'email_principal'
+        ]
+        read_only_fields = ['cnpj']
+
+    def update(self, instance, validated_data):
+        instance.logotipo = validated_data.get('logotipo', instance.logotipo)
+        return super().update(instance, validated_data)
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
