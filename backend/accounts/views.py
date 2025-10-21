@@ -48,10 +48,10 @@ class TeamMemberListView(generics.ListAPIView):
         empresa_usuario_logado = self.request.user.empresa
         return Usuario.objects.filter(empresa=empresa_usuario_logado).order_by('first_name')
 
-class TeamMemberDetailView(generics.RetrieveUpdateAPIView):
+class TeamMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Endpoint para ver, editar e desativar (is_active=False) um membro
-    específico da equipe.
+    Endpoint para ver, editar, desativar (is_active=False) ou excluir 
+    um membro específico da equipe.
     """
     serializer_class = TeamMemberUpdateSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]

@@ -39,6 +39,10 @@ export const updateTeamMember = async (id: number, memberData: Partial<UpdateTea
   return data;
 };
 
+export const deleteTeamMember = async (id: number): Promise<void> => {
+  await api.delete(`/accounts/team/member/${id}/`);
+};
+
 export const getTeamMemberDetails = async (id: number): Promise<TeamMember> => {
   const { data } = await api.get(`/accounts/team/member/${id}/`);
   return data;

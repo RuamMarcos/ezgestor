@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import type { TeamMember } from '../services/teamService';
 import AddTeamMemberModal from '../components/team/AddTeamMemberModal';
+import EditTeamMemberModal from '../components/team/EditTeamMemberModal';
+import DeleteTeamMemberModal from '../components/team/DeleteTeamMemberModal';
 import TeamMemberTable from '../components/team/TeamMemberTable';
 
 const TeamManagementPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  // const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  // const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   
@@ -16,10 +19,23 @@ const TeamManagementPage: React.FC = () => {
     setRefreshTrigger(prev => prev + 1); // Incrementa para forçar atualização da tabela
   };
 
-  // const handleOpenEditModal = (member: TeamMember) => {
-  //   setSelectedMember(member);
-  //   setIsEditModalOpen(true);
-  // };
+  const handleOpenEditModal = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleOpenDeleteModal = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <div>
@@ -39,7 +55,8 @@ const TeamManagementPage: React.FC = () => {
       {/* Tabela com pesquisa, filtros e paginação */}
       <TeamMemberTable 
         refreshTrigger={refreshTrigger}
-        // onEdit={handleOpenEditModal}
+        onEdit={handleOpenEditModal}
+        onDelete={handleOpenDeleteModal}
       />
 
       {/* Modal de Adicionar */}
@@ -49,14 +66,21 @@ const TeamManagementPage: React.FC = () => {
         onSuccess={handleAddSuccess}
       />
 
-      {/* Modal de Editar - A implementar
+      {/* Modal de Editar */}
       <EditTeamMemberModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         member={selectedMember}
-        onSuccess={handleAddSuccess}
+        onSuccess={handleEditSuccess}
       />
-      */}
+
+      {/* Modal de Excluir */}
+      <DeleteTeamMemberModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        member={selectedMember}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 };

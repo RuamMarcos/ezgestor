@@ -5,20 +5,19 @@ import TeamMemberPagination from './TeamMemberPagination';
 
 interface TeamMemberTableProps {
   onEdit?: (member: TeamMember) => void;
-  refreshTrigger?: number; // Para forçar atualização quando um membro é adicionado
+  onDelete?: (member: TeamMember) => void;
+  refreshTrigger?: number;
 }
 
-const TeamMemberTable: React.FC<TeamMemberTableProps> = ({ onEdit, refreshTrigger }) => {
+const TeamMemberTable: React.FC<TeamMemberTableProps> = ({ onEdit, onDelete, refreshTrigger }) => {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados de filtro e pesquisa
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('todos');
 
-  // Estados de paginação
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -40,11 +39,9 @@ const TeamMemberTable: React.FC<TeamMemberTableProps> = ({ onEdit, refreshTrigge
     fetchMembers();
   }, [fetchMembers, refreshTrigger]);
 
-  // Aplicar filtros e pesquisa
   useEffect(() => {
     let result = [...members];
 
-    // Filtro por pesquisa (nome ou email)
     if (searchTerm) {
       result = result.filter(member =>
         `${member.first_name} ${member.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -52,16 +49,14 @@ const TeamMemberTable: React.FC<TeamMemberTableProps> = ({ onEdit, refreshTrigge
       );
     }
 
-    // Filtro por cargo
     if (filterRole !== 'todos') {
       result = result.filter(member => member.nivel_acesso === filterRole);
     }
 
     setFilteredMembers(result);
-    setCurrentPage(1); // Resetar para primeira página quando filtrar
+    setCurrentPage(1);
   }, [members, searchTerm, filterRole]);
 
-  // Cálculos de paginação
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -176,12 +171,20 @@ const TeamMemberTable: React.FC<TeamMemberTableProps> = ({ onEdit, refreshTrigge
                     )}
                   </td>
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button
-                      onClick={() => onEdit?.(member)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Editar
-                    </button>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => onEdit?.(member)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => onDelete?.(member)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
