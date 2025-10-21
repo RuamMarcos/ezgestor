@@ -31,7 +31,17 @@ class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer para visualização de dados de usuário."""
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso']
+        fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso', 'is_active']    
+
+class TeamMemberUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para atualizar um membro da equipe (Admin).
+    Não permite alterar email ou senha por aqui.
+    """
+    class Meta:
+        model = Usuario
+        fields = ['first_name', 'last_name', 'nivel_acesso', 'is_active']
+        read_only_fields = ['email'] 
 
 class EmpresaRegistrationSerializer(serializers.ModelSerializer):
     """Serializer para o registo de uma nova empresa e do seu administrador."""
@@ -81,6 +91,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        validated_data['is_active'] = True 
         user = Usuario.objects.create_user(**validated_data)
         return user
 
