@@ -68,7 +68,34 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ isOpen, onClose
       onClose();
     } catch (error: any) {
       console.error("Falha ao adicionar usuário:", error);
-      const errorMsg = error.response?.data?.email?.[0] || 'Ocorreu um erro. Tente novamente.';
+      
+      let errorMsg = 'Ocorreu um erro. Tente novamente.';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        if (errorData.email) {
+          const emailError = Array.isArray(errorData.email) ? errorData.email[0] : errorData.email;
+          if (emailError.includes('already exists') || emailError.includes('já existe')) {
+            errorMsg = 'Este e-mail já está cadastrado no sistema.';
+          } else {
+            errorMsg = emailError;
+          }
+        }
+        else if (errorData.password) {
+          const passwordError = Array.isArray(errorData.password) ? errorData.password[0] : errorData.password;
+          errorMsg = passwordError;
+        }
+        else if (errorData.detail) {
+          errorMsg = errorData.detail;
+        }
+        else if (errorData.non_field_errors) {
+          errorMsg = Array.isArray(errorData.non_field_errors) 
+            ? errorData.non_field_errors[0] 
+            : errorData.non_field_errors;
+        }
+      }
+      
       setError(errorMsg);
     } finally {
       setLoading(false);

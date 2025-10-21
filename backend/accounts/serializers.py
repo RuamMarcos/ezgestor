@@ -90,7 +90,22 @@ class TeamMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso', 'password']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {
+                'error_messages': {
+                    'unique': 'Este e-mail já está cadastrado no sistema.',
+                    'invalid': 'Insira um endereço de e-mail válido.',
+                    'required': 'O campo de e-mail é obrigatório.'
+                }
+            }
+        }
+
+    def validate_email(self, value):
+        """Validação customizada para e-mail duplicado com mensagem em português."""
+        if Usuario.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este e-mail já está cadastrado no sistema.")
+        return value
 
     def create(self, validated_data):
         validated_data['is_active'] = True 
