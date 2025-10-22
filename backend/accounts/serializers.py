@@ -146,10 +146,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = [
-            'id', 'email', 'first_name', 'last_name',
+            'id', 'email', 'first_name', 'last_name', 'nivel_acesso',
             'empresa', 'has_active_subscription'
         ]
-        read_only_fields = ['email', 'id', 'empresa', 'has_active_subscription']
+        read_only_fields = ['email', 'id', 'empresa', 'has_active_subscription', 'nivel_acesso']
 
     def get_has_active_subscription(self, obj):
         try:

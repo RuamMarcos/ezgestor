@@ -25,16 +25,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    localStorage.clear();
+    setUser(null);
+  };
+
+  const refreshFromServer = async () => {
+    const accessToken = localStorage.getItem("access");
+    if (accessToken) {
+      try {
+        const response = await api.get('/accounts/profile/'); 
+        setUser(response.data);
+      } catch (error) {
+        console.error("Erro ao atualizar dados do usuário:", error);
+      }
+    }
+  };
+
   useEffect(() => {
     const checkUserStatus = async () => {
       const accessToken = localStorage.getItem("access");
       if (accessToken) {
         try {
-          const decodedToken: User = jwtDecode(accessToken); 
+          const decodedToken: any = jwtDecode(accessToken); 
           const isExpired = decodedToken.exp * 1000 < Date.now();
           if (!isExpired) {
             setUser(decodedToken);
-            //await refreshFromServer(); obs: está comentado pois atrapalha o estado de login ao recarregar a página
+            //await refreshFromServer();
           } else {
             logout();
           }
@@ -76,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('refresh', refresh);
     api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-    const decodedToken: User = jwtDecode(access); // <-- Alterar 'any' para 'User'
+    const decodedToken: User = jwtDecode(access);
     setUser(decodedToken);
 
     // Retorna o status da assinatura do payload do token
@@ -95,25 +112,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Falha no registro ou login automático:", error);
       // Re-lança o erro para que a página de registro possa tratá-lo
       throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.clear();
-    setUser(null);
-  };
-
-  const refreshFromServer = async () => {
-    const accessToken = localStorage.getItem("access");
-    if (accessToken) {
-      try {
-        // O ideal é ter um endpoint que retorne os dados atualizados do usuário
-        const response = await api.get('/accounts/profile/'); // Supondo que este endpoint retorne os dados do usuário
-        setUser(response.data);
-      } catch (error) {
-        console.error("Erro ao atualizar dados do usuário:", error);
-        logout(); // Desloga se houver erro na atualização
-      }
     }
   };
 

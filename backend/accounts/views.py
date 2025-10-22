@@ -14,7 +14,8 @@ from .serializers import (
     UserProfileSerializer,
     ChangePasswordSerializer,
     UsuarioSerializer,
-    TeamMemberUpdateSerializer
+    TeamMemberUpdateSerializer,
+    EmpresaSerializer
 )
 from .models import Empresa, Usuario, Plano, Assinatura, Pagamento 
 from .permissions import IsAdminUser

@@ -3,6 +3,7 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 
 interface CompanyData {
+  id: number;
   nome_fantasia: string;
   razao_social: string;
   cnpj: string;
@@ -14,17 +15,16 @@ interface CompanyData {
   estado: string;
   pais: string;
   telefone: string;
-  email_contato: string;
-  logotipo_url: string;
+  email_principal: string;
+  logotipo: string;
 }
 
-interface ICompanyForm extends Omit<CompanyData, 'logotipo_url' | 'email_contato'> {
+interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
   logotipo: File | null;
-  email_principal: string;
 }
 
 const CompanyProfilePage = () => {
-  const { user, refreshFromServer } = useAuth();
+  const { refreshFromServer } = useAuth();
   const [formData, setFormData] = useState<ICompanyForm>({
     nome_fantasia: '',
     razao_social: '',
@@ -45,31 +45,43 @@ const CompanyProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
-    if (user?.empresa) {
-      const empresa: CompanyData = user.empresa;
-      setFormData({
-        nome_fantasia: empresa.nome_fantasia || '',
-        razao_social: empresa.razao_social || '',
-        cnpj: empresa.cnpj || '',
-        inscricao_estadual: empresa.inscricao_estadual || '',
-        endereco: empresa.endereco || '',
-        cep: empresa.cep || '',
-        bairro: empresa.bairro || '',
-        cidade: empresa.cidade || '',
-        estado: empresa.estado || '',
-        pais: empresa.pais || 'Brasil',
-        telefone: empresa.telefone || '',
-        email_principal: empresa.email_contato || '',
-        logotipo: null,
-      });
-      
-      if (empresa.logotipo_url) {
-        // Constrói a URL completa para o logotipo
-        const logoUrl = `http://127.0.0.1:8000${empresa.logotipo_url}`;
-        setLogoPreview(logoUrl);
+    const fetchCompanyData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get('/accounts/profile/empresa/');
+        const empresa: CompanyData = response.data;
+        
+        setFormData({
+          nome_fantasia: empresa.nome_fantasia || '',
+          razao_social: empresa.razao_social || '',
+          cnpj: empresa.cnpj || '',
+          inscricao_estadual: empresa.inscricao_estadual || '',
+          endereco: empresa.endereco || '',
+          cep: empresa.cep || '',
+          bairro: empresa.bairro || '',
+          cidade: empresa.cidade || '',
+          estado: empresa.estado || '',
+          pais: empresa.pais || 'Brasil',
+          telefone: empresa.telefone || '',
+          email_principal: empresa.email_principal || '',
+          logotipo: null,
+        });
+        
+        if (empresa.logotipo) {
+          // Constrói a URL completa para o logotipo
+          const logoUrl = `http://127.0.0.1:8000${empresa.logotipo}`;
+          setLogoPreview(logoUrl);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados da empresa:', error);
+        alert('Falha ao carregar os dados da empresa.');
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [user]);
+    };
+
+    fetchCompanyData();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -100,7 +112,7 @@ const CompanyProfilePage = () => {
     dataToSubmit.append('estado', formData.estado);
     dataToSubmit.append('pais', formData.pais);
     dataToSubmit.append('telefone', formData.telefone);
-    dataToSubmit.append('email_contato', formData.email_principal);
+    dataToSubmit.append('email_principal', formData.email_principal);
     
     if (formData.logotipo) {
       dataToSubmit.append('logotipo', formData.logotipo);
@@ -348,6 +360,44 @@ const CompanyProfilePage = () => {
                   className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Linha adicional para Telefone e Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label
+                htmlFor="telefone"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Telefone
+              </label>
+              <input
+                type="text"
+                id="telefone"
+                name="telefone"
+                value={formData.telefone}
+                onChange={handleChange}
+                placeholder="(00) 00000-0000"
+                className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="email_principal"
+                className="block text-sm font-medium text-gray-600"
+              >
+                E-mail Principal
+              </label>
+              <input
+                type="email"
+                id="email_principal"
+                name="email_principal"
+                value={formData.email_principal}
+                onChange={handleChange}
+                placeholder="contato@empresa.com"
+                className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"
+              />
             </div>
           </div>
         </div>

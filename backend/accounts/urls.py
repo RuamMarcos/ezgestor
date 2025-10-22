@@ -9,7 +9,8 @@ from .views import (
     ChangePasswordView,
     ProcessarPagamentoView,
     TeamMemberDetailView,
-    TeamMemberListView
+    TeamMemberListView,
+    EmpresaProfileView
 )
 
 urlpatterns = [
