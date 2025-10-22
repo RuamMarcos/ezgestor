@@ -11,6 +11,9 @@ import { useRouter } from 'expo-router';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { getTeamMembers, type TeamMember } from '@/services/TeamService';
 import AddUserModal from '@/components/settings/AddUserModal';
+import EditUserModal from '@/components/settings/EditUserModal';
+import DeleteUserModal from '@/components/settings/DeleteUserModal';
+import UserActionSheet from '@/components/settings/UserActionSheet';
 import UserList from '@/components/settings/UserList';
 import { styles } from '@/styles/settings/UserManagementStyles';
 
@@ -24,6 +27,10 @@ export default function UserManagementScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('todos');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   
   // Paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,9 +94,29 @@ export default function UserManagementScreen() {
     fetchMembers();
   };
 
+  const handleEditSuccess = () => {
+    setIsEditModalVisible(false);
+    setSelectedMember(null);
+    fetchMembers();
+  };
+
+  const handleDeleteSuccess = () => {
+    setIsDeleteModalVisible(false);
+    setSelectedMember(null);
+    fetchMembers();
+  };
+
   const handleMemberPress = (member: TeamMember) => {
-    // TODO: Implementar ações ao clicar no usuário (editar/excluir)
-    console.log('Member pressed:', member);
+    setSelectedMember(member);
+    setIsActionSheetVisible(true);
+  };
+
+  const handleEdit = () => {
+    setIsEditModalVisible(true);
+  };
+
+  const handleDelete = () => {
+    setIsDeleteModalVisible(true);
   };
 
   const renderPagination = () => {
@@ -278,6 +305,38 @@ export default function UserManagementScreen() {
         visible={isAddModalVisible}
         onClose={() => setIsAddModalVisible(false)}
         onSuccess={handleAddSuccess}
+      />
+
+      <UserActionSheet
+        visible={isActionSheetVisible}
+        onClose={() => setIsActionSheetVisible(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        userName={
+          selectedMember
+            ? `${selectedMember.first_name} ${selectedMember.last_name}`
+            : ''
+        }
+      />
+
+      <EditUserModal
+        visible={isEditModalVisible}
+        onClose={() => {
+          setIsEditModalVisible(false);
+          setSelectedMember(null);
+        }}
+        onSuccess={handleEditSuccess}
+        member={selectedMember}
+      />
+
+      <DeleteUserModal
+        visible={isDeleteModalVisible}
+        onClose={() => {
+          setIsDeleteModalVisible(false);
+          setSelectedMember(null);
+        }}
+        onSuccess={handleDeleteSuccess}
+        member={selectedMember}
       />
     </View>
   );

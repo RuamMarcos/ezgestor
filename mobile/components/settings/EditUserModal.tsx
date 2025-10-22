@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,100 +6,101 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DashboardColors } from '@/constants/DashboardColors';
-import { createTeamMember, type CreateTeamMemberData } from '@/services/TeamService';
-import { styles } from '@/styles/settings/AddUserModalStyles';
+import { updateTeamMember, type TeamMember } from '@/services/TeamService';
+import { styles } from '@/styles/settings/EditUserModalStyles';
 
-interface AddUserModalProps {
+interface EditUserModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  member: TeamMember | null;
 }
 
-export default function AddUserModal({ visible, onClose, onSuccess }: AddUserModalProps) {
+interface UpdateTeamMemberData {
+  first_name: string;
+  last_name: string;
+  nivel_acesso: 'administrador' | 'funcionario';
+  is_active: boolean;
+}
+
+export default function EditUserModal({ visible, onClose, onSuccess, member }: EditUserModalProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<CreateTeamMemberData>({
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<UpdateTeamMemberData>({
     first_name: '',
     last_name: '',
-    email: '',
-    password: '',
     nivel_acesso: 'funcionario',
+    is_active: true,
   });
-  const [confirmPassword, setConfirmPassword] = useState('');
+
+  useEffect(() => {
+    if (visible && member) {
+      setFormData({
+        first_name: member.first_name,
+        last_name: member.last_name,
+        nivel_acesso: member.nivel_acesso,
+        is_active: member.is_active,
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [visible, member]);
 
   const resetForm = () => {
-    setFormData({
-      first_name: '',
-      last_name: '',
-      email: '',
-      password: '',
-      nivel_acesso: 'funcionario',
-    });
-    setConfirmPassword('');
+    if (member) {
+      setFormData({
+        first_name: member.first_name,
+        last_name: member.last_name,
+        nivel_acesso: member.nivel_acesso,
+        is_active: member.is_active,
+      });
+    }
   };
 
   const handleClose = () => {
     resetForm();
+    setError(null);
+    setLoading(false);
     onClose();
   };
 
   const validateForm = () => {
     if (!formData.first_name.trim()) {
-      Alert.alert('Erro', 'Por favor, informe o primeiro nome');
+      setError('Por favor, informe o primeiro nome');
       return false;
     }
     if (!formData.last_name.trim()) {
-      Alert.alert('Erro', 'Por favor, informe o sobrenome');
-      return false;
-    }
-    if (!formData.email.trim()) {
-      Alert.alert('Erro', 'Por favor, informe o email');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      Alert.alert('Erro', 'Por favor, informe um email válido');
-      return false;
-    }
-    if (!formData.password) {
-      Alert.alert('Erro', 'Por favor, informe a senha');
-      return false;
-    }
-    if (formData.password.length < 8) {
-      Alert.alert('Erro', 'A senha deve ter no mínimo 8 caracteres');
-      return false;
-    }
-    if (formData.password !== confirmPassword) {
-      Alert.alert('Erro', 'As senhas não coincidem');
+      setError('Por favor, informe o sobrenome');
       return false;
     }
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    setError(null);
+    if (!validateForm() || !member) return;
 
     setLoading(true);
     try {
-      await createTeamMember(formData);
-      Alert.alert('Sucesso', 'Usuário adicionado com sucesso!');
+      await updateTeamMember(member.id, formData);
       handleClose();
       onSuccess();
     } catch (error: any) {
-      console.error('Erro ao adicionar usuário:', error);
+      console.error('Erro ao atualizar usuário:', error);
       const errorMessage =
-        error.response?.data?.email?.[0] === 'user with this email already exists.'
-          ? 'Este email já está cadastrado'
-          : 'Erro ao adicionar usuário. Tente novamente.';
-      Alert.alert('Erro', errorMessage);
-    } finally {
+        error.response?.data?.detail ||
+        'Erro ao atualizar usuário. Tente novamente.';
+      setError(errorMessage);
       setLoading(false);
     }
   };
+
+  if (!member) return null;
 
   return (
     <Modal
@@ -111,7 +112,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Adicionar Usuário</Text>
+            <Text style={styles.modalTitle}>Editar Usuário</Text>
             <TouchableOpacity onPress={handleClose} disabled={loading}>
               <MaterialCommunityIcons
                 name="close"
@@ -155,53 +156,13 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Email <Text style={styles.required}>*</Text>
-              </Text>
+              <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.input}
-                value={formData.email}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, email: text })
-                }
-                placeholder="Digite o email"
-                placeholderTextColor={DashboardColors.grayText}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!loading}
+                style={[styles.input, styles.inputDisabled]}
+                value={member.email}
+                editable={false}
               />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Senha <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={formData.password}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, password: text })
-                }
-                placeholder="Digite a senha (mínimo 8 caracteres)"
-                placeholderTextColor={DashboardColors.grayText}
-                secureTextEntry
-                editable={!loading}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Confirmar Senha <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Digite a senha novamente"
-                placeholderTextColor={DashboardColors.grayText}
-                secureTextEntry
-                editable={!loading}
-              />
+              <Text style={styles.helperText}>O email não pode ser alterado</Text>
             </View>
 
             <View style={styles.formGroup}>
@@ -252,7 +213,34 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
                 </TouchableOpacity>
               </View>
             </View>
+
+            <View style={styles.formGroup}>
+              <View style={styles.switchContainer}>
+                <View style={styles.switchLabelContainer}>
+                  <Text style={styles.switchLabel}>Usuário ativo</Text>
+                  <Text style={styles.switchDescription}>
+                    Desative para impedir o acesso deste usuário ao sistema
+                  </Text>
+                </View>
+                <Switch
+                  value={formData.is_active}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, is_active: value })
+                  }
+                  disabled={loading}
+                  trackColor={{ false: '#D1D5DB', true: DashboardColors.headerBlue }}
+                  thumbColor={formData.is_active ? '#FFFFFF' : '#F3F4F6'}
+                />
+              </View>
+            </View>
           </ScrollView>
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <MaterialCommunityIcons name="alert-circle" size={20} color="#EF4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
           <View style={styles.modalFooter}>
             <TouchableOpacity
@@ -272,7 +260,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.submitButtonText}>Adicionar</Text>
+                <Text style={styles.submitButtonText}>Salvar Alterações</Text>
               )}
             </TouchableOpacity>
           </View>
