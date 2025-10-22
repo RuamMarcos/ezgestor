@@ -6,8 +6,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DashboardHeader from '@/components/shared/AppHeader';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TabLayout() {
+  const { nivelAcesso } = useAuth();
+  const isAdmin = nivelAcesso === 'administrador';
+
   return (
     <ProtectedRoute>
       <SafeAreaView style={{ flex: 1, backgroundColor: DashboardColors.background }}>
@@ -33,9 +37,11 @@ export default function TabLayout() {
           },
           }}
         >
+          {/* Dashboard - Apenas Administradores */}
           <Tabs.Screen
             name="dashboard"
             options={{
+              href: isAdmin ? '/(tabs)/dashboard' : null,
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
@@ -47,6 +53,7 @@ export default function TabLayout() {
               ),
             }}
           />
+          {/* Vendas - Todos */}
           <Tabs.Screen
             name="sales"
             options={{
@@ -61,6 +68,7 @@ export default function TabLayout() {
               ),
             }}
           />
+          {/* Estoque - Todos */}
           <Tabs.Screen
             name="stock"
             options={{
@@ -75,9 +83,11 @@ export default function TabLayout() {
               ),
             }}
           />
+          {/* Financeiro - Apenas Administradores */}
           <Tabs.Screen
             name="financial"
             options={{
+              href: isAdmin ? '/(tabs)/financial' : null,
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
@@ -85,6 +95,22 @@ export default function TabLayout() {
                 ]}>
                   <MaterialCommunityIcons name="currency-usd" size={28} color={color} />
                   <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Financeiro</Text>
+                </View>
+              ),
+            }}
+          />
+          {/* Configurações - Apenas Administradores */}
+          <Tabs.Screen
+            name="settings"
+            options={{
+              href: isAdmin ? '/(tabs)/settings' : null,
+              tabBarIcon: ({ focused, color }) => (
+                <View style={[
+                  styles.tabIconContainer,
+                  { backgroundColor: focused ? '#E8EAF6' : 'transparent' }
+                ]}>
+                  <MaterialCommunityIcons name="cog-outline" size={28} color={color} />
+                  <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Config</Text>
                 </View>
               ),
             }}

@@ -66,19 +66,12 @@ export default function VendasScreen() {
   };
 
   const handleSaleAdded = async () => {
-    // Fecha o modal e navega para a última página, onde a nova venda estará
+    // Fecha o modal
     setModalVisible(false);
-    try {
-      const resp = await api.get('/vendas/', { params: { page: 1, search: busca } });
-      const totalItems = resp.data?.count ?? 0;
-      const lastPage = Math.max(1, Math.ceil(totalItems / 10));
-      setCurrentPage(lastPage);
-      // Opcional: chamada direta para atualização imediata
-      // buscarVendas(lastPage, busca);
-    } catch (e) {
-      // Se falhar, mantenha o refresh na página atual
-      buscarVendas(currentPage, busca);
-    }
+    
+    // Recarrega a primeira página para mostrar a nova venda
+    setCurrentPage(1);
+    await buscarVendas(1, busca);
   };
 
   useEffect(() => {

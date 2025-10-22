@@ -10,6 +10,7 @@ import FinancialChart from '@/components/financials/FinancialChart';
 import { styles } from '@/styles/financial/FinancialStyles';
 import AddEditLancamentoModal from '@/components/financials/AddEditLancamentoModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AdminRoute } from '@/components/AdminRoute';
 
 
 const formatCurrency = (value: number): string => {
@@ -147,19 +148,20 @@ export default function FinancialScreen() {
     }
 
     return (
-        <View style={styles.screen}>
-            <FlatList
-                data={lancamentos}
-                keyExtractor={(item) => item.id_lancamento.toString()}
-                renderItem={({ item }) => <TransactionListItem item={item} onPress={() => openEditModal(item)} />}
-                ListHeaderComponent={
-                    <View>
-                        <View style={styles.headerSpacing}>
-                            <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
-                        </View>
-                        {stats && (
-                            <View style={styles.cardsSection}>
-                                <View style={styles.cardsRow}>
+        <AdminRoute>
+            <View style={styles.screen}>
+                <FlatList
+                    data={lancamentos}
+                    keyExtractor={(item) => item.id_lancamento.toString()}
+                    renderItem={({ item }) => <TransactionListItem item={item} onPress={() => openEditModal(item)} />}
+                    ListHeaderComponent={
+                        <View>
+                            <View style={styles.headerSpacing}>
+                                <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
+                            </View>
+                            {stats && (
+                                <View style={styles.cardsSection}>
+                                    <View style={styles.cardsRow}>
                                     <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" span="half" />
                                     <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" span="half" />
                                 </View>
@@ -204,6 +206,7 @@ export default function FinancialScreen() {
             <TouchableOpacity style={styles.fab} onPress={openAddModal}>
                 <MaterialCommunityIcons name="plus" size={24} color="white" />
             </TouchableOpacity>
-        </View>
+            </View>
+        </AdminRoute>
     );
 }

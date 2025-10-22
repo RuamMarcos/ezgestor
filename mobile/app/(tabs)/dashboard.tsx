@@ -10,6 +10,7 @@ import { getFinancialStats, FinancialStats } from '@/services/FinancialService';
 import api from '@/utils/api';
 import DailySalesChart from '@/components/dashboard/DailySalesChart';
 import { router } from 'expo-router';
+import { AdminRoute } from '@/components/AdminRoute';
 
 type RecentSale = {
   id_venda: number;
@@ -133,53 +134,55 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.safeArea}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>Dashboard</Text>
+    <AdminRoute>
+      <ScrollView
+        style={styles.safeArea}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Dashboard</Text>
 
-      {error ? (
-        <Text style={{ color: 'red', marginHorizontal: 16 }}>{error} </Text>
-      ) : null}
+        {error ? (
+          <Text style={{ color: 'red', marginHorizontal: 16 }}>{error} </Text>
+        ) : null}
 
-      <View style={styles.cardsGrid}>
-        {summaryCards.map((item) => (
-          <SummaryCard key={item.id} title={item.title} value={item.value} backgroundColor={item.color} />
-        ))}
-      </View>
+        <View style={styles.cardsGrid}>
+          {summaryCards.map((item) => (
+            <SummaryCard key={item.id} title={item.title} value={item.value} backgroundColor={item.color} />
+          ))}
+        </View>
 
-      <View style={styles.cardsGrid}>
-        {actions.map((item) => (
-          <ActionCard
-            key={item.id}
-            label={item.label}
-            iconName={item.iconName}
-            onPress={item.onPress}
-          />
-        ))}
-      </View>
+        <View style={styles.cardsGrid}>
+          {actions.map((item) => (
+            <ActionCard
+              key={item.id}
+              label={item.label}
+              iconName={item.iconName}
+              onPress={item.onPress}
+            />
+          ))}
+        </View>
 
-      <View style={[styles.chartContainer, { alignItems: 'center' }]}> 
-        <Text style={styles.title}>Vendas (Últimos 7 dias)</Text>
-        <DailySalesChart data={chartData} loading={chartLoading} />
-      </View>
+        <View style={[styles.chartContainer, { alignItems: 'center' }]}> 
+          <Text style={styles.title}>Vendas (Últimos 7 dias)</Text>
+          <DailySalesChart data={chartData} loading={chartLoading} />
+        </View>
 
-      <View style={styles.recentSalesContainer}>
-        <Text style={styles.title}>Vendas Recentes</Text>
-        {recentSales.map((sale) => (
-          <View key={sale.id_venda} style={styles.saleItem}>
-            <View>
-              <Text style={styles.saleCustomer}>{sale.cliente_nome || sale.nome_vendedor || '—'}</Text>
-              <Text style={styles.saleProduct}>{sale.nome_produto}</Text>
+        <View style={styles.recentSalesContainer}>
+          <Text style={styles.title}>Vendas Recentes</Text>
+          {recentSales.map((sale) => (
+            <View key={sale.id_venda} style={styles.saleItem}>
+              <View>
+                <Text style={styles.saleCustomer}>{sale.cliente_nome || sale.nome_vendedor || '—'}</Text>
+                <Text style={styles.saleProduct}>{sale.nome_produto}</Text>
+              </View>
+              <Text style={styles.saleAmount}>{formatCurrency(sale.preco_total)}</Text>
             </View>
-            <Text style={styles.saleAmount}>{formatCurrency(sale.preco_total)}</Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      <ReportModal visible={reportModalOpen} onClose={()=>setReportModalOpen(false)} />
-    </ScrollView>
+        <ReportModal visible={reportModalOpen} onClose={()=>setReportModalOpen(false)} />
+      </ScrollView>
+    </AdminRoute>
   );
 }
