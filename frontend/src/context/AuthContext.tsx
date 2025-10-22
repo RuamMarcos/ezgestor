@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const isExpired = decodedToken.exp * 1000 < Date.now();
           if (!isExpired) {
             setUser(decodedToken);
+            //await refreshFromServer(); obs: está comentado pois atrapalha o estado de login ao recarregar a página
           } else {
             logout();
           }
@@ -67,10 +68,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('refresh', refresh);
     api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-    const decodedToken: any = jwtDecode(access);
-    setUser(decodedToken);
+    const userProfileResponse = await api.get('/accounts/profile/');
+    setUser(userProfileResponse.data);
     
-    // Retorna o status da assinatura do payload do token
+    const decodedToken: any = jwtDecode(access);
     return { hasActiveSubscription: decodedToken.has_active_subscription };
   };
 

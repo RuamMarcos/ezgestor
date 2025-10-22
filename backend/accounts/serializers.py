@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from .models import Empresa, Usuario, Plano
@@ -7,6 +8,12 @@ class EmpresaSerializer(serializers.ModelSerializer):
     """
     Serializer para visualizar e editar os dados da empresa.
     """
+    logotipo = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
+    cnpj = serializers.CharField(
+        max_length=18,
+        validators=[UniqueValidator(queryset=Empresa.objects.all())]
+    )
+
     class Meta:
         model = Empresa
         fields = [
@@ -14,7 +21,7 @@ class EmpresaSerializer(serializers.ModelSerializer):
             'inscricao_estadual', 'endereco', 'cep', 'bairro', 'cidade', 
             'estado', 'pais', 'telefone', 'email_principal'
         ]
-        read_only_fields = ['cnpj']
+        read_only_fields = []
 
     def update(self, instance, validated_data):
         instance.logotipo = validated_data.get('logotipo', instance.logotipo)
@@ -102,17 +109,19 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    """Serializer para ver e editar o perfil do usuário logado."""
-    nome_fantasia_empresa = serializers.CharField(source='empresa.nome_fantasia', read_only=True)
+    """
+    Serializer para visualizar e editar os dados do perfil do usuário.
+    """
+    empresa = EmpresaSerializer(read_only=True)
     has_active_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = Usuario
         fields = [
             'id', 'email', 'first_name', 'last_name',
-            'nome_fantasia_empresa', 'has_active_subscription'
+            'empresa', 'has_active_subscription'
         ]
-        read_only_fields = ['email', 'id', 'nome_fantasia_empresa', 'has_active_subscription']
+        read_only_fields = ['email', 'id', 'empresa', 'has_active_subscription']
 
     def get_has_active_subscription(self, obj):
         try:
