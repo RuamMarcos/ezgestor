@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@react-native-picker/picker": "^2.11.2",
     "@types/react-native": "^0.72.8",
     "axios": "^1.12.2",

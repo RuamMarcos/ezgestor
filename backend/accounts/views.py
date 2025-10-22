@@ -13,7 +13,8 @@ from .serializers import (
     TeamMemberSerializer,
     UserProfileSerializer,
     ChangePasswordSerializer,
-    EmpresaSerializer
+    UsuarioSerializer,
+    TeamMemberUpdateSerializer
 )
 from .models import Empresa, Usuario, Plano, Assinatura, Pagamento 
 from .permissions import IsAdminUser
@@ -45,6 +46,30 @@ class TeamMemberCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     def perform_create(self, serializer):
         serializer.save(empresa=self.request.user.empresa)
+
+class TeamMemberListView(generics.ListAPIView):
+    """
+    Endpoint para listar todos os membros da equipe da empresa do admin logado.
+    """
+    serializer_class = UsuarioSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+
+    def get_queryset(self):
+        empresa_usuario_logado = self.request.user.empresa
+        return Usuario.objects.filter(empresa=empresa_usuario_logado).order_by('first_name')
+
+class TeamMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Endpoint para ver, editar, desativar (is_active=False) ou excluir 
+    um membro específico da equipe.
+    """
+    serializer_class = TeamMemberUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    lookup_field = 'pk' 
+
+    def get_queryset(self):
+        empresa_usuario_logado = self.request.user.empresa
+        return Usuario.objects.filter(empresa=empresa_usuario_logado)
 
 # View para Logout
 class LogoutView(APIView):

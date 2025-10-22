@@ -22,10 +22,20 @@ const Login = () => {
       const { hasActiveSubscription } = await login(email, password);
 
       // Decide para onde navegar com base no status da assinatura
-      if (hasActiveSubscription) {
-        navigate('/dashboard');
-      } else {
+      if (!hasActiveSubscription) {
         navigate('/plans');
+        return;
+      }
+
+      const accessToken = localStorage.getItem("access");
+      if (accessToken) {
+        const decodedToken: any = JSON.parse(atob(accessToken.split('.')[1]));
+        
+        if (decodedToken.nivel_acesso === 'administrador') {
+          navigate('/dashboard');
+        } else {
+          navigate('/vendas');
+        }
       }
 
     } catch (err) {

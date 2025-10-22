@@ -35,6 +35,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['first_name'] = user.first_name
         token['email'] = user.email
 
+        token['nivel_acesso'] = user.nivel_acesso
+
         # Adicionar status da assinatura ao token
         has_active_subscription = False
         if user.empresa:
@@ -55,7 +57,17 @@ class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer para visualização de dados de usuário."""
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso']
+        fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso', 'is_active']    
+
+class TeamMemberUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para atualizar um membro da equipe (Admin).
+    Não permite alterar email ou senha por aqui.
+    """
+    class Meta:
+        model = Usuario
+        fields = ['first_name', 'last_name', 'nivel_acesso', 'is_active']
+        read_only_fields = ['email'] 
 
 class EmpresaRegistrationSerializer(serializers.ModelSerializer):
     """Serializer para o registo de uma nova empresa e do seu administrador."""
@@ -102,9 +114,25 @@ class TeamMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso', 'password']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {
+                'error_messages': {
+                    'unique': 'Este e-mail já está cadastrado no sistema.',
+                    'invalid': 'Insira um endereço de e-mail válido.',
+                    'required': 'O campo de e-mail é obrigatório.'
+                }
+            }
+        }
+
+    def validate_email(self, value):
+        """Validação customizada para e-mail duplicado com mensagem em português."""
+        if Usuario.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este e-mail já está cadastrado no sistema.")
+        return value
 
     def create(self, validated_data):
+        validated_data['is_active'] = True 
         user = Usuario.objects.create_user(**validated_data)
         return user
 

@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom'; 
 import { useAuth } from '../context/AuthContext';
+import { CogIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard' },
-  { path: '/vendas', label: 'Vendas' }, 
-  { path: '/stock', label: 'Estoque' },
-  { path: '/fluxo-de-caixa', label: 'Fluxo de Caixa' },
+const allNavItems = [
+  { path: '/dashboard', label: 'Dashboard', allowedRoles: ['administrador'] },
+  { path: '/vendas', label: 'Vendas', allowedRoles: ['administrador', 'funcionario'] },
+  { path: '/stock', label: 'Estoque', allowedRoles: ['administrador', 'funcionario'] }, 
+  { path: '/fluxo-de-caixa', label: 'Fluxo de Caixa', allowedRoles: ['administrador'] },
 ];
 
 const UserIcon = () => (
@@ -28,8 +29,12 @@ const UserIcon = () => (
 
 function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth(); 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const navItems = allNavItems.filter(item => 
+    user?.nivel_acesso && item.allowedRoles.includes(user.nivel_acesso)
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -76,19 +81,31 @@ function Header() {
             >
               <UserIcon />
             </button>
+            
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                <NavLink
-                  to="/settings/company-profile"
-                  onClick={() => setIsDropdownOpen(false)}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Configurações
-                </NavLink>
+                
+                {/* Link de Configurações */}
+                {user?.nivel_acesso === 'administrador' && (
+                  <Link
+                    to="/configuracoes"
+                    onClick={() => setIsDropdownOpen(false)} 
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <CogIcon className="w-5 h-5" />
+                    Configurações
+                  </Link>
+                )}
+
+                {/* Botão de Logout */}
                 <button
-                  onClick={logout}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => {
+                    logout();
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                 >
+                  <ArrowLeftOnRectangleIcon className="w-5 h-5" />
                   Logout
                 </button>
               </div>
