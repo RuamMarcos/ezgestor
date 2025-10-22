@@ -13,6 +13,7 @@ interface UserListProps {
   onMemberPress?: (member: TeamMember) => void;
   searchTerm?: string;
   filterRole?: string;
+  ListFooterComponent?: React.ReactElement | null;
 }
 
 export default function UserList({
@@ -23,6 +24,7 @@ export default function UserList({
   onMemberPress,
   searchTerm,
   filterRole,
+  ListFooterComponent,
 }: UserListProps) {
   const renderMemberItem = ({ item }: { item: TeamMember }) => (
     <View style={styles.memberCard}>
@@ -119,6 +121,7 @@ export default function UserList({
         />
       }
       ListEmptyComponent={!loading ? renderEmptyComponent : null}
+      ListFooterComponent={ListFooterComponent}
     />
   );
 }

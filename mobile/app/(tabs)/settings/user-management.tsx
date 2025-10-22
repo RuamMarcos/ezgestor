@@ -18,11 +18,17 @@ export default function UserManagementScreen() {
   const router = useRouter();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>([]);
+  const [paginatedMembers, setPaginatedMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('todos');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -58,7 +64,18 @@ export default function UserManagementScreen() {
     }
 
     setFilteredMembers(result);
+    setCurrentPage(1); // Reset para primeira página ao filtrar
   }, [members, searchTerm, filterRole]);
+
+  // Efeito para calcular paginação
+  useEffect(() => {
+    const total = Math.ceil(filteredMembers.length / itemsPerPage);
+    setTotalPages(total);
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedMembers(filteredMembers.slice(startIndex, endIndex));
+  }, [filteredMembers, currentPage, itemsPerPage]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -73,6 +90,56 @@ export default function UserManagementScreen() {
   const handleMemberPress = (member: TeamMember) => {
     // TODO: Implementar ações ao clicar no usuário (editar/excluir)
     console.log('Member pressed:', member);
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+          onPress={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.smallNavButtonText}>|&lt;</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+          onPress={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1);
+            }
+          }}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.paginationButtonText}>Anterior</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
+
+        <TouchableOpacity
+          style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+          onPress={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1);
+            }
+          }}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.paginationButtonText}>Próximo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+          onPress={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.smallNavButtonText}>&gt;|</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   if (loading) {
@@ -197,13 +264,14 @@ export default function UserManagementScreen() {
       </View>
 
       <UserList
-        members={filteredMembers}
+        members={paginatedMembers}
         loading={loading}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onMemberPress={handleMemberPress}
         searchTerm={searchTerm}
         filterRole={filterRole}
+        ListFooterComponent={renderPagination()}
       />
 
       <AddUserModal

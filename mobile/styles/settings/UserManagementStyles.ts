@@ -93,4 +93,44 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: DashboardColors.lightGray,
+  },
+  paginationButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: DashboardColors.headerBlue,
+    borderRadius: 8,
+  },
+  paginationButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    backgroundColor: DashboardColors.lightGray,
+    opacity: 0.7,
+  },
+  paginationText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DashboardColors.darkText,
+  },
+  smallNavButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: DashboardColors.headerBlue,
+    borderRadius: 8,
+  },
+  smallNavButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
