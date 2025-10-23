@@ -74,16 +74,36 @@ export default function RegisterScreen() {
     } catch (error: any) {
       console.error("Erro ao registrar:", error);
       let errorMessage = 'Não foi possível criar sua conta.';
+      
       if (error?.response?.data) {
         const data = error.response.data;
         if (typeof data === 'object') {
           const firstKey = Object.keys(data)[0];
           const detail = data[firstKey] ?? data.detail;
-          errorMessage = Array.isArray(detail) ? detail[0] : String(detail || errorMessage);
+          let rawMessage = Array.isArray(detail) ? detail[0] : String(detail || errorMessage);
+          
+          // Traduzir mensagens comuns do backend
+          const lowerMsg = rawMessage.toLowerCase();
+          if (lowerMsg.includes('already exists') || lowerMsg.includes('já existe')) {
+            if (firstKey === 'admin_email' || lowerMsg.includes('email')) {
+              errorMessage = 'Este email já está cadastrado.';
+            } else if (firstKey === 'cnpj' || lowerMsg.includes('cnpj')) {
+              errorMessage = 'Este CNPJ já está cadastrado.';
+            } else {
+              errorMessage = rawMessage;
+            }
+          } else if (lowerMsg.includes('invalid') || lowerMsg.includes('inválido')) {
+            errorMessage = `Campo inválido: ${firstKey}`;
+          } else if (lowerMsg.includes('required') || lowerMsg.includes('obrigatório')) {
+            errorMessage = `Campo obrigatório: ${firstKey}`;
+          } else {
+            errorMessage = rawMessage;
+          }
         }
       } else if (error?.message) {
         errorMessage = error.message;
       }
+      
       Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
