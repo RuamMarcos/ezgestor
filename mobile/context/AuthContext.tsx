@@ -34,12 +34,11 @@ interface AuthContextType {
   user: any;
   loading: boolean;
   hasActiveSubscription: boolean;
+  nivelAcesso: 'administrador' | 'funcionario' | null;
   login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>;
   register: (data: any) => Promise<void>;
   logout: () => void;
-  // Marca a assinatura como ativa no cliente (uso após sucesso do pagamento)
   markSubscriptionActive: () => void;
-  // Refaz consulta no servidor para sincronizar assinatura/usuário
   refreshFromServer: () => Promise<void>;
 }
 
@@ -49,17 +48,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [nivelAcesso, setNivelAcesso] = useState<'administrador' | 'funcionario' | null>(null);
 
   useEffect(() => {
     const loadUserFromStorage = async () => {
       try {
-        const accessToken = await storage.getItem('access'); // Usa o storage multiplataforma
+        const accessToken = await storage.getItem('access');
         if (accessToken) {
           const decodedToken: any = jwtDecode(accessToken);
           if (decodedToken.exp * 1000 > Date.now()) {
             api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
             setUser(decodedToken);
             setHasActiveSubscription(!!decodedToken.has_active_subscription);
+            setNivelAcesso(decodedToken.nivel_acesso || 'funcionario');
             try {
               await refreshFromServer();
             } catch (err) {
@@ -86,6 +87,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (typeof profile.has_active_subscription === 'boolean') {
         setHasActiveSubscription(profile.has_active_subscription);
       }
+      if (profile.nivel_acesso) {
+        setNivelAcesso(profile.nivel_acesso);
+      }
     } catch (err) {
       throw err;
     }
@@ -104,6 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const decodedToken: any = jwtDecode(access);
       setUser(decodedToken);
       setHasActiveSubscription(!!decodedToken.has_active_subscription);
+      setNivelAcesso(decodedToken.nivel_acesso || 'funcionario');
 
       try { await refreshFromServer(); } catch {}
 
@@ -137,6 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       loading,
       hasActiveSubscription,
+      nivelAcesso,
       login,
       register,
       logout,
