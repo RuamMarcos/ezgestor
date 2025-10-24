@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ hasActiveSubscription: boolean }>;
   register: (data: any) => Promise<void>;
   logout: () => void;
+  refreshFromServer: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -24,15 +25,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    localStorage.clear();
+    setUser(null);
+  };
+
+  const refreshFromServer = async () => {
+    const accessToken = localStorage.getItem("access");
+    if (accessToken) {
+      try {
+        const response = await api.get('/accounts/profile/'); 
+        setUser(response.data);
+      } catch (error) {
+        console.error("Erro ao atualizar dados do usuário:", error);
+      }
+    }
+  };
+
   useEffect(() => {
     const checkUserStatus = async () => {
       const accessToken = localStorage.getItem("access");
       if (accessToken) {
         try {
-          const decodedToken: User = jwtDecode(accessToken); 
+          const decodedToken: any = jwtDecode(accessToken); 
           const isExpired = decodedToken.exp * 1000 < Date.now();
           if (!isExpired) {
             setUser(decodedToken);
+            //await refreshFromServer();
           } else {
             logout();
           }
@@ -74,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('refresh', refresh);
     api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-    const decodedToken: User = jwtDecode(access); // <-- Alterar 'any' para 'User'
+    const decodedToken: User = jwtDecode(access);
     setUser(decodedToken);
 
     // Retorna o status da assinatura do payload do token
@@ -96,13 +115,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.clear();
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshFromServer }}>
       {children}
     </AuthContext.Provider>
   );

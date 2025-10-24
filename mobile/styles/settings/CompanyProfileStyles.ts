@@ -23,26 +23,105 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: DashboardColors.darkText,
   },
-  content: {
+  centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  scrollContainer: {
     padding: 20,
   },
-  emptyState: {
-    alignItems: 'center',
-    maxWidth: 300,
+  section: {
+    marginBottom: 24,
   },
-  emptyStateTitle: {
-    fontSize: 20,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
     color: DashboardColors.darkText,
-    marginTop: 16,
+    marginBottom: 16,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: DashboardColors.lightGray,
+    marginBottom: 12,
+  },
+  logoButton: {
+    backgroundColor: DashboardColors.headerBlue,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  logoButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: DashboardColors.grayText,
     marginBottom: 8,
   },
-  emptyStateText: {
-    fontSize: 14,
-    color: DashboardColors.grayText,
-    textAlign: 'center',
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: DashboardColors.darkText,
+  },
+  inputError: {
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  saveButton: {
+    backgroundColor: DashboardColors.headerBlue,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#A0A0A0',
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  toastContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toastSuccess: {
+    backgroundColor: '#4CAF50',
+  },
+  toastError: {
+    backgroundColor: '#F44336',
+  },
+  toastText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

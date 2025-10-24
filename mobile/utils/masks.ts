@@ -16,6 +16,12 @@ export const aplicarMascaraTelefone = (valor: string): string => {
     .slice(0, 15);
 };
 
+export const aplicarMascaraCep = (valor: string): string => {
+  return valor
+    .replace(/\D/g, "")
+    .replace(/^(\d{5})(\d)/, "$1-$2")
+    .slice(0, 9);
+};
 
 export const aplicarMascaraCartao = (valor: string): string => {
   return valor
