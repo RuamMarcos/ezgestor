@@ -14,9 +14,10 @@ from .serializers import (
     UserProfileSerializer,
     ChangePasswordSerializer,
     UsuarioSerializer,
-    TeamMemberUpdateSerializer
+    TeamMemberUpdateSerializer,
+    UserPreferenceSerializer,
 )
-from .models import Empresa, Usuario, Plano, Assinatura, Pagamento 
+from .models import Empresa, Usuario, Plano, Assinatura, Pagamento, UserPreference 
 from .permissions import IsAdminUser
 
 # View de login (obtenção de token)
@@ -156,3 +157,12 @@ class ProcessarPagamentoView(APIView):
             return Response({"detail": "Plano inválido."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"detail": f"Ocorreu um erro: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        pref, _ = UserPreference.objects.get_or_create(user=self.request.user)
+        return pref

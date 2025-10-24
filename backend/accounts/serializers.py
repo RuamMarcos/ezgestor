@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario, Plano
+from .models import Empresa, Usuario, Plano, UserPreference
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -153,4 +153,17 @@ class ProcessarPagamentoSerializer(serializers.Serializer):
     def validate_plano_id(self, value):
         if not Plano.objects.filter(pk=value).exists():
             raise serializers.ValidationError("Plano não encontrado.")
+        return value
+
+
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreference
+        fields = ['theme', 'updated_at']
+        read_only_fields = ['updated_at']
+
+    def validate_theme(self, value: str) -> str:
+        allowed = {choice for choice, _ in UserPreference.THEME_CHOICES}
+        if value not in allowed:
+            raise serializers.ValidationError("Tema inválido. Use 'light', 'dark' ou 'system'.")
         return value

@@ -29,3 +29,12 @@ class AccountsConfig(AppConfig):
         """
         # Conecta a função create_initial_plans ao sinal post_migrate
         post_migrate.connect(create_initial_plans, sender=self)
+        # Garante criação de UserPreference para usuários existentes após migrações
+        def ensure_user_prefs(sender, **kwargs):
+            from django.contrib.auth import get_user_model
+            from .models import UserPreference
+            User = get_user_model()
+            for user in User.objects.all():
+                UserPreference.objects.get_or_create(user=user)
+
+        post_migrate.connect(ensure_user_prefs, sender=self)

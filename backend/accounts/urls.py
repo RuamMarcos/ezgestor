@@ -9,7 +9,8 @@ from .views import (
     ChangePasswordView,
     ProcessarPagamentoView,
     TeamMemberDetailView,
-    TeamMemberListView
+    TeamMemberListView,
+    UserPreferenceView,
 )
 
 urlpatterns = [
@@ -28,5 +29,8 @@ urlpatterns = [
     path('team/member/<int:pk>/', TeamMemberDetailView.as_view(), name='team_member_detail'), 
 
     path('payment/process/', ProcessarPagamentoView.as_view(), name='processar_pagamento'),
+
+    # Preferences
+    path('me/preferences/', UserPreferenceView.as_view(), name='user_preferences'),
 ]
 
