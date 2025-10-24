@@ -19,6 +19,7 @@ services:
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Default to a persistent SQLite file inside the volume-backed directory
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
+      CLOUD_SQL_CONNECTION_NAME: ${CLOUD_SQL_CONNECTION_NAME:-}
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
       # Unified cloud switch defaults to False (local mode requires no .env)
       USE_CLOUD_BACKENDS: ${USE_CLOUD_BACKENDS:-False}
@@ -40,6 +41,7 @@ services:
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Match the web default so migrations hit the same DB by default
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
+      CLOUD_SQL_CONNECTION_NAME: ${CLOUD_SQL_CONNECTION_NAME:-}
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
       USE_CLOUD_BACKENDS: ${USE_CLOUD_BACKENDS:-False}
       GS_BUCKET_NAME: ${GS_BUCKET_NAME:-}
