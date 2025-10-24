@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
+import { aplicarMascaraCep, aplicarMascaraCnpj, aplicarMascaraTelefone } from '../utils/masks';
 
 interface CompanyData {
   id: number;
@@ -43,6 +44,7 @@ const CompanyProfilePage = () => {
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -54,15 +56,15 @@ const CompanyProfilePage = () => {
         setFormData({
           nome_fantasia: empresa.nome_fantasia || '',
           razao_social: empresa.razao_social || '',
-          cnpj: empresa.cnpj || '',
+          cnpj: aplicarMascaraCnpj(empresa.cnpj || ''),
           inscricao_estadual: empresa.inscricao_estadual || '',
           endereco: empresa.endereco || '',
-          cep: empresa.cep || '',
+          cep: aplicarMascaraCep(empresa.cep || ''),
           bairro: empresa.bairro || '',
           cidade: empresa.cidade || '',
           estado: empresa.estado || '',
           pais: empresa.pais || 'Brasil',
-          telefone: empresa.telefone || '',
+          telefone: aplicarMascaraTelefone(empresa.telefone || ''),
           email_principal: empresa.email_principal || '',
           logotipo: null,
         });
@@ -85,7 +87,18 @@ const CompanyProfilePage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let maskedValue = value;
+    if (name === 'cep') {
+      maskedValue = aplicarMascaraCep(value);
+    } else if (name === 'telefone') {
+      maskedValue = aplicarMascaraTelefone(value);
+    } else if (name === 'cnpj') {
+      maskedValue = aplicarMascaraCnpj(value);
+    }
+    setFormData(prev => ({ ...prev, [name]: maskedValue }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,20 +111,37 @@ const CompanyProfilePage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newErrors: Record<string, string> = {};
+    if (formData.cnpj && formData.cnpj.length < 18) {
+      newErrors.cnpj = 'CNPJ inválido.';
+    }
+    if (formData.cep && formData.cep.length < 9) {
+      newErrors.cep = 'CEP inválido.';
+    }
+    if (formData.telefone && formData.telefone.length < 14) {
+      newErrors.telefone = 'Telefone inválido.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsLoading(true);
     const dataToSubmit = new FormData();
 
     dataToSubmit.append('nome_fantasia', formData.nome_fantasia);
     dataToSubmit.append('razao_social', formData.razao_social);
-    dataToSubmit.append('cnpj', formData.cnpj);
+    dataToSubmit.append('cnpj', formData.cnpj.replace(/\D/g, ''));
     dataToSubmit.append('inscricao_estadual', formData.inscricao_estadual);
     dataToSubmit.append('endereco', formData.endereco);
-    dataToSubmit.append('cep', formData.cep);
+    dataToSubmit.append('cep', formData.cep.replace(/\D/g, ''));
     dataToSubmit.append('bairro', formData.bairro);
     dataToSubmit.append('cidade', formData.cidade);
     dataToSubmit.append('estado', formData.estado);
     dataToSubmit.append('pais', formData.pais);
-    dataToSubmit.append('telefone', formData.telefone);
+    dataToSubmit.append('telefone', formData.telefone.replace(/\D/g, ''));
     dataToSubmit.append('email_principal', formData.email_principal);
     
     if (formData.logotipo) {
@@ -124,6 +154,7 @@ const CompanyProfilePage = () => {
       });
       await refreshFromServer();
       alert('Dados da empresa atualizados com sucesso!');
+      setErrors({});
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
       alert('Falha ao atualizar os dados. Verifique o console para mais detalhes.');
@@ -227,8 +258,9 @@ const CompanyProfilePage = () => {
                   name="cnpj"
                   value={formData.cnpj}
                   onChange={handleChange}
-                  className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"
+                  className={`mt-1 block w-full border-2 ${errors.cnpj ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2`}
                 />
+                {errors.cnpj && <p className="text-red-500 text-xs mt-1">{errors.cnpj}</p>}
               </div>
               <div>
                 <label
@@ -287,8 +319,9 @@ const CompanyProfilePage = () => {
                   name="cep"
                   value={formData.cep}
                   onChange={handleChange}
-                  className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"
+                  className={`mt-1 block w-full border-2 ${errors.cep ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2`}
                 />
+                {errors.cep && <p className="text-red-500 text-xs mt-1">{errors.cep}</p>}
               </div>
             </div>
             {/* Coluna 2 */}
@@ -379,8 +412,9 @@ const CompanyProfilePage = () => {
                 value={formData.telefone}
                 onChange={handleChange}
                 placeholder="(00) 00000-0000"
-                className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2"
+                className={`mt-1 block w-full border-2 ${errors.telefone ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm p-2`}
               />
+              {errors.telefone && <p className="text-red-500 text-xs mt-1">{errors.telefone}</p>}
             </div>
             <div>
               <label
