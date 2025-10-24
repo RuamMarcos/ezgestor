@@ -7,7 +7,6 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
-  Alert,
   Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -44,6 +43,29 @@ interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
   logotipo: { uri: string; name: string; type: string } | null;
 }
 
+const renderInput = (
+  formData: ICompanyForm,
+  handleChange: (name: keyof ICompanyForm, value: string) => void,
+  errors: Record<string, string>,
+  label: string,
+  name: keyof ICompanyForm,
+  placeholder: string,
+  keyboardType: 'default' | 'numeric' | 'email-address' = 'default'
+) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.label}>{label}</Text>
+    <TextInput
+      style={[styles.input, errors[name] ? styles.inputError : null]}
+      value={formData[name] as string}
+      onChangeText={text => handleChange(name, text)}
+      placeholder={placeholder}
+      keyboardType={keyboardType}
+      placeholderTextColor={DashboardColors.grayText}
+    />
+    {errors[name] && <Text style={styles.errorText}>{errors[name]}</Text>}
+  </View>
+);
+
 export default function CompanyProfileScreen() {
   const router = useRouter();
   const { user, refreshFromServer } = useAuth();
@@ -67,6 +89,16 @@ export default function CompanyProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -96,7 +128,7 @@ export default function CompanyProfileScreen() {
         }
       } catch (error) {
         console.error('Erro ao carregar dados da empresa:', error);
-        Alert.alert('Erro', 'Falha ao carregar os dados da empresa.');
+        setToast({ message: 'Falha ao carregar os dados.', type: 'error' });
       } finally {
         setIsPageLoading(false);
       }
@@ -175,40 +207,20 @@ export default function CompanyProfileScreen() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       await refreshFromServer();
-      Alert.alert('Sucesso', 'Dados da empresa atualizados!');
+      setToast({ message: 'Dados da empresa atualizados!', type: 'success' });
       setErrors({});
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
-      Alert.alert('Erro', 'Falha ao atualizar os dados.');
+      setToast({ message: 'Falha ao atualizar os dados.', type: 'error' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderInput = (
-    label: string,
-    name: keyof ICompanyForm,
-    placeholder: string,
-    keyboardType: 'default' | 'numeric' | 'email-address' = 'default'
-  ) => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[styles.input, errors[name] ? styles.inputError : null]}
-        value={formData[name] as string}
-        onChangeText={text => handleChange(name, text)}
-        placeholder={placeholder}
-        keyboardType={keyboardType}
-        placeholderTextColor={DashboardColors.grayText}
-      />
-      {errors[name] && <Text style={styles.errorText}>{errors[name]}</Text>}
-    </View>
-  );
-
   if (isPageLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={DashboardColors.headerBlue} />
+        <ActivityIndicator size="large" />
       </View>
     );
   }
@@ -234,22 +246,22 @@ export default function CompanyProfileScreen() {
               <Text style={styles.logoButtonText}>Alterar Logo</Text>
             </TouchableOpacity>
           </View>
-          {renderInput('Nome Fantasia', 'nome_fantasia', 'Nome da sua empresa')}
-          {renderInput('Razão Social', 'razao_social', 'Razão social completa')}
-          {renderInput('CNPJ', 'cnpj', '00.000.000/0000-00', 'numeric')}
-          {renderInput('Inscrição Estadual/Municipal', 'inscricao_estadual', 'Número da inscrição', 'numeric')}
+          {renderInput(formData, handleChange, errors, 'Nome Fantasia', 'nome_fantasia', 'Nome da sua empresa')}
+          {renderInput(formData, handleChange, errors, 'Razão Social', 'razao_social', 'Razão social completa')}
+          {renderInput(formData, handleChange, errors, 'CNPJ', 'cnpj', '00.000.000/0000-00', 'numeric')}
+          {renderInput(formData, handleChange, errors, 'Inscrição Estadual/Municipal', 'inscricao_estadual', 'Número da inscrição', 'numeric')}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Endereço e Contato</Text>
-          {renderInput('CEP', 'cep', '00000-000', 'numeric')}
-          {renderInput('Endereço', 'endereco', 'Rua, número e complemento')}
-          {renderInput('Bairro', 'bairro', 'Bairro')}
-          {renderInput('Cidade', 'cidade', 'Cidade')}
-          {renderInput('Estado', 'estado', 'Estado')}
-          {renderInput('País', 'pais', 'País')}
-          {renderInput('Telefone', 'telefone', '(00) 00000-0000', 'numeric')}
-          {renderInput('E-mail Principal', 'email_principal', 'contato@suaempresa.com', 'email-address')}
+          {renderInput(formData, handleChange, errors, 'CEP', 'cep', '00000-000', 'numeric')}
+          {renderInput(formData, handleChange, errors, 'Endereço', 'endereco', 'Rua, número e complemento')}
+          {renderInput(formData, handleChange, errors, 'Bairro', 'bairro', 'Bairro')}
+          {renderInput(formData, handleChange, errors, 'Cidade', 'cidade', 'Cidade')}
+          {renderInput(formData, handleChange, errors, 'Estado', 'estado', 'Estado')}
+          {renderInput(formData, handleChange, errors, 'País', 'pais', 'País')}
+          {renderInput(formData, handleChange, errors, 'Telefone', 'telefone', '(00) 00000-0000', 'numeric')}
+          {renderInput(formData, handleChange, errors, 'E-mail Principal', 'email_principal', 'contato@suaempresa.com', 'email-address')}
         </View>
 
         <TouchableOpacity
@@ -264,6 +276,12 @@ export default function CompanyProfileScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {toast && (
+        <View style={[styles.toastContainer, toast.type === 'success' ? styles.toastSuccess : styles.toastError]}>
+          <Text style={styles.toastText}>{toast.message}</Text>
+        </View>
+      )}
     </View>
   );
 }
