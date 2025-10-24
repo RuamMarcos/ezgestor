@@ -14,7 +14,6 @@ import FinancialsPage from './pages/FinancialsPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import SettingsLayout from './layouts/SettingsLayout';
 import TeamManagementPage from './pages/TeamManagementPage';
-import MyAccountPage from './pages/MyAccountPage';
 import CompanyProfilePage from './pages/CompanyProfilePage';
 
 function App() {
