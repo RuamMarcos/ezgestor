@@ -25,7 +25,7 @@ interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
 }
 
 const CompanyProfilePage = () => {
-  const { refreshFromServer } = useAuth();
+  const { user, refreshFromServer } = useAuth();
   const [formData, setFormData] = useState<ICompanyForm>({
     nome_fantasia: '',
     razao_social: '',
@@ -65,7 +65,7 @@ const CompanyProfilePage = () => {
           estado: empresa.estado || '',
           pais: empresa.pais || 'Brasil',
           telefone: aplicarMascaraTelefone(empresa.telefone || ''),
-          email_principal: empresa.email_principal || '',
+          email_principal: user?.email || '',
           logotipo: null,
         });
         

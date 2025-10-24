@@ -46,7 +46,7 @@ interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
 
 export default function CompanyProfileScreen() {
   const router = useRouter();
-  const { refreshFromServer } = useAuth();
+  const { user, refreshFromServer } = useAuth();
   const [formData, setFormData] = useState<ICompanyForm>({
     nome_fantasia: '',
     razao_social: '',
@@ -86,7 +86,7 @@ export default function CompanyProfileScreen() {
           estado: empresa.estado || '',
           pais: empresa.pais || 'Brasil',
           telefone: aplicarMascaraTelefone(empresa.telefone || ''),
-          email_principal: empresa.email_principal || '',
+          email_principal: user?.email || '',
           logotipo: null,
         });
 
