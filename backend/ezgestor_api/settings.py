@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import dj_database_url
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -243,6 +244,59 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.Usuario'
 
-# Media files (uploaded product images)
-MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Media files (uploaded product images) with unified cloud/local switch
+# Default to local mode (no .env required)
+USE_CLOUD_BACKENDS = _env_flag('USE_CLOUD_BACKENDS', 'False')
+
+def _is_set_env(name: str) -> bool:
+    value = os.environ.get(name)
+    return bool(value and value.strip())
+
+# Validate required env set for cloud mode before configuring storage
+if USE_CLOUD_BACKENDS:
+    missing = []
+    if not _is_set_env('GS_BUCKET_NAME'):
+        missing.append('GS_BUCKET_NAME')
+    if not _is_set_env('DATABASE_URL'):
+        missing.append('DATABASE_URL')
+    if not _is_set_env('CLOUD_SQL_CONNECTION_NAME'):
+        missing.append('CLOUD_SQL_CONNECTION_NAME')
+    if missing:
+        raise ImproperlyConfigured(
+            f"USE_CLOUD_BACKENDS=True requires these env vars: {', '.join(missing)}."
+        )
+
+# Media backend follows the unified switch
+USE_GCS_MEDIA = USE_CLOUD_BACKENDS
+
+if USE_GCS_MEDIA:
+    # Use Google Cloud Storage for media
+    INSTALLED_APPS.append('storages')
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    GS_BUCKET_NAME = os.environ['GS_BUCKET_NAME']
+    GS_QUERYSTRING_AUTH = False  # public URLs
+    GS_DEFAULT_ACL = None        # uniform bucket-level access
+    # Compose the media base URL from the bucket name (stable host)
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+else:
+    # Legacy local filesystem media
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Enforce coupling between database and media backends to avoid mixed setups
+_db_engine = DATABASES['default']['ENGINE']
+_is_sqlite = _db_engine.endswith('sqlite3')
+_is_cloud_db = not _is_sqlite
+
+if USE_CLOUD_BACKENDS:
+    if _is_sqlite:
+        raise ImproperlyConfigured('USE_CLOUD_BACKENDS=True requires non-sqlite DATABASE_URL (Cloud SQL).')
+else:
+    # Offline/local mode must not use cloud DB or cloud-only identifiers
+    if _is_cloud_db:
+        raise ImproperlyConfigured('USE_CLOUD_BACKENDS=False requires SQLite database.')
+    # Treat empty string as unset to align with docker-compose defaults
+    if _is_set_env('GS_BUCKET_NAME') or _is_set_env('CLOUD_SQL_CONNECTION_NAME'):
+        raise ImproperlyConfigured(
+            'USE_CLOUD_BACKENDS=False requires GS_BUCKET_NAME and CLOUD_SQL_CONNECTION_NAME to be unset.'
+        )

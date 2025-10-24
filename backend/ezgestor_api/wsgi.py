@@ -8,9 +8,17 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
 
 from django.core.wsgi import get_wsgi_application
+from django.core.exceptions import ImproperlyConfigured
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ezgestor_api.settings')
 
-application = get_wsgi_application()
+# Gracefully handle configuration errors to avoid verbose stack traces in container logs
+try:
+    application = get_wsgi_application()
+except ImproperlyConfigured as exc:
+    sys.stderr.write(f"Configuration error: {exc}\n")
+    sys.stderr.flush()
+    os._exit(3)
