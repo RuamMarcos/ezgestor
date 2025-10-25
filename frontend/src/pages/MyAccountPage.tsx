@@ -39,14 +39,14 @@ const MyAccountPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+       {/*  <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
           <span>Pré-visualizando: {previewTheme ?? themeSetting} • Resolução atual: {isDark ? 'Escuro' : 'Claro'}</span>
         </div>
 
         <div className="mt-4 flex gap-2">
           <button onClick={handleApply} className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Aplicar</button>
           <button onClick={handleCancel} className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">Cancelar</button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

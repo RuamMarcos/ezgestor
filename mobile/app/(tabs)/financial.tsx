@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 import { getLancamentos, getFinancialStats, createLancamento, updateLancamento, deleteLancamento } from '@/services/FinancialService';
 import type { LancamentoFinanceiro, FinancialStats, LancamentoFinanceiroData } from '@/services/FinancialService';
 import SummaryCard from '@/components/dashboard/SummaryCard';
@@ -18,6 +19,7 @@ const formatCurrency = (value: number): string => {
 };
 
 export default function FinancialScreen() {
+    const { colors } = useTheme();
     const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
     const [stats, setStats] = useState<FinancialStats | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -149,7 +151,7 @@ export default function FinancialScreen() {
 
     return (
         <AdminRoute>
-            <View style={styles.screen}>
+            <View style={[styles.screen, { backgroundColor: colors.background }]}>
                 <FlatList
                     data={lancamentos}
                     keyExtractor={(item) => item.id_lancamento.toString()}
@@ -157,7 +159,7 @@ export default function FinancialScreen() {
                     ListHeaderComponent={
                         <View>
                             <View style={styles.headerSpacing}>
-                                <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
+                                <Text style={[styles.pageTitle, { color: colors.darkText }]}>Fluxo de Caixa</Text>
                             </View>
                             {stats && (
                                 <View style={styles.cardsSection}>
@@ -180,11 +182,11 @@ export default function FinancialScreen() {
                             onTypeChange={setSelectedType}
                             onAddTransaction={openAddModal} // ATUALIZE AQUI
                         />
-                        <Text style={styles.listTitle}>Histórico de Transações</Text>
+                        <Text style={[styles.listTitle, { color: colors.darkText }]}>Histórico de Transações</Text>
                     </View>
                 }
                 ListFooterComponent={
-                    listLoading ? <ActivityIndicator style={styles.footerLoader}/> : (
+                    listLoading ? <ActivityIndicator style={styles.footerLoader} color={colors.headerBlue}/> : (
                         <FinancialsPagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -195,17 +197,17 @@ export default function FinancialScreen() {
                 contentContainerStyle={styles.listContent}
                 refreshing={listLoading}
                 onRefresh={() => fetchFinancials(currentPage, searchTerm, selectedType)}
-            />
-            <AddEditLancamentoModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSave}
-                onDelete={handleDelete}
-                initialData={editingLancamento}
-            />
-            <TouchableOpacity style={styles.fab} onPress={openAddModal}>
-                <MaterialCommunityIcons name="plus" size={24} color="white" />
-            </TouchableOpacity>
+                />
+                <AddEditLancamentoModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSave={handleSave}
+                    onDelete={handleDelete}
+                    initialData={editingLancamento}
+                />
+                <TouchableOpacity style={[styles.fab, { backgroundColor: colors.headerBlue }]} onPress={openAddModal}>
+                    <MaterialCommunityIcons name="plus" size={24} color="white" />
+                </TouchableOpacity>
             </View>
         </AdminRoute>
     );

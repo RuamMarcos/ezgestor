@@ -3,17 +3,18 @@ import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
 import { confirm } from '@/utils/confirm';
 import { useFocusEffect} from '@react-navigation/native';
+import { useTheme } from '@/context/ThemeContext';
 import { getProducts, createProduct, deleteProduct, updateProduct, Product, addStockToProduct, quickAddProduct } from '../../services/StockService'; // Importe addStockToProduct
 import ProductList from '../../components/stock/ProductList';
 import AddProductModal from '../../components/stock/AddProductModal';
 import EditProductModal from '../../components/stock/EditProductModal';
 import QuickAddProductModal from '../../components/stock/QuickAddProductModal'; // Importe o novo modal
 import QuickAddModal from '../../components/stock/QuickAddModal';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '../../styles/stock/StockStyles';
 import Svg, { Path } from 'react-native-svg';
 
 export default function StockScreen() {
+    const { colors } = useTheme();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -205,67 +206,67 @@ export default function StockScreen() {
         if (totalPages <= 1) return null;
         
         return (
-            <View style={styles.paginationContainer}>
+            <View style={[styles.paginationContainer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
                 <TouchableOpacity
-                    style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+                    style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.smallNavButton, { backgroundColor: colors.lightGray }]}
                     onPress={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
                 >
-                    <Text style={styles.smallNavButtonText}>|&lt;</Text>
+                    <Text style={[styles.smallNavButtonText, { color: colors.darkText }]}>|&lt;</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+                    style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.paginationButton, { backgroundColor: colors.headerBlue }]}
                     onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
                 >
-                    <Text style={styles.paginationButtonText}>Anterior</Text>
+                    <Text style={[styles.paginationButtonText, { color: currentPage === 1 ? colors.darkText : colors.background }]}>Anterior</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.paginationText}>
+                <Text style={[styles.paginationText, { color: colors.darkText }]}>
                     {currentPage} de {totalPages}
                 </Text>
 
                 <TouchableOpacity
-                    style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+                    style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.paginationButton, { backgroundColor: colors.headerBlue }]}
                     onPress={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                 >
-                    <Text style={styles.paginationButtonText}>Próximo</Text>
+                    <Text style={[styles.paginationButtonText, { color: currentPage === totalPages ? colors.darkText : colors.background }]}>Próximo</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+                    style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.smallNavButton, { backgroundColor: colors.lightGray }]}
                     onPress={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
                 >
-                    <Text style={styles.smallNavButtonText}>&gt;|</Text>
+                    <Text style={[styles.smallNavButtonText, { color: colors.darkText }]}>&gt;|</Text>
                 </TouchableOpacity>
             </View>
         );
     };
     
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.pageHeader}>
-                <Text style={styles.title}>Estoque</Text>
+                <Text style={[styles.title, { color: colors.darkText }]}>Estoque</Text>
                 <View style={{flexDirection: 'row'}}>
-                    <TouchableOpacity style={[styles.addButton, {marginRight: 10}]} onPress={() => setIsQuickAddModalOpen(true)}>
-                        <Text style={styles.addButtonText}>Entrada Rápida</Text>
+                    <TouchableOpacity style={[styles.addButton, {marginRight: 10, backgroundColor: colors.headerBlue }]} onPress={() => setIsQuickAddModalOpen(true)}>
+                        <Text style={[styles.addButtonText, { color: colors.background }]}>Entrada Rápida</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalOpen(true)}>
-                        <Text style={styles.addButtonText}>Adicionar</Text>
+                    <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.headerBlue }]} onPress={() => setIsAddModalOpen(true)}>
+                        <Text style={[styles.addButtonText, { color: colors.background }]}>Adicionar</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             <View style={styles.searchContainer}>
                 <TextInput
-                    style={styles.searchInput}
+                    style={[styles.searchInput, { backgroundColor: colors.card, borderColor: colors.border }]}
                     placeholder="Pesquisar por produto ou SKU..."
                     value={busca}
                     onChangeText={setBusca}
-                    placeholderTextColor={DashboardColors.grayText}
+                    placeholderTextColor={colors.grayText}
                 />
             </View>
             
@@ -279,7 +280,6 @@ export default function StockScreen() {
                 onRefresh={() => fetchProducts(currentPage, busca)}
             />
 
-            
             {/* Rest of your modals and overlays */}
             <AddProductModal 
                 visible={isAddModalOpen}
@@ -308,8 +308,8 @@ export default function StockScreen() {
             />       
 
             {loading && (
-                <View style={styles.loadingOverlay}>
-                     <ActivityIndicator size="large" color="#FFFFFF" />
+                <View style={[styles.loadingOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.25)' }]}>
+                     <ActivityIndicator size="large" color={colors.headerBlue} />
                 </View>
             )}
         </View>

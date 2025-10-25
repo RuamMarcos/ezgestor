@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { styles } from '../../styles/shared/AppHeaderStyles'; 
+import { useTheme } from '@/context/ThemeContext';
 
 export default function DashboardHeader() {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const { logout, user } = useAuth();
+  const { colors } = useTheme();
 
   // Pega as iniciais do nome do usuário para exibir no ícone
   const userInitials = user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
@@ -17,13 +19,13 @@ export default function DashboardHeader() {
   };
 
   return (
-    <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>EzGestor</Text>
+    <View style={[styles.headerContainer, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <Text style={[styles.headerTitle, { color: colors.headerBlue }]}>EzGestor</Text>
 
       {/* Ícone de Perfil */}
       <View>
-        <TouchableOpacity style={styles.userCircle} onPress={() => setDropdownVisible(true)}>
-          <MaterialCommunityIcons name="account" size={24} color={styles.userInitial.color} />
+        <TouchableOpacity style={[styles.userCircle, { backgroundColor: colors.lightGray }]} onPress={() => setDropdownVisible(true)}>
+          <MaterialCommunityIcons name="account" size={24} color={colors.headerBlue} />
         </TouchableOpacity>
 
         {/* Menu Dropdown (usando um Modal) */}
@@ -37,10 +39,10 @@ export default function DashboardHeader() {
             activeOpacity={1} 
             onPressOut={() => setDropdownVisible(false)}
           >
-            <View style={modalStyles.dropdown}>
+            <View style={[modalStyles.dropdown, { backgroundColor: colors.card }]}>
               <TouchableOpacity style={modalStyles.dropdownItem} onPress={handleLogout}>
-                <MaterialCommunityIcons name="logout" size={20} color="#333" />
-                <Text style={modalStyles.dropdownItemText}>Sair</Text>
+                <MaterialCommunityIcons name="logout" size={20} color={colors.darkText} />
+                <Text style={[modalStyles.dropdownItemText, { color: colors.darkText }]}>Sair</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

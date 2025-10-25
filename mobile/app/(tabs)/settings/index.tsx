@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { DashboardColors } from '@/constants/DashboardColors';
 import { AdminRoute } from '@/components/AdminRoute';
 import { styles } from '@/styles/settings/SettingsStyles';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { themeSetting, previewTheme, isDark, setPreview, applyTheme, cancelPreview } = useTheme();
+  const { themeSetting, previewTheme, isDark, setPreview, applyTheme, cancelPreview, colors } = useTheme();
 
   const settingsOptions = [
     {
@@ -30,38 +30,54 @@ export default function SettingsScreen() {
 
   return (
     <AdminRoute>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Configurações</Text>
-          <Text style={styles.headerSubtitle}>Gerencie as configurações do sistema</Text>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <Text style={[styles.headerTitle, { color: colors.darkText }]}>Configurações</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.grayText }]}>Gerencie as configurações do sistema</Text>
         </View>
 
       <View style={styles.optionsContainer}>
         {/* Theme card */}
-        <View style={[styles.optionCard, { padding: 16, marginBottom: 16 }]}> 
-          <Text style={styles.optionTitle}>Tema</Text>
-          <Text style={styles.optionDescription}>Claro, Escuro ou Automático (segue o sistema)</Text>
+        <View style={[styles.optionCard, { padding: 16, marginBottom: 16, backgroundColor: colors.card }]}> 
+          <Text style={[styles.optionTitle, { color: colors.darkText }]}>Tema</Text>
+          <Text style={[styles.optionDescription, { color: colors.grayText }]}>Claro, Escuro ou Automático (segue o sistema)</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-            {(['light','dark','system'] as const).map(opt => (
-              <TouchableOpacity key={opt} onPress={() => setPreview(opt)} style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: themeSetting===opt? '#2563eb' : '#d1d5db' }}>
-                <Text style={{ color: themeSetting===opt? '#1d4ed8' : '#111827' }}>{opt === 'light' ? 'Claro' : opt === 'dark' ? 'Escuro' : 'Automático'}</Text>
-              </TouchableOpacity>
-            ))}
+            {(['light','dark','system'] as const).map(opt => {
+              const current = previewTheme ?? themeSetting;
+              const isSelected = current === opt;
+              return (
+                <TouchableOpacity
+                  key={opt}
+                  onPress={() => setPreview(opt)}
+                  style={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: isSelected ? '#2563eb' : '#d1d5db',
+                  }}
+                >
+                  <Text style={{ color: isSelected ? '#1d4ed8' : '#111827' }}>
+                    {opt === 'light' ? 'Claro' : opt === 'dark' ? 'Escuro' : 'Automático'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-          <Text style={[styles.optionDescription, { marginTop: 8 }]}>Pré-visualizando: {previewTheme ?? themeSetting} • Resolução atual: {isDark ? 'Escuro' : 'Claro'}</Text>
+          <Text style={[styles.optionDescription, { marginTop: 8, color: colors.grayText }]}>Pré-visualizando: {previewTheme ?? themeSetting} • Resolução atual: {isDark ? 'Escuro' : 'Claro'}</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-            <TouchableOpacity onPress={() => applyTheme(previewTheme ?? themeSetting)} style={{ backgroundColor: '#2563eb', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 }}>
-              <Text style={{ color: 'white', fontWeight: '600' }}>Aplicar</Text>
+            <TouchableOpacity onPress={() => applyTheme(previewTheme ?? themeSetting)} style={{ backgroundColor: colors.headerBlue, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 }}>
+              <Text style={{ color: colors.background, fontWeight: '600' }}>Aplicar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={cancelPreview} style={{ borderWidth: 1, borderColor: '#d1d5db', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 }}>
-              <Text style={{ color: '#111827' }}>Cancelar</Text>
+            <TouchableOpacity onPress={cancelPreview} style={{ borderWidth: 1, borderColor: colors.border, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 }}>
+              <Text style={{ color: colors.darkText }}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>
         {settingsOptions.map((option) => (
           <TouchableOpacity
             key={option.id}
-            style={styles.optionCard}
+            style={[styles.optionCard, { backgroundColor: colors.card }]}
             onPress={() => router.push(option.route as any)}
             activeOpacity={0.7}
           >
@@ -69,17 +85,17 @@ export default function SettingsScreen() {
               <MaterialCommunityIcons
                 name={option.icon as any}
                 size={32}
-                color={DashboardColors.headerBlue}
+                color={colors.headerBlue}
               />
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Text style={styles.optionDescription}>{option.description}</Text>
+              <Text style={[styles.optionTitle, { color: colors.darkText }]}>{option.title}</Text>
+              <Text style={[styles.optionDescription, { color: colors.grayText }]}>{option.description}</Text>
             </View>
             <MaterialCommunityIcons
               name="chevron-right"
               size={24}
-              color={DashboardColors.grayText}
+              color={colors.grayText}
             />
           </TouchableOpacity>
           ))}

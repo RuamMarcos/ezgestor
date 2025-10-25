@@ -252,7 +252,7 @@ function DashboardPage() {
           title="Produtos em Estoque Baixo" 
           value={loading ? '—' : data.lowStockItems.toString()}
           gradient="bg-gradient-to-r from-purple-200 to-pink-200"
-          textColor="text-gray-700"
+          textColor="text-gray-900"
         />
         <StatCard 
           title="Lucro Estimado" 

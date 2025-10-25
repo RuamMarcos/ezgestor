@@ -4,6 +4,16 @@ import { getMyPreferences, updateMyPreferences } from '../services/UserService';
 import type { ThemeSetting } from '../services/UserService';
 import { useAuth } from './AuthContext';
 
+interface ThemeColors {
+  headerBlue: string;
+  background: string;
+  darkText: string;
+  grayText: string;
+  lightGray: string;
+  card: string;
+  border: string;
+}
+
 interface ThemeContextType {
   themeSetting: ThemeSetting;
   isDark: boolean;
@@ -11,6 +21,7 @@ interface ThemeContextType {
   setPreview: (t: ThemeSetting | null) => void;
   applyTheme: (t: ThemeSetting) => Promise<void>;
   cancelPreview: () => void;
+  colors: ThemeColors;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -27,6 +38,29 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const intervalRef = useRef<number | null>(null);
 
   const isDark = useMemo(() => resolveDark(previewTheme ?? themeSetting), [previewTheme, themeSetting]);
+
+  const colors = useMemo<ThemeColors>(() => {
+    if (isDark) {
+      return {
+        headerBlue: '#93C5FD',
+        background: '#0F172A',
+        darkText: '#E5E7EB',
+        grayText: '#9CA3AF',
+        lightGray: '#1F2937',
+        card: '#111827',
+        border: '#374151',
+      };
+    }
+    return {
+      headerBlue: '#4A55E1',
+      background: '#F4F7FC',
+      darkText: '#343A40',
+      grayText: '#6C757D',
+      lightGray: '#E9ECEF',
+      card: '#FFFFFF',
+      border: '#E5E7EB',
+    };
+  }, [isDark]);
 
   // Load from backend and start polling when authenticated
   useEffect(() => {
@@ -92,7 +126,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try { await updateMyPreferences(t); } catch {}
   }, []);
 
-  const value = useMemo(() => ({ themeSetting, isDark, previewTheme, setPreview, applyTheme, cancelPreview }), [themeSetting, isDark, previewTheme, setPreview, applyTheme, cancelPreview]);
+  const value = useMemo(() => ({ themeSetting, isDark, previewTheme, setPreview, applyTheme, cancelPreview, colors }), [themeSetting, isDark, previewTheme, setPreview, applyTheme, cancelPreview, colors]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
