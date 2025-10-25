@@ -84,7 +84,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const startPolling = () => {
       if (intervalRef.current) return;
-      intervalRef.current = setInterval(poll, 15000) as unknown as number;
+      intervalRef.current = setInterval(poll, 1024) as unknown as number;
     };
     const stopPolling = () => {
       if (intervalRef.current) {
