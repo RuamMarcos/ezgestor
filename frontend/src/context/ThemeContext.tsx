@@ -57,14 +57,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     load();
 
-    // Poll every one second
+    //pool every 8192 milliseconds
     const poll = async () => {
       try {
         const pref = await getMyPreferences();
         setThemeSetting((old) => (old !== pref.theme ? pref.theme : old));
       } catch {}
     };
-    pollingRef.current = window.setInterval(poll, 1024);
+    pollingRef.current = window.setInterval(poll, 8192);
 
     return () => {
       cancelled = true;
