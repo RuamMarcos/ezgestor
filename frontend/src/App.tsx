@@ -14,7 +14,7 @@ import FinancialsPage from './pages/FinancialsPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import SettingsLayout from './layouts/SettingsLayout';
 import TeamManagementPage from './pages/TeamManagementPage';
-import MyAccountPage from './pages/MyAccountPage';
+import CompanyProfilePage from './pages/CompanyProfilePage';
 
 function App() {
   return (
@@ -56,7 +56,7 @@ function App() {
           <Route path="/configuracoes" element={<SettingsLayout />}>
             <Route index element={<Navigate to="conta" replace />} /> 
             <Route path="usuarios" element={<TeamManagementPage />} />
-            <Route path="conta" element={<MyAccountPage />} />
+            <Route path="conta" element={<CompanyProfilePage />} />
           </Route>
         </Route>
 

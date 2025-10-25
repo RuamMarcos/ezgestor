@@ -44,6 +44,16 @@ class Empresa(models.Model):
     razao_social = models.CharField(max_length=255)
     cnpj = models.CharField(max_length=18, unique=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)
+    logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True)
+    inscricao_estadual = models.CharField(max_length=20, blank=True, null=True)
+    endereco = models.CharField(max_length=255, blank=True, null=True)
+    cep = models.CharField(max_length=9, blank=True, null=True)
+    bairro = models.CharField(max_length=100, blank=True, null=True)
+    cidade = models.CharField(max_length=100, blank=True, null=True)
+    estado = models.CharField(max_length=50, blank=True, null=True)
+    pais = models.CharField(max_length=50, blank=True, null=True, default='Brasil')
+    telefone = models.CharField(max_length=20, blank=True, null=True)
+    email_principal = models.EmailField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.nome_fantasia
