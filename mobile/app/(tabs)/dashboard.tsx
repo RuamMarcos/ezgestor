@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Text, View, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from '../../styles/dashboard/DashboardStyles';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -34,6 +35,7 @@ const formatCurrency = (value: number | string): string => {
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets(); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<FinancialStats | null>(null);
@@ -138,7 +140,7 @@ export default function DashboardScreen() {
     <AdminRoute>
       <ScrollView
         style={styles.safeArea}
-        contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={[styles.container, { backgroundColor: colors.background, paddingBottom: insets.top*5}]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={[styles.title, { color: colors.darkText }]}>Dashboard</Text>
@@ -172,7 +174,7 @@ export default function DashboardScreen() {
         <View style={styles.recentSalesContainer}>
           <Text style={[styles.title, { color: colors.darkText }]}>Vendas Recentes</Text>
           {recentSales.map((sale) => (
-            <View key={sale.id_venda} style={[styles.saleItem, { borderBottomColor: colors.border }]}>
+            <View key={sale.id_venda} style={[styles.saleItem, { borderBottomColor: colors.border, backgroundColor: colors.card }]}>
               <View>
                 <Text style={[styles.saleCustomer, { color: colors.darkText }]}>{sale.cliente_nome || sale.nome_vendedor || '—'}</Text>
                 <Text style={[styles.saleProduct, { color: colors.grayText }]}>{sale.nome_produto}</Text>

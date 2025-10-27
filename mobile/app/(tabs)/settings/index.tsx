@@ -2,14 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { AdminRoute } from '@/components/AdminRoute';
 import { styles } from '@/styles/settings/SettingsStyles';
 import { useTheme } from '@/context/ThemeContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { themeSetting, applyTheme, colors } = useTheme();
+  const { colors } = useTheme();
 
   const settingsOptions = [
     {
@@ -37,47 +36,6 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.optionsContainer}>
-          {/* Theme card */}
-          <View style={[styles.optionCard, { padding: 16, marginBottom: 16, backgroundColor: colors.card }]}>
-            <Text style={[styles.optionTitle, { color: colors.darkText }]}>Tema</Text>
-            <Text style={[styles.optionDescription, { color: colors.grayText }]}>Claro, Escuro ou Automático (segue o sistema)</Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-              {(['light', 'dark', 'system'] as const).map(opt => {
-                const isSelected = themeSetting === opt;
-                return (
-                  <TouchableOpacity
-                    key={opt}
-                    onPress={() => applyTheme(opt)}
-                    style={[
-                      {
-                        paddingVertical: 8,
-                        paddingHorizontal: 12,
-                        borderRadius: 8,
-                        borderWidth: 1,
-                      },
-                      isSelected
-                        ? { borderColor: '#2563eb' }
-                        : { borderColor: colors.border }
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        {
-                          fontSize: 14,
-                        },
-                        isSelected
-                          ? { color: '#1d4ed8' }
-                          : { color: colors.darkText }
-                      ]}
-                    >
-                      {opt === 'light' ? 'Claro' : opt === 'dark' ? 'Escuro' : 'Automático'}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
           {settingsOptions.map((option) => (
             <TouchableOpacity
               key={option.id}

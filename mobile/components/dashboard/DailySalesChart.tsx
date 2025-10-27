@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Dimensions, ActivityIndicator } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { format } from 'date-fns';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ChartData {
   date: string;
@@ -17,12 +17,14 @@ interface DailySalesChartProps {
 const screenWidth = Dimensions.get('window').width;
 
 const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
+  const { colors } = useTheme();
+
   if (loading) {
-    return <ActivityIndicator size="large" color={DashboardColors.headerBlue} style={{ marginVertical: 40 }} />;
+    return <ActivityIndicator size="large" color={colors.headerBlue} style={{ marginVertical: 40 }} />;
   }
 
   if (!data || data.length === 0) {
-    return <Text style={{ textAlign: 'center', marginVertical: 40, color: '#666' }}>Sem dados de vendas.</Text>;
+    return <Text style={{ textAlign: 'center', marginVertical: 40, color: colors.grayText }}>Sem dados de vendas.</Text>;
   }
 
   // Função para extrair manualmente o dia e mês da string de data
@@ -52,18 +54,18 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
         yAxisLabel="R$"
         yAxisSuffix=""
         chartConfig={{
-          backgroundColor: DashboardColors.background,
-          backgroundGradientFrom: DashboardColors.background,
-          backgroundGradientTo: DashboardColors.background,
+          backgroundColor: colors.background,
+          backgroundGradientFrom: colors.background,
+          backgroundGradientTo: colors.background,
           decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(111, 66, 193, ${opacity})`,
+          color: (opacity = 1) => `rgba(74, 85, 225, ${opacity})`,
           barPercentage: 1.0,
           barRadius: 5,
-          fillShadowGradientFrom: DashboardColors.purple,
+          fillShadowGradientFrom: colors.headerBlue,
           fillShadowGradientFromOpacity: 1,
-          fillShadowGradientTo: DashboardColors.purple,
+          fillShadowGradientTo: colors.headerBlue,
           fillShadowGradientToOpacity: 1,
-          labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
+          labelColor: (opacity = 1) => `rgba(108, 117, 125, ${opacity})`,
           style: {
             borderRadius: 16,
             paddingRight: 16,
@@ -71,7 +73,7 @@ const DailySalesChart: React.FC<DailySalesChartProps> = ({ data, loading }) => {
           propsForDots: {
             r: '6',
             strokeWidth: '2',
-            stroke: DashboardColors.blue,
+            stroke: colors.headerBlue,
           },
         }}
         verticalLabelRotation={0}

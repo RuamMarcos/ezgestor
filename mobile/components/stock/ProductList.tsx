@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { Product } from '../../services/StockService';
+import { useTheme } from '@/context/ThemeContext';
 import { styles } from '../../styles/stock/ProductListStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { confirm } from '@/utils/confirm';
 
 interface ProductListProps {
@@ -31,6 +31,7 @@ const ProductList: React.FC<ProductListProps> = ({
   refreshing = false,
   onRefresh
 }) => {
+  const { colors } = useTheme();
 
   const handleDelete = async (productId: number) => {
     const ok = await confirm({
@@ -50,38 +51,38 @@ const ProductList: React.FC<ProductListProps> = ({
   };
 
   const renderItem = ({ item }: { item: Product }) => (
-    <View style={styles.card}>
-      <View style={styles.imageWrapper}>
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={[styles.imageWrapper, { backgroundColor: colors.lightGray }]}>
         {item.imagem_url ? (
           <Image source={{ uri: item.imagem_url }} style={styles.image} />
         ) : (
-          <MaterialCommunityIcons name="image-off-outline" size={42} color="#cbd5e1" />
+          <MaterialCommunityIcons name="image-off-outline" size={42} color={colors.grayText} />
         )}
       </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>{item.nome}</Text>
-      <Text style={styles.cardSub} numberOfLines={1}>SKU: {item.codigo_do_produto || 'N/A'}</Text>
-      <Text style={styles.cardSub}>Qtd: {item.quantidade_estoque} • {formatCurrency(item.preco_venda)}</Text>
+      <Text style={[styles.cardTitle, { color: colors.darkText }]} numberOfLines={1}>{item.nome}</Text>
+      <Text style={[styles.cardSub, { color: colors.grayText }]} numberOfLines={1}>SKU: {item.codigo_do_produto || 'N/A'}</Text>
+      <Text style={[styles.cardSub, { color: colors.grayText }]}>Qtd: {item.quantidade_estoque} • {formatCurrency(item.preco_venda)}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
         <View style={[styles.statusDot, { backgroundColor: item.em_baixo_estoque ? '#ef4444' : '#10b981' }]} />
-        <Text style={styles.cardStatus}>{item.em_baixo_estoque ? 'Baixo' : 'Bom'}</Text>
+        <Text style={[styles.cardStatus, { color: colors.grayText }]}>{item.em_baixo_estoque ? 'Baixo' : 'Bom'}</Text>
       </View>
       <View style={styles.cardActions}>
-        <TouchableOpacity onPress={() => onAddStock(item)}><MaterialCommunityIcons name="plus-box-outline" size={22} color={DashboardColors.green} /></TouchableOpacity>
-        <TouchableOpacity onPress={() => onEditProduct(item)}><MaterialCommunityIcons name="pencil-outline" size={22} color={DashboardColors.headerBlue} /></TouchableOpacity>
-  <TouchableOpacity onPress={() => handleDelete(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={DashboardColors.grayText} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => onAddStock(item)}><MaterialCommunityIcons name="plus-box-outline" size={22} color={colors.headerBlue} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => onEditProduct(item)}><MaterialCommunityIcons name="pencil-outline" size={22} color={colors.headerBlue} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDelete(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={colors.grayText} /></TouchableOpacity>
       </View>
     </View>
   );
 
-    return (
+  return (
     <FlatList
       data={products}
       renderItem={renderItem}
       keyExtractor={(item) => item.id_produto!.toString()}
-      contentContainerStyle={styles.grid}
+      contentContainerStyle={[styles.grid, { paddingBottom: 24 }]}
       numColumns={2}
       columnWrapperStyle={{ gap: 12 }}
-      ListEmptyComponent={<Text style={styles.emptyText}>Nenhum produto encontrado.</Text>}
+      ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.grayText }]}>Nenhum produto encontrado.</Text>}
       ListFooterComponent={ListFooterComponent}
       refreshing={refreshing}
       onRefresh={onRefresh}

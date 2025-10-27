@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 import { styles } from '../../styles/sales/SaleListItemStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'react-native';
@@ -33,19 +34,21 @@ const formatCurrency = (value: string) => {
   };
 
 const SaleListItem = ({ item, onPress }: SaleListItemProps) => {
+  const { colors } = useTheme();
+
   return (
-    <TouchableOpacity onPress={() => onPress && onPress(item)} activeOpacity={0.8} style={styles.card}>
-      <View style={styles.imageWrapper}>
+    <TouchableOpacity onPress={() => onPress && onPress(item)} activeOpacity={0.8} style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={[styles.imageWrapper, { backgroundColor: colors.lightGray }]}>
         {item.imagem_url ? (
           <Image source={{ uri: item.imagem_url }} style={styles.image} />
         ) : (
-          <MaterialCommunityIcons name="image-off-outline" size={40} color="#cbd5e1" />
+          <MaterialCommunityIcons name="image-off-outline" size={40} color={colors.grayText} />
         )}
       </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>{item.nome_produto}</Text>
-      <Text style={styles.cardSub} numberOfLines={1}>por {item.nome_vendedor}</Text>
-      <Text style={styles.cardSub}>{formatarData(item.data_venda)} • {typeof item.quantidade === 'number' ? `${item.quantidade} un` : ''}</Text>
-      <Text style={styles.cardPrice}>{formatCurrency(item.preco_total)}</Text>
+      <Text style={[styles.cardTitle, { color: colors.darkText }]} numberOfLines={1}>{item.nome_produto}</Text>
+      <Text style={[styles.cardSub, { color: colors.grayText }]} numberOfLines={1}>por {item.nome_vendedor}</Text>
+      <Text style={[styles.cardSub, { color: colors.grayText }]}>{formatarData(item.data_venda)} • {typeof item.quantidade === 'number' ? `${item.quantidade} un` : ''}</Text>
+      <Text style={[styles.cardPrice, { color: colors.headerBlue }]}>{formatCurrency(item.preco_total)}</Text>
     </TouchableOpacity>
   );
 };

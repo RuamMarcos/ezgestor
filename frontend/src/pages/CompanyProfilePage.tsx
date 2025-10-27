@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { aplicarMascaraCep, aplicarMascaraCnpj, aplicarMascaraTelefone } from '../utils/masks';
-import { useTheme } from '../context/ThemeContext';
 
 interface CompanyData {
   id: number;
@@ -27,7 +26,6 @@ interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
 
 const CompanyProfilePage = () => {
   const { user, refreshFromServer } = useAuth();
-  const { themeSetting, applyTheme } = useTheme();
   const [formData, setFormData] = useState<ICompanyForm>({
     nome_fantasia: '',
     razao_social: '',
@@ -165,10 +163,6 @@ const CompanyProfilePage = () => {
     }
   };
 
-  const handleThemeChange = (choice: 'light' | 'dark' | 'system') => {
-    applyTheme(choice);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -176,27 +170,6 @@ const CompanyProfilePage = () => {
         <p className="text-sm text-gray-500">
           Gerencie as informações da sua empresa.
         </p>
-      </div>
-      {/* Preferências de Aparência (Tema) */}
-      <div className="p-6 border rounded-lg bg-white">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Tema</h3>
-        <p className="text-sm text-gray-600">Escolha entre Claro, Escuro ou Automático (segue o sistema).</p>
-        <div className="mt-4 flex gap-2">
-          {(['light', 'dark', 'system'] as const).map(opt => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => handleThemeChange(opt)}
-              className={`px-3 py-2 rounded-md text-sm border transition-colors ${
-                themeSetting === opt
-                  ? 'border-blue-600 text-blue-700'
-                  : 'border-gray-300 text-gray-700'
-              } hover:bg-gray-50`}
-            >
-              {opt === 'light' ? 'Claro' : opt === 'dark' ? 'Escuro' : 'Automático'}
-            </button>
-          ))}
-        </div>
       </div>
       <div className="space-y-8">
         {/* Seção de Identificação da Empresa */}
