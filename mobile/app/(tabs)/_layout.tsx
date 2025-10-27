@@ -109,7 +109,7 @@ export default function TabLayout() {
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
-                  { backgroundColor: focused ? '#E8EAF6' : 'transparent' }
+                  { backgroundColor: focused ? colors.lightGray : 'transparent' }
                 ]}>
                   <MaterialCommunityIcons name="cog-outline" size={28} color={color} />
                   <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Config</Text>

@@ -5,20 +5,23 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { getTeamMembers, type TeamMember } from '@/services/TeamService';
 import AddUserModal from '@/components/settings/AddUserModal';
 import EditUserModal from '@/components/settings/EditUserModal';
 import DeleteUserModal from '@/components/settings/DeleteUserModal';
 import UserActionSheet from '@/components/settings/UserActionSheet';
 import UserList from '@/components/settings/UserList';
-import { styles } from '@/styles/settings/UserManagementStyles';
+import { useUserManagementStyles } from '@/styles/settings/UserManagementStyles';
 
 export default function UserManagementScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useUserManagementStyles(colors);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>([]);
   const [paginatedMembers, setPaginatedMembers] = useState<TeamMember[]>([]);
@@ -181,13 +184,13 @@ export default function UserManagementScreen() {
             <MaterialCommunityIcons
               name="arrow-left"
               size={24}
-              color={DashboardColors.headerBlue}
+              color={colors.headerBlue}
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Gerenciamento de Usuários</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={DashboardColors.headerBlue} />
+          <ActivityIndicator size="large" color={colors.headerBlue} />
         </View>
       </View>
     );
@@ -205,7 +208,7 @@ export default function UserManagementScreen() {
             <MaterialCommunityIcons
               name="arrow-left"
               size={24}
-              color={DashboardColors.headerBlue}
+              color={colors.headerBlue}
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Gerenciamento de Usuários</Text>
@@ -226,7 +229,7 @@ export default function UserManagementScreen() {
           <MaterialCommunityIcons
             name="magnify"
             size={20}
-            color={DashboardColors.grayText}
+            color={colors.grayText}
             style={styles.searchIcon}
           />
           <TextInput
@@ -234,7 +237,7 @@ export default function UserManagementScreen() {
             placeholder="Buscar por nome ou email..."
             value={searchTerm}
             onChangeText={setSearchTerm}
-            placeholderTextColor={DashboardColors.grayText}
+            placeholderTextColor={colors.grayText}
           />
         </View>
 
