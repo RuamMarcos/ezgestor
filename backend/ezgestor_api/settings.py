@@ -35,6 +35,9 @@ SECRET_KEY = os.environ.get(
 # Use the environment variable for DEBUG, defaulting to True for local development.
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@ezgestor.com'
+
 # ALLOWED_HOSTS configuration
 ALLOWED_HOSTS = [
     h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
