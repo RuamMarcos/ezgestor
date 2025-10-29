@@ -105,6 +105,10 @@ const LoginScreen = () => {
     router.push('/(auth)/register');
   };
 
+  const handleForgotPassword = () => {
+    router.push('/(auth)/password-recovery');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4A4E9D" barStyle="light-content" />
@@ -159,6 +163,14 @@ const LoginScreen = () => {
                 />
               </View>
             </View>
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity 
+              style={styles.forgotPasswordContainer} 
+              onPress={handleForgotPassword}
+            >
+              <Text style={styles.forgotPasswordLink}>Esqueci minha senha</Text>
+            </TouchableOpacity>
 
             {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
