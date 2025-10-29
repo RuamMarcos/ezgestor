@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     marginTop: -10,
   },
   forgotPasswordLink: {
-    color: '#FFF',
+    color: '#4A4E9D',
     fontSize: 14,
     textDecorationLine: 'underline',
   },

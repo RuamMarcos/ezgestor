@@ -11,7 +11,8 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
 
 export const verifyPasswordResetCode = async (email: string, code: string): Promise<void> => {
   try {
-    await api.post('/accounts/password-reset/verify/', { email, code });
+    // CORREÇÃO: Alterado de '/verify/' para '/validate-code/'
+    await api.post('/accounts/password-reset/validate-code/', { email, code });
   } catch (error: any) {
     console.error("Erro ao verificar código:", error.response?.data);
     throw error.response?.data || new Error("Código de verificação inválido ou expirado.");
