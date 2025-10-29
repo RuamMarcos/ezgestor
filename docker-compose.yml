@@ -11,6 +11,7 @@ services:
       - db_data:/app/sqlite-data
       - ./secrets:/secrets:ro
     environment:
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
@@ -34,6 +35,7 @@ services:
     image: ezgestor-app:latest
     command: ["sh", "-c", "python manage.py makemigrations --noinput && python manage.py migrate --noinput"]
     environment:
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
