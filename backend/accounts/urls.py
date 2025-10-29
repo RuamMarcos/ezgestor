@@ -1,3 +1,4 @@
+# /backend/accounts/urls.py
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
@@ -11,7 +12,11 @@ from .views import (
     TeamMemberDetailView,
     TeamMemberListView,
     UserPreferenceView,
-    EmpresaProfileView
+    EmpresaProfileView,
+    # Imports Adicionados
+    PasswordResetRequestView,
+    PasswordResetValidateCodeView,
+    PasswordResetConfirmView
 )
 
 urlpatterns = [
@@ -34,4 +39,9 @@ urlpatterns = [
 
     # Preferences
     path('me/preferences/', UserPreferenceView.as_view(), name='user_preferences'),
+
+    # password recover
+    path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('password-reset/validate-code/', PasswordResetValidateCodeView.as_view(), name='password_reset_validate_code'),
+    path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 ]
