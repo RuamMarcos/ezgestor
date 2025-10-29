@@ -180,3 +180,35 @@ class ProcessarPagamentoSerializer(serializers.Serializer):
         if not Plano.objects.filter(pk=value).exists():
             raise serializers.ValidationError("Plano não encontrado.")
         return value
+    
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer para solicitar a redefinição de senha.
+    Apenas valida o campo de e-mail.
+    """
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        # Normaliza o email para minúsculas para consistência
+        return value.lower()
+
+class PasswordResetValidateCodeSerializer(serializers.Serializer):
+    """
+    Serializer para validar o código de redefinição.
+    """
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+    
+    def validate_email(self, value):
+        return value.lower()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer para confirmar a nova senha.
+    """
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+    new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_email(self, value):
+        return value.lower()

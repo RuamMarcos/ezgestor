@@ -1,3 +1,4 @@
+# /backend/accounts/views.py
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, permissions, status
@@ -5,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from datetime import date, timedelta #
+from datetime import date, timedelta
 from .serializers import (
     MyTokenObtainPairSerializer, 
     EmpresaRegistrationSerializer,
@@ -15,10 +16,19 @@ from .serializers import (
     ChangePasswordSerializer,
     UsuarioSerializer,
     TeamMemberUpdateSerializer,
-    EmpresaSerializer
+    EmpresaSerializer,
+    # Imports Adicionados
+    PasswordResetRequestSerializer,
+    PasswordResetValidateCodeSerializer,
+    PasswordResetConfirmSerializer
 )
-from .models import Empresa, Usuario, Plano, Assinatura, Pagamento 
+from .models import Empresa, Usuario, Plano, Assinatura, Pagamento, PasswordResetCode # Model Adicionado
 from .permissions import IsAdminUser
+import random
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.conf import settings
+
 
 class EmpresaProfileView(generics.RetrieveUpdateAPIView):
     """
@@ -143,7 +153,6 @@ class ProcessarPagamentoView(APIView):
         try:
             plano = Plano.objects.get(pk=plano_id)
 
-            # Cria a Assinatura
             assinatura = Assinatura.objects.create(
                 empresa=empresa,
                 plano=plano,
@@ -153,7 +162,6 @@ class ProcessarPagamentoView(APIView):
                 meses_ativos=1
             )
 
-            # Cria o primeiro Pagamento
             Pagamento.objects.create(
                 assinatura=assinatura,
                 valor=plano.preco_mensal,
@@ -167,3 +175,107 @@ class ProcessarPagamentoView(APIView):
             return Response({"detail": "Plano inválido."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"detail": f"Ocorreu um erro: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PasswordResetRequestView(generics.GenericAPIView):
+    """
+    Endpoint para solicitar um código de recuperação de senha.
+    Recebe um e-mail.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PasswordResetRequestSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        
+        try:
+            user = Usuario.objects.get(email=email)
+            
+            PasswordResetCode.objects.filter(user=user).delete()
+            
+            code = str(random.randint(100000, 999999))
+            PasswordResetCode.objects.create(user=user, code=code)
+            
+            send_mail(
+                subject='Seu código de recuperação de senha EzGestor',
+                message=f'Seu código de recuperação de senha é: {code}\n\nEste código expira em 10 minutos.',
+                from_email=settings.DEFAULT_FROM_EMAIL, 
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Usuario.DoesNotExist:
+            pass 
+        except Exception as e:
+            print(f"Erro ao enviar email de recuperação: {e}")
+            pass
+
+        return Response(
+            {"detail": "Caso esse e-mail exista em nossa base, um código de recuperação foi enviado."},
+            status=status.HTTP_200_OK
+        )
+
+class PasswordResetValidateCodeView(generics.GenericAPIView):
+    """
+    Endpoint para validar o código de 6 dígitos.
+    Recebe e-mail e código.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PasswordResetValidateCodeSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        code = serializer.validated_data['code']
+        
+        expiration_time = timezone.now() - timedelta(minutes=10)
+
+        try:
+            user = Usuario.objects.get(email=email)
+            reset_code = PasswordResetCode.objects.get(
+                user=user, 
+                code=code,
+                created_at__gte=expiration_time
+            )
+            
+            return Response({"detail": "Código validado com sucesso."}, status=status.HTTP_200_OK)
+
+        except (Usuario.DoesNotExist, PasswordResetCode.DoesNotExist):
+            return Response({"detail": "Código inválido ou expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    """
+    Endpoint para definir a nova senha.
+    Recebe e-mail, código e a nova senha.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PasswordResetConfirmSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        code = serializer.validated_data['code']
+        new_password = serializer.validated_data['new_password']
+
+        expiration_time = timezone.now() - timedelta(minutes=10) 
+
+        try:
+            user = Usuario.objects.get(email=email)
+            reset_code = PasswordResetCode.objects.get(
+                user=user, 
+                code=code,
+                created_at__gte=expiration_time
+            )
+
+            user.set_password(new_password)
+            user.save()
+            
+            reset_code.delete()
+            
+            return Response({"detail": "Senha alterada com sucesso."}, status=status.HTTP_200_OK)
+
+        except (Usuario.DoesNotExist, PasswordResetCode.DoesNotExist):
+            return Response({"detail": "Código inválido ou expirado. Tente novamente."}, status=status.HTTP_400_BAD_REQUEST)

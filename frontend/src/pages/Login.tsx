@@ -1,14 +1,16 @@
-// src/pages/Login.tsx
+// /frontend/src/pages/Login.tsx
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import PasswordResetModal from "../components/auth/PasswordResetModal"; 
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
   const { login } = useAuth(); 
   const navigate = useNavigate(); 
 
@@ -18,10 +20,9 @@ const Login = () => {
   setLoading(true); 
 
   try {
-      // Captura o retorno da função de login
+
       const { hasActiveSubscription } = await login(email, password);
 
-      // Decide para onde navegar com base no status da assinatura
       if (!hasActiveSubscription) {
         navigate('/plans');
         return;
@@ -133,17 +134,21 @@ const Login = () => {
                 </Link>
               </p>
               <div>
-                <a href="#" className="text-sm text-gray-500 hover:text-primary transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setIsResetModalOpen(true)}
+                  className="text-sm text-gray-500 hover:text-primary transition-colors"
+                >
                   Esqueci minha senha
-                </a>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </main>
+      {isResetModalOpen && <PasswordResetModal onClose={() => setIsResetModalOpen(false)} />}
     </div>
   );
 }
 
 export default Login;
-
