@@ -11,7 +11,6 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
 
 export const verifyPasswordResetCode = async (email: string, code: string): Promise<void> => {
   try {
-    // CORREÇÃO: Alterado de '/verify/' para '/validate-code/'
     await api.post('/accounts/password-reset/validate-code/', { email, code });
   } catch (error: any) {
     console.error("Erro ao verificar código:", error.response?.data);
@@ -21,7 +20,7 @@ export const verifyPasswordResetCode = async (email: string, code: string): Prom
 
 export const confirmPasswordReset = async (email: string, code: string, password: string): Promise<void> => {
   try {
-    await api.post('/accounts/password-reset/confirm/', { email, code, password });
+    await api.post('/accounts/password-reset/confirm/', { email, code, new_password: password });
   } catch (error: any)
  {
     console.error("Erro ao confirmar nova senha:", error.response?.data);
