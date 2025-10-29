@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { deleteTeamMember, type TeamMember } from '@/services/TeamService';
 import { confirm } from '@/utils/confirm';
 import { styles } from '@/styles/settings/DeleteUserModalStyles';
@@ -21,6 +21,8 @@ interface DeleteUserModalProps {
 }
 
 export default function DeleteUserModal({ visible, onClose, onSuccess, member }: DeleteUserModalProps) {
+  const { colors } = useTheme();
+  const dynamicStyles = styles(colors);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,54 +72,54 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <View style={styles.headerTitleContainer}>
+      <View style={dynamicStyles.modalOverlay}>
+        <View style={dynamicStyles.modalContent}>
+          <View style={dynamicStyles.modalHeader}>
+            <View style={dynamicStyles.headerTitleContainer}>
               <MaterialCommunityIcons
                 name="alert-circle"
                 size={24}
                 color="#EF4444"
               />
-              <Text style={styles.modalTitle}>Excluir Usuário</Text>
+              <Text style={dynamicStyles.modalTitle}>Excluir Usuário</Text>
             </View>
             <TouchableOpacity onPress={onClose} disabled={loading}>
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={DashboardColors.grayText}
+                color={colors.grayText}
               />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-            <View style={styles.userInfoCard}>
-              <View style={styles.userAvatar}>
-                <Text style={styles.userAvatarText}>
+          <ScrollView style={dynamicStyles.modalBody} showsVerticalScrollIndicator={false}>
+            <View style={dynamicStyles.userInfoCard}>
+              <View style={dynamicStyles.userAvatar}>
+                <Text style={dynamicStyles.userAvatarText}>
                   {member.first_name[0]}
                   {member.last_name[0]}
                 </Text>
               </View>
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>
+              <View style={dynamicStyles.userInfo}>
+                <Text style={dynamicStyles.userName}>
                   {member.first_name} {member.last_name}
                 </Text>
-                <Text style={styles.userEmail}>{member.email}</Text>
-                <View style={styles.userTags}>
+                <Text style={dynamicStyles.userEmail}>{member.email}</Text>
+                <View style={dynamicStyles.userTags}>
                   <View
                     style={[
-                      styles.tag,
+                      dynamicStyles.tag,
                       member.nivel_acesso === 'administrador'
-                        ? styles.adminTag
-                        : styles.employeeTag,
+                        ? dynamicStyles.adminTag
+                        : dynamicStyles.employeeTag,
                     ]}
                   >
                     <Text
                       style={[
-                        styles.tagText,
+                        dynamicStyles.tagText,
                         member.nivel_acesso === 'administrador'
-                          ? styles.adminTagText
-                          : styles.employeeTagText,
+                          ? dynamicStyles.adminTagText
+                          : dynamicStyles.employeeTagText,
                       ]}
                     >
                       {member.nivel_acesso === 'administrador'
@@ -127,16 +129,16 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
                   </View>
                   <View
                     style={[
-                      styles.tag,
-                      member.is_active ? styles.activeTag : styles.inactiveTag,
+                      dynamicStyles.tag,
+                      member.is_active ? dynamicStyles.activeTag : dynamicStyles.inactiveTag,
                     ]}
                   >
                     <Text
                       style={[
-                        styles.tagText,
+                        dynamicStyles.tagText,
                         member.is_active
-                          ? styles.activeTagText
-                          : styles.inactiveTagText,
+                          ? dynamicStyles.activeTagText
+                          : dynamicStyles.inactiveTagText,
                       ]}
                     >
                       {member.is_active ? 'Ativo' : 'Inativo'}
@@ -146,30 +148,30 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
               </View>
             </View>
 
-            <View style={styles.warningSection}>
-              <View style={styles.warningCard}>
+            <View style={dynamicStyles.warningSection}>
+              <View style={dynamicStyles.warningCard}>
                 <MaterialCommunityIcons
                   name="alert"
                   size={20}
                   color="#F59E0B"
                 />
-                <View style={styles.warningTextContainer}>
-                  <Text style={styles.warningTitle}>Atenção!</Text>
-                  <Text style={styles.warningText}>
+                <View style={dynamicStyles.warningTextContainer}>
+                  <Text style={dynamicStyles.warningTitle}>Atenção!</Text>
+                  <Text style={dynamicStyles.warningText}>
                     Esta ação é permanente e não pode ser desfeita.
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.warningCard}>
+              <View style={dynamicStyles.warningCard}>
                 <MaterialCommunityIcons
                   name="information"
                   size={20}
-                  color={DashboardColors.headerBlue}
+                  color={colors.headerBlue}
                 />
-                <View style={styles.warningTextContainer}>
-                  <Text style={styles.warningTitle}>O que acontecerá:</Text>
-                  <Text style={styles.warningText}>
+                <View style={dynamicStyles.warningTextContainer}>
+                  <Text style={dynamicStyles.warningTitle}>O que acontecerá:</Text>
+                  <Text style={dynamicStyles.warningText}>
                     • O usuário será removido permanentemente do sistema{'\n'}
                     • Todos os dados associados serão mantidos para histórico{'\n'}
                     • O usuário não poderá mais fazer login
@@ -177,15 +179,15 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
                 </View>
               </View>
 
-              <View style={styles.alternativeCard}>
+              <View style={dynamicStyles.alternativeCard}>
                 <MaterialCommunityIcons
                   name="lightbulb-on"
                   size={20}
                   color="#10B981"
                 />
-                <View style={styles.alternativeTextContainer}>
-                  <Text style={styles.alternativeTitle}>Alternativa Sugerida</Text>
-                  <Text style={styles.alternativeText}>
+                <View style={dynamicStyles.alternativeTextContainer}>
+                  <Text style={dynamicStyles.alternativeTitle}>Alternativa Sugerida</Text>
+                  <Text style={dynamicStyles.alternativeText}>
                     Se você deseja apenas impedir que o usuário acesse o sistema
                     temporariamente, considere desativá-lo em vez de excluí-lo.
                     Usuários inativos não podem fazer login, mas podem ser
@@ -197,23 +199,23 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
           </ScrollView>
 
           {error && (
-            <View style={styles.errorContainer}>
+            <View style={dynamicStyles.errorContainer}>
               <MaterialCommunityIcons name="alert-circle" size={20} color="#EF4444" />
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={dynamicStyles.errorText}>{error}</Text>
             </View>
           )}
 
-          <View style={styles.modalFooter}>
+          <View style={dynamicStyles.modalFooter}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+              style={[dynamicStyles.button, dynamicStyles.cancelButton]}
               onPress={onClose}
               disabled={loading}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={dynamicStyles.cancelButtonText}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.deleteButton, loading && styles.buttonDisabled]}
+              style={[dynamicStyles.button, dynamicStyles.deleteButton, loading && dynamicStyles.buttonDisabled]}
               onPress={handleDelete}
               disabled={loading}
               activeOpacity={0.7}
@@ -223,7 +225,7 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
               ) : (
                 <>
                   <MaterialCommunityIcons name="delete" size={18} color="#FFFFFF" />
-                  <Text style={styles.deleteButtonText}>Excluir Usuário</Text>
+                  <Text style={dynamicStyles.deleteButtonText}>Excluir Usuário</Text>
                 </>
               )}
             </TouchableOpacity>

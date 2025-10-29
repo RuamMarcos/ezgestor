@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 
-export const styles = StyleSheet.create({
+export const styles = (colors: any) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -9,19 +9,19 @@ export const styles = StyleSheet.create({
     padding: 16,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderRadius: 16,
     marginBottom: 16,
   },
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
     textAlign: 'center',
   },
   actionsList: {
@@ -36,7 +36,7 @@ export const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.lightGray,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -44,18 +44,18 @@ export const styles = StyleSheet.create({
   actionText: {
     fontSize: 16,
     fontWeight: '500',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
   },
   deleteText: {
     color: '#EF4444',
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     marginHorizontal: 16,
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.lightGray,
     margin: 16,
     marginTop: 8,
     padding: 16,
@@ -65,6 +65,6 @@ export const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: DashboardColors.grayText,
+    color: colors.grayText,
   },
 });

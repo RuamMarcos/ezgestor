@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 
-export const styles = StyleSheet.create({
+export const styles = (colors: any) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -19,12 +19,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
   },
   modalBody: {
     padding: 20,
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
     marginBottom: 8,
   },
   required: {
@@ -43,20 +43,20 @@ export const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: DashboardColors.darkText,
-    backgroundColor: '#FFFFFF',
+    color: colors.darkText,
+    backgroundColor: colors.card,
   },
   inputDisabled: {
-    backgroundColor: '#F3F4F6',
-    color: DashboardColors.grayText,
+    backgroundColor: colors.lightGray,
+    color: colors.grayText,
   },
   helperText: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
     marginTop: 4,
   },
   radioGroup: {
@@ -67,16 +67,16 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-start',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
   },
   radioButton: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: DashboardColors.headerBlue,
+    borderColor: colors.headerBlue,
     marginRight: 12,
     marginTop: 2,
     justifyContent: 'center',
@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: DashboardColors.headerBlue,
+    backgroundColor: colors.headerBlue,
   },
   radioLabelContainer: {
     flex: 1,
@@ -94,12 +94,12 @@ export const styles = StyleSheet.create({
   radioLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
     marginBottom: 4,
   },
   radioDescription: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
   },
   switchContainer: {
     flexDirection: 'row',
@@ -107,9 +107,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
   },
   switchLabelContainer: {
     flex: 1,
@@ -118,12 +118,12 @@ export const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
     marginBottom: 4,
   },
   switchDescription: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
   },
   errorContainer: {
     flexDirection: 'row',
@@ -144,7 +144,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     gap: 12,
   },
   button: {
@@ -155,15 +155,15 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.lightGray,
   },
   cancelButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: DashboardColors.grayText,
+    color: colors.darkText,
   },
   submitButton: {
-    backgroundColor: DashboardColors.headerBlue,
+    backgroundColor: colors.headerBlue,
   },
   submitButtonText: {
     fontSize: 14,

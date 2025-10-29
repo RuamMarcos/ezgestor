@@ -10,7 +10,7 @@ import {
   Switch,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { updateTeamMember, type TeamMember } from '@/services/TeamService';
 import { styles } from '@/styles/settings/EditUserModalStyles';
 
@@ -29,6 +29,8 @@ interface UpdateTeamMemberData {
 }
 
 export default function EditUserModal({ visible, onClose, onSuccess, member }: EditUserModalProps) {
+  const { colors } = useTheme();
+  const dynamicStyles = styles(colors);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<UpdateTeamMemberData>({
@@ -109,104 +111,104 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
       transparent={true}
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Editar Usuário</Text>
+      <View style={dynamicStyles.modalOverlay}>
+        <View style={dynamicStyles.modalContent}>
+          <View style={dynamicStyles.modalHeader}>
+            <Text style={dynamicStyles.modalTitle}>Editar Usuário</Text>
             <TouchableOpacity onPress={handleClose} disabled={loading}>
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={DashboardColors.grayText}
+                color={colors.grayText}
               />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Primeiro Nome <Text style={styles.required}>*</Text>
+          <ScrollView style={dynamicStyles.modalBody} showsVerticalScrollIndicator={false}>
+            <View style={dynamicStyles.formGroup}>
+              <Text style={dynamicStyles.label}>
+                Primeiro Nome <Text style={dynamicStyles.required}>*</Text>
               </Text>
               <TextInput
-                style={styles.input}
+                style={dynamicStyles.input}
                 value={formData.first_name}
                 onChangeText={(text) =>
                   setFormData({ ...formData, first_name: text })
                 }
                 placeholder="Digite o primeiro nome"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 editable={!loading}
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Sobrenome <Text style={styles.required}>*</Text>
+            <View style={dynamicStyles.formGroup}>
+              <Text style={dynamicStyles.label}>
+                Sobrenome <Text style={dynamicStyles.required}>*</Text>
               </Text>
               <TextInput
-                style={styles.input}
+                style={dynamicStyles.input}
                 value={formData.last_name}
                 onChangeText={(text) =>
                   setFormData({ ...formData, last_name: text })
                 }
                 placeholder="Digite o sobrenome"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 editable={!loading}
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Email</Text>
+            <View style={dynamicStyles.formGroup}>
+              <Text style={dynamicStyles.label}>Email</Text>
               <TextInput
-                style={[styles.input, styles.inputDisabled]}
+                style={[dynamicStyles.input, dynamicStyles.inputDisabled]}
                 value={member.email}
                 editable={false}
               />
-              <Text style={styles.helperText}>O email não pode ser alterado</Text>
+              <Text style={dynamicStyles.helperText}>O email não pode ser alterado</Text>
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Nível de Acesso <Text style={styles.required}>*</Text>
+            <View style={dynamicStyles.formGroup}>
+              <Text style={dynamicStyles.label}>
+                Nível de Acesso <Text style={dynamicStyles.required}>*</Text>
               </Text>
-              <View style={styles.radioGroup}>
+              <View style={dynamicStyles.radioGroup}>
                 <TouchableOpacity
-                  style={styles.radioOption}
+                  style={dynamicStyles.radioOption}
                   onPress={() =>
                     setFormData({ ...formData, nivel_acesso: 'funcionario' })
                   }
                   disabled={loading}
                   activeOpacity={0.7}
                 >
-                  <View style={styles.radioButton}>
+                  <View style={dynamicStyles.radioButton}>
                     {formData.nivel_acesso === 'funcionario' && (
-                      <View style={styles.radioButtonSelected} />
+                      <View style={dynamicStyles.radioButtonSelected} />
                     )}
                   </View>
-                  <View style={styles.radioLabelContainer}>
-                    <Text style={styles.radioLabel}>Funcionário</Text>
-                    <Text style={styles.radioDescription}>
+                  <View style={dynamicStyles.radioLabelContainer}>
+                    <Text style={dynamicStyles.radioLabel}>Funcionário</Text>
+                    <Text style={dynamicStyles.radioDescription}>
                       Acesso limitado às funcionalidades básicas
                     </Text>
                   </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.radioOption}
+                  style={dynamicStyles.radioOption}
                   onPress={() =>
                     setFormData({ ...formData, nivel_acesso: 'administrador' })
                   }
                   disabled={loading}
                   activeOpacity={0.7}
                 >
-                  <View style={styles.radioButton}>
+                  <View style={dynamicStyles.radioButton}>
                     {formData.nivel_acesso === 'administrador' && (
-                      <View style={styles.radioButtonSelected} />
+                      <View style={dynamicStyles.radioButtonSelected} />
                     )}
                   </View>
-                  <View style={styles.radioLabelContainer}>
-                    <Text style={styles.radioLabel}>Administrador</Text>
-                    <Text style={styles.radioDescription}>
+                  <View style={dynamicStyles.radioLabelContainer}>
+                    <Text style={dynamicStyles.radioLabel}>Administrador</Text>
+                    <Text style={dynamicStyles.radioDescription}>
                       Acesso completo a todas as funcionalidades
                     </Text>
                   </View>
@@ -214,11 +216,11 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
               </View>
             </View>
 
-            <View style={styles.formGroup}>
-              <View style={styles.switchContainer}>
-                <View style={styles.switchLabelContainer}>
-                  <Text style={styles.switchLabel}>Usuário ativo</Text>
-                  <Text style={styles.switchDescription}>
+            <View style={dynamicStyles.formGroup}>
+              <View style={dynamicStyles.switchContainer}>
+                <View style={dynamicStyles.switchLabelContainer}>
+                  <Text style={dynamicStyles.switchLabel}>Usuário ativo</Text>
+                  <Text style={dynamicStyles.switchDescription}>
                     Desative para impedir o acesso deste usuário ao sistema
                   </Text>
                 </View>
@@ -228,31 +230,31 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
                     setFormData({ ...formData, is_active: value })
                   }
                   disabled={loading}
-                  trackColor={{ false: '#D1D5DB', true: DashboardColors.headerBlue }}
-                  thumbColor={formData.is_active ? '#FFFFFF' : '#F3F4F6'}
+                  trackColor={{ false: colors.lightGray, true: colors.headerBlue }}
+                  thumbColor={formData.is_active ? colors.background : colors.lightGray}
                 />
               </View>
             </View>
           </ScrollView>
 
           {error && (
-            <View style={styles.errorContainer}>
+            <View style={dynamicStyles.errorContainer}>
               <MaterialCommunityIcons name="alert-circle" size={20} color="#EF4444" />
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={dynamicStyles.errorText}>{error}</Text>
             </View>
           )}
 
-          <View style={styles.modalFooter}>
+          <View style={dynamicStyles.modalFooter}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+              style={[dynamicStyles.button, dynamicStyles.cancelButton]}
               onPress={handleClose}
               disabled={loading}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={dynamicStyles.cancelButtonText}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.submitButton, loading && styles.buttonDisabled]}
+              style={[dynamicStyles.button, dynamicStyles.submitButton, loading && dynamicStyles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={loading}
               activeOpacity={0.7}
@@ -260,7 +262,7 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.submitButtonText}>Salvar Alterações</Text>
+                <Text style={dynamicStyles.submitButtonText}>Salvar Alterações</Text>
               )}
             </TouchableOpacity>
           </View>
