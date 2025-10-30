@@ -2,13 +2,13 @@
 
 from rest_framework import serializers
 from .models import Log
-from accounts.models import CustomUser
+from accounts.models import Usuario
 
 class LogUserSerializer(serializers.ModelSerializer):
     """Serializer simplificado para mostrar quem fez a ação no log."""
     class Meta:
-        model = CustomUser
-        fields = ['id_usuario', 'username', 'email']
+        model = Usuario
+        fields = ['id', 'email', 'first_name', 'last_name']
         read_only = True
 
 class LogSerializer(serializers.ModelSerializer):

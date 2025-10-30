@@ -22,7 +22,7 @@ class Log(models.Model):
         verbose_name="Quando"
     )
     action_type = models.CharField(
-        max_length=10, 
+        max_length=15, 
         choices=ACTION_TYPES,
         verbose_name="Ação"
     )

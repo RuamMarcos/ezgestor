@@ -3,7 +3,7 @@
 from rest_framework import generics, permissions, pagination
 from .models import Log
 from .serializers import LogSerializer
-from accounts.permissions import IsDonoEmpresa # <-- Importar sua permissão
+from accounts.permissions import IsAdminUser # <-- Importar sua permissão
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
     """
@@ -20,8 +20,8 @@ class LogListView(generics.ListAPIView):
     """
     serializer_class = LogSerializer
     pagination_class = StandardResultsSetPagination
-    
-    permission_classes = [permissions.IsAuthenticated, IsDonoEmpresa] 
+
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get_queryset(self):
         """
