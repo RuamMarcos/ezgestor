@@ -1,65 +1,90 @@
-import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { UserIcon, UsersIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+// frontend/src/layouts/SettingsLayout.tsx
 
-const navigation = [
-  { name: 'Minha Conta', href: '/configuracoes/conta', icon: UserIcon },
-  { name: 'Usuários', href: '/configuracoes/usuarios', icon: UsersIcon },
-];
+import React from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import {
+  BuildingOfficeIcon,
+  UsersIcon,
+  DocumentTextIcon, // <-- 1. ADICIONEI ESTE ÍCONE
+} from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 const SettingsLayout: React.FC = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth(); // O seu arquivo já tinha isso, ótimo!
+
+  const links = [
+    {
+      name: 'Perfil da Empresa',
+      href: '/settings/company',
+      icon: BuildingOfficeIcon,
+    },
+    ...(user?.is_dono // O seu arquivo já tinha essa verificação
+      ? [
+          {
+            name: 'Gestão da Equipe',
+            href: '/settings/team',
+            icon: UsersIcon,
+          },
+          // V-- 2. ADICIONEI ESTE BLOCO PARA O NOVO LINK --V
+          {
+            name: 'Logs de Auditoria',
+            href: '/settings/logs',
+            icon: DocumentTextIcon,
+          },
+          // ^-- FIM DA ADIÇÃO --^
+        ]
+      : []),
+  ];
 
   return (
-    <div className="flex h-full min-h-screen bg-gray-50">
-      {/* Sidebar de Configurações */}
-      <aside className="w-64 flex-shrink-0 border-r border-gray-200 bg-white min-h-screen">
-        <div className="flex flex-col p-4">
-          {/* Botão Voltar */}
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-x-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md px-2 py-2 text-sm font-medium mb-4 transition-colors"
-          >
-            <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-            Voltar
-          </button>
+    <div className="flex-grow bg-gray-100 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+          Configurações
+        </h1>
 
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2">Configurações</h2>
-          <nav className="flex-1 space-y-1">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={({ isActive }) =>
-                  classNames(
-                    isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                    'group flex items-center rounded-md px-2 py-2 text-sm font-medium'
-                  )
-                }
-              >
-                <item.icon
-                  className={classNames(
-                    'mr-3 h-6 w-6 flex-shrink-0'
-                  )}
-                  aria-hidden="true"
-                />
-                {item.name}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-      </aside>
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Navegação Lateral */}
+          <aside className="w-full md:w-1/4 lg:w-1/5">
+            <nav className="space-y-1">
+              {links.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    classNames(
+                      isActive
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                      'group flex items-center px-3 py-2 text-sm font-medium rounded-md'
+                    )
+                  }
+                  end // Garante que apenas a rota exata seja 'ativa'
+                >
+                  <item.icon
+                    className={classNames(
+                      location.pathname === item.href
+                        ? 'text-blue-500'
+                        : 'text-gray-400 group-hover:text-gray-500',
+                      'mr-3 flex-shrink-0 h-6 w-6'
+                    )}
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">{item.name}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </aside>
 
-      {/* Conteúdo Principal */}
-      <div className="flex-1 bg-gray-50">
-        <div className="p-6 min-h-screen">
-          <Outlet /> 
+          {/* Conteúdo Principal */}
+          <div className="w-full md:w-3/4 lg:w-4/5">
+            <Outlet />
+          </div>
         </div>
       </div>
     </div>

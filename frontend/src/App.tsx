@@ -1,69 +1,85 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import DashboardPage from './pages/DashboardPage';
+// frontend/src/App.tsx
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
+import DashboardLayout from './layouts/DashboardLayout';
+import SettingsLayout from './layouts/SettingsLayout';
+import Login from './pages/Login';
+import RegisterPage from './pages/RegisterPage';
 import PlansPage from './pages/PlansPage';
 import PaymentPage from './pages/PaymentPage';
-import Login from "./pages/Login";
-import RegisterPage from "./pages/RegisterPage";
-import ProtectedRoute from './components/ProtectedRoute';
-import DashboardLayout from './layouts/DashboardLayout'; 
-import StockPage from './pages/StockPage'; 
+import DashboardPage from './pages/DashboardPage';
+import StockPage from './pages/StockPage';
 import SalesPage from './pages/SalesPage';
 import FinancialsPage from './pages/FinancialsPage';
-
-import AdminProtectedRoute from './components/AdminProtectedRoute';
-import SettingsLayout from './layouts/SettingsLayout';
-import TeamManagementPage from './pages/TeamManagementPage';
+import LandingPage from './pages/LandingPage';
 import CompanyProfilePage from './pages/CompanyProfilePage';
+import TeamManagementPage from './pages/TeamManagementPage';
+import LogsPage from './pages/LogsPage';
+
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/plans" element={<PlansPage />} />
-        <Route path="/payment" element={<PaymentPage />} />
+    <Router>
+      <AuthProvider>
+        <Toaster position="top-right" reverseOrder={false} />
+        <div className="flex flex-col min-h-screen">
+          <Routes>
+            {/* Rotas Públicas */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/plans" element={<PlansPage />} />
+            <Route path="/payment" element={<PaymentPage />} />
 
-        {/* Protected Routes - Accessible by funcionario and administrador */}
-        <Route 
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
-          {/* Rotas acessíveis por funcionário e administrador */}
-          <Route path="/stock" element={<StockPage />} />
-          <Route path="/vendas" element={<SalesPage />} />
-        </Route>
+            {/* Rotas Protegidas (Dashboard) */}
+            <Route element={<DashboardLayout />}>
+              <Route
+                path="/dashboard"
+                element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
+              />
+              <Route
+                path="/stock"
+                element={<ProtectedRoute><StockPage /></ProtectedRoute>}
+              />
+              <Route
+                path="/sales"
+                element={<ProtectedRoute><SalesPage /></ProtectedRoute>}
+              />
+              <Route
+                path="/financials"
+                element={<ProtectedRoute><FinancialsPage /></ProtectedRoute>}
+              />
+            </Route>
 
-        {/* Admin Only Routes */}
-        <Route 
-          element={
-            <ProtectedRoute>
-              <AdminProtectedRoute />
-            </ProtectedRoute>
-          }
-        >
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/fluxo-de-caixa" element={<FinancialsPage />} />
-          </Route>
-
-          <Route path="/configuracoes" element={<SettingsLayout />}>
-            <Route index element={<Navigate to="conta" replace />} /> 
-            <Route path="usuarios" element={<TeamManagementPage />} />
-            <Route path="conta" element={<CompanyProfilePage />} />
-          </Route>
-        </Route>
-
-        {/* Fallback Route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+            {/* Rotas de Configurações */}
+            <Route element={<SettingsLayout />}>
+              <Route
+                path="/settings/company"
+                element={<ProtectedRoute><CompanyProfilePage /></ProtectedRoute>}
+              />
+              <Route element={<AdminProtectedRoute />}>
+                <Route
+                  path="/settings/team"
+                  element={<TeamManagementPage />}
+                />
+              </Route>
+              {/* V-- 2. ADICIONAR A NOVA ROTA PROTEGIDA --V */}
+              <Route element={<AdminProtectedRoute />}>
+                <Route
+                  path="/settings/logs"
+                  element={<LogsPage />}
+                />
+              </Route>
+              {/* ^-- FIM DA ADIÇÃO --^ */}
+            </Route>
+          </Routes>
+        </div>
+      </AuthProvider>
+    </Router>
   );
 }
 
