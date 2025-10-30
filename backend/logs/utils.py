@@ -17,7 +17,7 @@ def log_action(user, action_type, instance, custom_description=None):
     else:
         instance_str = f"ID {instance.pk}"
 
-    user_str = user.username if user else "Sistema"
+    user_str = user.email if user else "Sistema"
 
     if custom_description:
         description = custom_description

@@ -11,7 +11,7 @@ def log_user_login(sender, request, user, **kwargs):
     Log.objects.create(
         user=user,
         action_type='LOGIN',
-        model_name='CustomUser',
+        model_name='Usuario',
         object_id=user.pk,
-        description=f"Usuário '{user.username}' logou no sistema."
+        description=f"Usuário '{user.email}' logou no sistema."
     )

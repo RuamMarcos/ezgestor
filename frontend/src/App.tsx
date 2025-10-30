@@ -49,32 +49,30 @@ function App() {
                 path="/sales"
                 element={<ProtectedRoute><SalesPage /></ProtectedRoute>}
               />
-              <Route
-                path="/financials"
-                element={<ProtectedRoute><FinancialsPage /></ProtectedRoute>}
-              />
+              <Route element={<AdminProtectedRoute />}>
+                <Route
+                  path="/financials"
+                  element={<FinancialsPage />}
+                />
+              </Route>
             </Route>
 
             {/* Rotas de Configurações */}
             <Route element={<SettingsLayout />}>
-              <Route
-                path="/settings/company"
-                element={<ProtectedRoute><CompanyProfilePage /></ProtectedRoute>}
-              />
               <Route element={<AdminProtectedRoute />}>
+                <Route
+                  path="/settings/company"
+                  element={<CompanyProfilePage />}
+                />
                 <Route
                   path="/settings/team"
                   element={<TeamManagementPage />}
                 />
-              </Route>
-              {/* V-- 2. ADICIONAR A NOVA ROTA PROTEGIDA --V */}
-              <Route element={<AdminProtectedRoute />}>
                 <Route
                   path="/settings/logs"
                   element={<LogsPage />}
                 />
               </Route>
-              {/* ^-- FIM DA ADIÇÃO --^ */}
             </Route>
           </Routes>
         </div>

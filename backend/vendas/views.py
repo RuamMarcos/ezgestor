@@ -200,7 +200,7 @@ class VendaViewSet(viewsets.ModelViewSet):
             action_type='DELETE',
             model_name=instance_model_name,
             object_id=instance_pk,
-            description=f"Usuário '{request.user.username}' deletou (hard delete) venda: '{instance_desc}'."
+            description=f"Usuário '{request.user.email}' deletou (hard delete) venda: '{instance_desc}'."
         )
             
         return Response(status=status.HTTP_204_NO_CONTENT)
