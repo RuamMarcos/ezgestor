@@ -8,6 +8,7 @@ from django.db import models
 from rest_framework.response import Response
 from decimal import Decimal
 from financeiro.models import LancamentoFinanceiro
+from logs.utils import log_action
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -22,6 +23,11 @@ class ProdutoListCreateView(generics.ListCreateAPIView):
     serializer_class = ProdutoSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+
+    def perform_create(self, serializer):
+        instance = serializer.save(empresa=self.request.user.empresa)
+        
+        log_action(self.request.user, 'CREATE', instance)
 
     def get_queryset(self):
         user = self.request.user
@@ -85,9 +91,19 @@ class ProdutoDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Produto.objects.filter(empresa=self.request.user.empresa, ativo=True)
 
+    def perform_update(self, serializer):
+        """ Log para 'UPDATE' """
+        instance = serializer.save()
+        log_action(self.request.user, 'UPDATE', instance)
+
     def destroy(self, request, *args, **kwargs):
         # Soft delete: marca o produto como inativo ao invés de deletar
         instance = self.get_object()
+        
+        # Adição do Log (usando o tipo 'SOFT_DELETE'):
+        log_action(self.request.user, 'SOFT_DELETE', instance)
+        
+        # Seu código original:
         instance.ativo = False
         instance.save(update_fields=['ativo'])
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -176,6 +192,14 @@ class AddStockView(views.APIView):
         produto.save(update_fields=['quantidade_estoque'])
         
         produto.refresh_from_db()
+
+        # Adição do Log (com descrição customizada):
+        log_action(
+            request.user, 
+            'UPDATE', 
+            produto,
+            custom_description=f"Usuário '{request.user.username}' adicionou {quantidade} un. ao estoque de '{produto.nome}'. Novo total: {produto.quantidade_estoque}."
+        )
 
         # Criar lançamento financeiro automático de saída (reabastecimento)
         unit_price = produto.preco_custo if (produto.preco_custo is not None and produto.preco_custo > 0) else (produto.preco_venda or Decimal('0'))

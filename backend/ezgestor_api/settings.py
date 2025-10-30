@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'vendas',
     'financeiro',
     'reports',
+    'logs',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework',
