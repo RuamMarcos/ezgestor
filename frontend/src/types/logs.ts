@@ -4,20 +4,17 @@ export interface LogUser {
   email: string;
 }
 
-export interface LogEntry {
+export interface Log {
   id: number;
-  user: LogUser | null;
-  action_time: string;
+  user: string;
   action_type: string;
-  action_type_display: string;
-  model_name: string;
-  object_id: number;
-  description: string;
+  details: string;
+  timestamp: string;
 }
 
-export interface PaginatedLogResponse {
+export interface PaginatedLogsResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: LogEntry[];
+  results: Log[];
 }
