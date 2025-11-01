@@ -1,16 +1,11 @@
 import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
-import {
-  BuildingOffice2Icon,
-  UsersIcon,
-  CreditCardIcon,
-  DocumentTextIcon,
-} from '@heroicons/react/24/outline';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { UserIcon, UsersIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
-const tabs = [
-  { name: 'Minha Conta', href: '/configuracoes/conta', icon: UsersIcon },
+const navigation = [
+  { name: 'Minha Conta', href: '/configuracoes/conta', icon: UserIcon },
   { name: 'Usuários', href: '/configuracoes/usuarios', icon: UsersIcon },
-  { name: 'Logs de Atividade', href: '/configuracoes/logs', icon: DocumentTextIcon },
+  { name: 'Logs do Sistema', href: '/configuracoes/logs', icon: DocumentTextIcon },
 ];
 
 function classNames(...classes: string[]) {
@@ -18,48 +13,54 @@ function classNames(...classes: string[]) {
 }
 
 const SettingsLayout: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Configurações
-        </h1>
+    <div className="flex h-full min-h-screen bg-gray-50">
+      {/* Sidebar de Configurações */}
+      <aside className="w-64 flex-shrink-0 border-r border-gray-200 bg-white min-h-screen">
+        <div className="flex flex-col p-4">
+          {/* Botão Voltar */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-x-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md px-2 py-2 text-sm font-medium mb-4 transition-colors"
+          >
+            <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
+            Voltar
+          </button>
 
-        <div className="lg:grid lg:grid-cols-12 lg:gap-x-5">
-          <aside className="py-6 px-2 sm:px-6 lg:py-0 lg:px-0 lg:col-span-3">
-            <nav className="space-y-1">
-              {tabs.map((tab) => (
-                <NavLink
-                  key={tab.name}
-                  to={tab.href}
-                  end={tab.href === '/settings'} 
-                  className={({ isActive }) =>
-                    classNames(
-                      isActive
-                        ? 'bg-gray-200 text-indigo-700' 
-                        : 'text-gray-900 hover:text-gray-900 hover:bg-gray-50',
-                      'group rounded-md px-3 py-2 flex items-center text-sm font-medium'
-                    )
-                  }
-                >
-                  <tab.icon
-                    className={classNames(
-                      'text-gray-400 group-hover:text-gray-500',
-                      'flex-shrink-0 -ml-1 mr-3 h-6 w-6'
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span className="truncate">{tab.name}</span>
-                </NavLink>
-              ))}
-            </nav>
-          </aside>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2">Configurações</h2>
+          <nav className="flex-1 space-y-1">
+            {navigation.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                className={({ isActive }) =>
+                  classNames(
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                    'group flex items-center rounded-md px-2 py-2 text-sm font-medium'
+                  )
+                }
+              >
+                <item.icon
+                  className={classNames(
+                    'mr-3 h-6 w-6 flex-shrink-0'
+                  )}
+                  aria-hidden="true"
+                />
+                {item.name}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </aside>
 
-          <div className="space-y-6 sm:px-6 lg:px-0 lg:col-span-9">
-            <div className="bg-white shadow-md rounded-lg min-h-[300px]">
-              <Outlet />
-            </div>
-          </div>
+      {/* Conteúdo Principal */}
+      <div className="flex-1 bg-gray-50">
+        <div className="p-6 min-h-screen">
+          <Outlet /> 
         </div>
       </div>
     </div>

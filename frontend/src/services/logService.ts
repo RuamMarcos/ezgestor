@@ -8,7 +8,7 @@ export const getLogs = async (
   page: number = 1
 ): Promise<PaginatedLogsResponse> => {
   const { data } = await api.get<PaginatedLogsResponse>(
-    `/api/logs/?page=${page}`
+    `/logs/?page=${page}`
   );
   return data;
 };
