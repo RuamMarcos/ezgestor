@@ -8,18 +8,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 const tabs = [
-  {
-    name: 'Perfil da Empresa',
-    href: '/settings/company-profile',
-    icon: BuildingOffice2Icon,
-  },
-  { name: 'Equipe', href: '/settings/team', icon: UsersIcon },
-  { name: 'Planos', href: '/settings/plans', icon: CreditCardIcon },
-  {
-    name: 'Logs do Sistema',
-    href: '/settings/logs',
-    icon: DocumentTextIcon,
-  },
+  { name: 'Minha Conta', href: '/configuracoes/conta', icon: UsersIcon },
+  { name: 'Usuários', href: '/configuracoes/usuarios', icon: UsersIcon },
+  { name: 'Logs de Atividade', href: '/configuracoes/logs', icon: DocumentTextIcon },
 ];
 
 function classNames(...classes: string[]) {

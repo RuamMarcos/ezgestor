@@ -11,8 +11,7 @@ const LogsPage: React.FC = () => {
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Define um número de itens por página (deve ser o mesmo da paginação do backend)
-  const ITEMS_PER_PAGE = 15; // Ajuste se for diferente
+  const ITEMS_PER_PAGE = 15;
 
   useEffect(() => {
     fetchLogs(currentPage);
@@ -23,8 +22,6 @@ const LogsPage: React.FC = () => {
     try {
       const data = await getLogs(page);
 
-      // Map backend entries to the Log type expected by this component,
-      // providing safe fallbacks for fields that may be missing.
       const mappedLogs: Log[] = (data.results || []).map((r: any) => ({
         id: r.id,
         user: r.user ?? r.username ?? '',
@@ -131,7 +128,6 @@ const LogsPage: React.FC = () => {
             </table>
           </div>
 
-          {/* Paginação */}
           <div className="flex items-center justify-between mt-6">
             <div>
               <p className="text-sm text-gray-700">
