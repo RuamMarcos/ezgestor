@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, LayoutChangeEvent, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, LayoutChangeEvent, ScrollView, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useTheme } from '@/context/ThemeContext';
 import { getCashflowSeries, type CashflowPoint } from '@/services/FinancialService';
@@ -24,7 +24,7 @@ interface ChartDataPoint {
 const screenWidth = Dimensions.get('window').width;
 
 const FinancialChart = () => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('12months');
   const [containerWidth, setContainerWidth] = useState<number>(screenWidth - 40);
 
@@ -67,6 +67,23 @@ const FinancialChart = () => {
   const safeData: ChartDataPoint[] = chartData.length > 0
     ? chartData
     : [{ period: '-', inflows: 0, outflows: 0, net: 0 }];
+
+  const pickerDropdownTextColor = useMemo(() => {
+    if (Platform.OS === 'android' && isDark) {
+      return '#111827';
+    }
+    return colors.darkText;
+  }, [isDark, colors.darkText]);
+
+  const pickerBackgroundColor = useMemo(() => {
+    if (isDark) {
+      if (Platform.OS === 'web') {
+        return '#111827';
+      }
+      return colors.card;
+    }
+    return colors.lightGray;
+  }, [isDark, colors.card, colors.lightGray]);
 
   const totalInflows = chartData.reduce((sum, item) => sum + item.inflows, 0);
   const totalOutflows = chartData.reduce((sum, item) => sum + item.outflows, 0);
@@ -133,18 +150,18 @@ const FinancialChart = () => {
         <Text style={[styles.title, { color: colors.darkText }]}>Entradas vs. Saídas</Text>
       </View>
 
-  <View style={[styles.pickerContainer, { backgroundColor: colors.lightGray, borderColor: colors.border }]}>
+  <View style={[styles.pickerContainer, { backgroundColor: pickerBackgroundColor, borderColor: colors.border }]}>
         <Picker
           key={`timeframe-${colors.darkText}`}
           mode="dropdown"
           selectedValue={timeFrame}
           onValueChange={(value) => setTimeFrame(value as TimeFrame)}
-          style={[styles.picker, { color: colors.darkText }]}
-          itemStyle={{ color: colors.darkText }}
+          style={[styles.picker, { color: colors.darkText, backgroundColor: pickerBackgroundColor }]}
+          itemStyle={{ color: pickerDropdownTextColor }}
           dropdownIconColor={colors.darkText}
         >
           {TIMEFRAME_OPTIONS.map(({ label, value }) => (
-            <Picker.Item key={value} label={label} value={value} color={colors.darkText} />
+            <Picker.Item key={value} label={label} value={value} color={pickerDropdownTextColor} />
           ))}
         </Picker>
       </View>
