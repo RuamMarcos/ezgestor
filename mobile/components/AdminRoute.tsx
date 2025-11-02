@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { useEffect } from 'react';
 
 interface AdminRouteProps {
@@ -12,6 +12,7 @@ interface AdminRouteProps {
 
 export function AdminRoute({ children }: AdminRouteProps) {
   const { nivelAcesso, loading } = useAuth();
+  const { colors } = useTheme();
   const router = useRouter();
   const isAdmin = nivelAcesso === 'administrador';
 
@@ -28,17 +29,17 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   if (!isAdmin) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <MaterialCommunityIcons
           name="lock-outline"
           size={80}
-          color={DashboardColors.grayText}
+          color={colors.grayText}
         />
-        <Text style={styles.title}>Acesso Restrito</Text>
-        <Text style={styles.message}>
+        <Text style={[styles.title, { color: colors.darkText }]}>Acesso Restrito</Text>
+        <Text style={[styles.message, { color: colors.grayText }]}>
           Você não tem permissão para acessar esta área.
         </Text>
-        <Text style={styles.submessage}>
+        <Text style={[styles.submessage, { color: colors.grayText }]}>
           Apenas administradores podem visualizar este conteúdo.
         </Text>
       </View>
@@ -54,24 +55,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: DashboardColors.background,
   },
   title: {
     fontSize: 24,
     fontWeight: '600',
-    color: DashboardColors.darkText,
     marginTop: 16,
     marginBottom: 8,
   },
   message: {
     fontSize: 16,
-    color: DashboardColors.grayText,
     textAlign: 'center',
     marginBottom: 4,
   },
   submessage: {
     fontSize: 14,
-    color: DashboardColors.grayText,
     textAlign: 'center',
   },
 });

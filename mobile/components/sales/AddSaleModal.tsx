@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import api from '../../utils/api';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Product {
   id_produto: number;
@@ -27,6 +27,7 @@ interface AddSaleModalProps {
 }
 
 export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleModalProps) {
+  const { colors } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
@@ -211,13 +212,13 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 16 }}
           >
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nova Venda</Text>
+              <Text style={[styles.modalTitle, { color: colors.darkText }]}>Nova Venda</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
@@ -230,18 +231,18 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
             )}
 
             <View style={styles.formContainer}>
-              <Text style={styles.label}>Produto</Text>
+              <Text style={[styles.label, { color: colors.darkText }]}>Produto</Text>
               {loadingProducts ? (
-                <View style={[styles.pickerContainer, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
-                  <ActivityIndicator size="small" color={DashboardColors.headerBlue} />
-                  <Text style={[styles.helperText, { marginTop: 8 }]}>Carregando produtos...</Text>
+                <View style={[styles.pickerContainer, { justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: colors.lightGray }]}>
+                  <ActivityIndicator size="small" color={colors.headerBlue} />
+                  <Text style={[styles.helperText, { marginTop: 8, color: colors.grayText }]}>Carregando produtos...</Text>
                 </View>
               ) : error && products.length === 0 ? (
-                <View style={[styles.pickerContainer, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+                <View style={[styles.pickerContainer, { justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: colors.lightGray }]}>
                   <Text style={styles.errorText}>Não foi possível carregar os produtos</Text>
-                  <TouchableOpacity 
-                    onPress={fetchProducts} 
-                    style={{ marginTop: 8, padding: 8, backgroundColor: DashboardColors.headerBlue, borderRadius: 4 }}
+                  <TouchableOpacity
+                    onPress={fetchProducts}
+                    style={{ marginTop: 8, padding: 8, backgroundColor: colors.headerBlue, borderRadius: 4 }}
                   >
                     <Text style={{ color: 'white', fontSize: 12 }}>Tentar novamente</Text>
                   </TouchableOpacity>
@@ -291,36 +292,39 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
               )}
 
               {/* Dados do cliente (opcionais) */}
-              <Text style={styles.label}>Cliente (opcional)</Text>
+              <Text style={[styles.label, { color: colors.darkText }]}>Cliente (opcional)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { borderColor: colors.border, color: colors.darkText }]}
                 value={clientName}
                 onChangeText={setClientName}
                 placeholder="Nome do cliente"
+                placeholderTextColor={colors.grayText}
               />
               <View style={{ height: 8 }} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { borderColor: colors.border, color: colors.darkText }]}
                 value={clientPhone}
                 onChangeText={setClientPhone}
                 keyboardType="phone-pad"
                 placeholder="Telefone"
+                placeholderTextColor={colors.grayText}
               />
               <View style={{ height: 8 }} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { borderColor: colors.border, color: colors.darkText }]}
                 value={clientEmail}
                 onChangeText={setClientEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholder="E-mail"
+                placeholderTextColor={colors.grayText}
               />
 
               {selectedProduct && (
                 <>
-                  <Text style={styles.label}>Quantidade</Text>
+                  <Text style={[styles.label, { color: colors.darkText }]}>Quantidade</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { borderColor: colors.border, color: colors.darkText }]}
                     value={quantity}
                     onChangeText={(text: string) => {
                       const num = parseInt(text) || 0;
@@ -330,24 +334,25 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                     }}
                     keyboardType="numeric"
                     placeholder="1"
+                    placeholderTextColor={colors.grayText}
                   />
-                  <Text style={styles.helperText}>
+                  <Text style={[styles.helperText, { color: colors.grayText }]}>
                     Máximo disponível: {selectedProduct.quantidade_estoque}
                   </Text>
 
-                  <View style={styles.summaryContainer}>
+                  <View style={[styles.summaryContainer, { backgroundColor: colors.lightGray }]}>
                     <View style={styles.summaryRow}>
-                      <Text style={styles.summaryLabel}>Preço unitário:</Text>
-                      <Text style={styles.summaryValue}>{formatCurrency(selectedProduct?.preco_venda)}</Text>
+                      <Text style={[styles.summaryLabel, { color: colors.grayText }]}>Preço unitário:</Text>
+                      <Text style={[styles.summaryValue, { color: colors.darkText }]}>{formatCurrency(selectedProduct?.preco_venda)}</Text>
                     </View>
                     <View style={styles.summaryRow}>
-                      <Text style={styles.summaryLabel}>Quantidade:</Text>
-                      <Text style={styles.summaryValue}>{quantity}</Text>
+                      <Text style={[styles.summaryLabel, { color: colors.grayText }]}>Quantidade:</Text>
+                      <Text style={[styles.summaryValue, { color: colors.darkText }]}>{quantity}</Text>
                     </View>
-                    <View style={styles.summaryDivider} />
+                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
                     <View style={styles.summaryRow}>
-                      <Text style={styles.summaryTotalLabel}>Total:</Text>
-                      <Text style={styles.summaryTotalValue}>{formatCurrency(calculateTotal())}</Text>
+                      <Text style={[styles.summaryTotalLabel, { color: colors.darkText }]}>Total:</Text>
+                      <Text style={[styles.summaryTotalValue, { color: colors.headerBlue }]}>{formatCurrency(calculateTotal())}</Text>
                     </View>
                   </View>
                 </>
@@ -358,15 +363,19 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
           {/* Fixed action bar at bottom of modal container to avoid cutoff */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={[styles.cancelButton, { backgroundColor: colors.lightGray }]}
               onPress={onClose}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={[styles.cancelButtonText, { color: colors.darkText }]}>Cancelar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.submitButton, (!selectedProduct || loading) && styles.disabledButton]}
+              style={[
+                styles.submitButton,
+                { backgroundColor: colors.headerBlue },
+                (!selectedProduct || loading) && { backgroundColor: colors.grayText }
+              ]}
               onPress={handleSubmit}
               disabled={!selectedProduct || loading}
             >
@@ -408,7 +417,7 @@ const styles = {
   modalTitle: {
     fontSize: 20,
     fontWeight: '600' as '600',
-    color: DashboardColors.darkText,
+    // color will be applied inline
     textAlign: 'center' as 'center',
   },
   closeButton: {
@@ -416,7 +425,7 @@ const styles = {
   },
   closeButtonText: {
     fontSize: 20,
-    color: DashboardColors.grayText,
+    // color will be applied inline
   },
   errorContainer: {
     backgroundColor: '#fef2f2',
@@ -442,13 +451,13 @@ const styles = {
   },
   label: {
     fontSize: 14,
-    color: DashboardColors.darkText,
+    // color will be applied inline
     marginBottom: 6,
     marginTop: 8,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: DashboardColors.lightGray,
+    borderColor: '#e5e7eb',
     borderRadius: 10,
     flex: 1,
   },
@@ -461,7 +470,7 @@ const styles = {
     borderBottomColor: '#f0f0f0',
   },
   selectedProductOption: {
-    backgroundColor: DashboardColors.headerBlue,
+    // backgroundColor will be applied inline
   },
   productOptionText: {
     fontSize: 14,
@@ -469,14 +478,14 @@ const styles = {
   },
   input: {
     borderWidth: 1,
-    borderColor: DashboardColors.lightGray,
+    borderColor: '#e5e7eb',
     borderRadius: 10,
     padding: 12,
     fontSize: 16,
   },
   helperText: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    // color will be applied inline
     marginTop: 4,
   },
   summaryContainer: {
@@ -492,27 +501,27 @@ const styles = {
   },
   summaryLabel: {
     fontSize: 14,
-    color: DashboardColors.grayText,
+    // color will be applied inline
   },
   summaryValue: {
     fontSize: 14,
     fontWeight: '500' as '500',
-    color: DashboardColors.darkText,
+    // color will be applied inline
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: DashboardColors.lightGray,
+    backgroundColor: '#e5e7eb',
     marginVertical: 8,
   },
   summaryTotalLabel: {
     fontSize: 18,
     fontWeight: '600' as '600',
-    color: DashboardColors.darkText,
+    // color will be applied inline
   },
   summaryTotalValue: {
     fontSize: 18,
     fontWeight: '600' as '600',
-    color: DashboardColors.headerBlue,
+    // color will be applied inline
   },
   buttonContainer: {
     flexDirection: 'row' as 'row',
@@ -531,11 +540,11 @@ const styles = {
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600' as '600',
-    color: DashboardColors.darkText,
+    // color will be applied inline
   },
   submitButton: {
     flex: 1,
-    backgroundColor: DashboardColors.headerBlue,
+    // backgroundColor will be applied inline
     padding: 15,
     borderRadius: 10,
     alignItems: 'center' as 'center',
@@ -546,6 +555,6 @@ const styles = {
     color: 'white',
   },
   disabledButton: {
-    backgroundColor: DashboardColors.grayText,
+    // backgroundColor will be applied inline
   },
 };

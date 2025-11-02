@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import Colors from '../../constants/Colors';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ModalProps {
   visible: boolean;
@@ -10,6 +10,7 @@ interface ModalProps {
 }
 
 export default function QuickAddModal({ visible, onClose, onSave }: ModalProps) {
+  const { colors } = useTheme();
   const [value, setValue] = useState('');
 
   const handleSubmit = () => {
@@ -24,24 +25,24 @@ export default function QuickAddModal({ visible, onClose, onSave }: ModalProps) 
   return (
     <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Entrada Rápida de Estoque</Text>
-          <Text style={styles.instructions}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
+          <Text style={[styles.title, { color: colors.darkText }]}>Entrada Rápida de Estoque</Text>
+          <Text style={[styles.instructions, { color: colors.grayText }]}>
             Digite o código do produto e a quantidade a ser adicionada, separados por dois pontos (ex: 10:12).
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, color: colors.darkText }]}
             placeholder="código:quantidade"
-            placeholderTextColor={Colors.placeholder}
+            placeholderTextColor={colors.grayText}
             value={value}
             onChangeText={setValue}
             autoCapitalize="none"
           />
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            <TouchableOpacity style={[styles.button, styles.cancelButton, { backgroundColor: colors.lightGray }]} onPress={onClose}>
+              <Text style={[styles.cancelButtonText, { color: colors.darkText }]}>Cancelar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSubmit}>
+            <TouchableOpacity style={[styles.button, { backgroundColor: colors.headerBlue }]} onPress={handleSubmit}>
               <Text style={styles.saveButtonText}>Salvar</Text>
             </TouchableOpacity>
           </View>
@@ -60,7 +61,6 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         width: '90%',
-        backgroundColor: 'white',
         borderRadius: 20,
         padding: 20,
         elevation: 5,
@@ -74,12 +74,10 @@ const styles = StyleSheet.create({
     instructions: {
         fontSize: 14,
         textAlign: 'center',
-        color: Colors.textSecondary,
         marginBottom: 20,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ddd',
         borderRadius: 10,
         padding: 12,
         marginBottom: 20,
@@ -97,11 +95,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     cancelButton: {
-        backgroundColor: '#f1f1f1',
         marginRight: 10,
-    },
-    saveButton: {
-        backgroundColor: DashboardColors.headerBlue,
     },
     cancelButtonText: {
         fontWeight: 'bold',

@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert, Image } from 'react-nati
 import { Product } from '../../services/StockService';
 import { styles } from '../../styles/stock/ProductListStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { confirm } from '@/utils/confirm';
 
 interface ProductListProps {
@@ -22,15 +22,16 @@ const formatCurrency = (value: number | string | undefined): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numValue);
 };
 
-const ProductList: React.FC<ProductListProps> = ({ 
-  products, 
-  onEditProduct, 
-  onDeleteProduct, 
+const ProductList: React.FC<ProductListProps> = ({
+  products,
+  onEditProduct,
+  onDeleteProduct,
   onAddStock,
   ListFooterComponent,
   refreshing = false,
   onRefresh
 }) => {
+  const { colors } = useTheme();
 
   const handleDelete = async (productId: number) => {
     const ok = await confirm({
@@ -66,9 +67,9 @@ const ProductList: React.FC<ProductListProps> = ({
         <Text style={styles.cardStatus}>{item.em_baixo_estoque ? 'Baixo' : 'Bom'}</Text>
       </View>
       <View style={styles.cardActions}>
-        <TouchableOpacity onPress={() => onAddStock(item)}><MaterialCommunityIcons name="plus-box-outline" size={22} color={DashboardColors.green} /></TouchableOpacity>
-        <TouchableOpacity onPress={() => onEditProduct(item)}><MaterialCommunityIcons name="pencil-outline" size={22} color={DashboardColors.headerBlue} /></TouchableOpacity>
-  <TouchableOpacity onPress={() => handleDelete(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={DashboardColors.grayText} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => onAddStock(item)}><MaterialCommunityIcons name="plus-box-outline" size={22} color="#28A745" /></TouchableOpacity>
+        <TouchableOpacity onPress={() => onEditProduct(item)}><MaterialCommunityIcons name="pencil-outline" size={22} color={colors.headerBlue} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDelete(item.id_produto!)}><MaterialCommunityIcons name="trash-can-outline" size={22} color={colors.grayText} /></TouchableOpacity>
       </View>
     </View>
   );

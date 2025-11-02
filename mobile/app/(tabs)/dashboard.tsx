@@ -5,12 +5,12 @@ import { styles } from '../../styles/dashboard/DashboardStyles';
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';
 import ReportModal from '@/components/shared/ReportModal';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { getFinancialStats, FinancialStats } from '@/services/FinancialService';
 import api from '@/utils/api';
 import DailySalesChart from '@/components/dashboard/DailySalesChart';
 import { router } from 'expo-router';
 import { AdminRoute } from '@/components/AdminRoute';
+import { useTheme } from '@/context/ThemeContext';
 
 type RecentSale = {
   id_venda: number;
@@ -33,6 +33,7 @@ const formatCurrency = (value: number | string): string => {
 };
 
 export default function DashboardScreen() {
+  const { colors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<FinancialStats | null>(null);
@@ -97,25 +98,25 @@ export default function DashboardScreen() {
         id: '1',
         title: 'Receita',
         value: formatCurrency(stats?.total_entradas ?? 0),
-        color: DashboardColors.purple,
+        color: '#6F42C1',
       },
       {
         id: '2',
         title: 'Vendas',
         value: String(totalVendas),
-        color: DashboardColors.green,
+        color: '#28A745',
       },
       {
         id: '3',
         title: 'Estoque Baixo',
         value: String(lowStockCount),
-        color: DashboardColors.orange,
+        color: '#FD7E14',
       },
       {
         id: '4',
         title: 'Saldo', // Pode ser exibido como "Lucro" se desejar
         value: formatCurrency(stats?.saldo_atual ?? 0),
-        color: DashboardColors.blue,
+        color: '#0D6EFD',
       },
     ];
   }, [stats, totalVendas, lowStockCount]);
@@ -127,8 +128,8 @@ export default function DashboardScreen() {
 
   if (loading && !stats) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={DashboardColors.headerBlue} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.headerBlue} />
       </View>
     );
   }
@@ -136,11 +137,11 @@ export default function DashboardScreen() {
   return (
     <AdminRoute>
       <ScrollView
-        style={styles.safeArea}
+        style={[styles.safeArea, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Dashboard</Text>
+        <Text style={[styles.title, { color: colors.darkText }]}>Dashboard</Text>
 
         {error ? (
           <Text style={{ color: 'red', marginHorizontal: 16 }}>{error} </Text>
@@ -163,20 +164,20 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        <View style={[styles.chartContainer, { alignItems: 'center' }]}> 
-          <Text style={styles.title}>Vendas (Últimos 7 dias)</Text>
+        <View style={[styles.chartContainer, { alignItems: 'center' }]}>
+          <Text style={[styles.title, { color: colors.darkText }]}>Vendas (Últimos 7 dias)</Text>
           <DailySalesChart data={chartData} loading={chartLoading} />
         </View>
 
         <View style={styles.recentSalesContainer}>
-          <Text style={styles.title}>Vendas Recentes</Text>
+          <Text style={[styles.title, { color: colors.darkText }]}>Vendas Recentes</Text>
           {recentSales.map((sale) => (
-            <View key={sale.id_venda} style={styles.saleItem}>
+            <View key={sale.id_venda} style={[styles.saleItem, { borderBottomColor: colors.border }]}>
               <View>
-                <Text style={styles.saleCustomer}>{sale.cliente_nome || sale.nome_vendedor || '—'}</Text>
-                <Text style={styles.saleProduct}>{sale.nome_produto}</Text>
+                <Text style={[styles.saleCustomer, { color: colors.darkText }]}>{sale.cliente_nome || sale.nome_vendedor || '—'}</Text>
+                <Text style={[styles.saleProduct, { color: colors.grayText }]}>{sale.nome_produto}</Text>
               </View>
-              <Text style={styles.saleAmount}>{formatCurrency(sale.preco_total)}</Text>
+              <Text style={[styles.saleAmount, { color: colors.darkText }]}>{formatCurrency(sale.preco_total)}</Text>
             </View>
           ))}
         </View>

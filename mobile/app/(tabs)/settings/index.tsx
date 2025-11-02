@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { AdminRoute } from '@/components/AdminRoute';
 import { styles } from '@/styles/settings/SettingsStyles';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const settingsOptions = [
     {
@@ -28,17 +29,17 @@ export default function SettingsScreen() {
 
   return (
     <AdminRoute>
-      <ScrollView style={styles.container}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Configurações</Text>
-          <Text style={styles.headerSubtitle}>Gerencie as configurações do sistema</Text>
+          <Text style={[styles.headerTitle, { color: colors.darkText }]}>Configurações</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.grayText }]}>Gerencie as configurações do sistema</Text>
         </View>
 
       <View style={styles.optionsContainer}>
         {settingsOptions.map((option) => (
           <TouchableOpacity
             key={option.id}
-            style={styles.optionCard}
+            style={[styles.optionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push(option.route as any)}
             activeOpacity={0.7}
           >
@@ -46,17 +47,17 @@ export default function SettingsScreen() {
               <MaterialCommunityIcons
                 name={option.icon as any}
                 size={32}
-                color={DashboardColors.headerBlue}
+                color={colors.headerBlue}
               />
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Text style={styles.optionDescription}>{option.description}</Text>
+              <Text style={[styles.optionTitle, { color: colors.darkText }]}>{option.title}</Text>
+              <Text style={[styles.optionDescription, { color: colors.grayText }]}>{option.description}</Text>
             </View>
             <MaterialCommunityIcons
               name="chevron-right"
               size={24}
-              color={DashboardColors.grayText}
+              color={colors.grayText}
             />
           </TouchableOpacity>
           ))}

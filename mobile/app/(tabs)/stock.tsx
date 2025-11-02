@@ -9,11 +9,12 @@ import AddProductModal from '../../components/stock/AddProductModal';
 import EditProductModal from '../../components/stock/EditProductModal';
 import QuickAddProductModal from '../../components/stock/QuickAddProductModal'; // Importe o novo modal
 import QuickAddModal from '../../components/stock/QuickAddModal';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '../../styles/stock/StockStyles';
 import Svg, { Path } from 'react-native-svg';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function StockScreen() {
+    const { colors } = useTheme();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -265,7 +266,7 @@ export default function StockScreen() {
                     placeholder="Pesquisar por produto ou SKU..."
                     value={busca}
                     onChangeText={setBusca}
-                    placeholderTextColor={DashboardColors.grayText}
+                    placeholderTextColor={colors.grayText}
                 />
             </View>
             

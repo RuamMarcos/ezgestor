@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { updateSale, deleteSale } from '../../services/SalesService';
 import { confirm } from '@/utils/confirm';
 
@@ -25,6 +25,7 @@ interface Props {
 }
 
 export default function EditSaleModal({ visible, sale, onClose, onSaved, onDeleted }: Props) {
+  const { colors } = useTheme();
   const [form, setForm] = useState({ quantidade: 1, cliente_nome: '', cliente_email: '', cliente_telefone: '' });
 
   useEffect(() => {
@@ -78,41 +79,57 @@ export default function EditSaleModal({ visible, sale, onClose, onSaved, onDelet
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-        <View style={{ width: '90%', backgroundColor: 'white', borderRadius: 12, padding: 16 }}>
+        <View style={{ width: '90%', backgroundColor: colors.card, borderRadius: 12, padding: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600' }}>Editar Venda</Text>
-            <TouchableOpacity onPress={onClose}><Text style={{ fontSize: 20 }}>×</Text></TouchableOpacity>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: colors.darkText }}>Editar Venda</Text>
+            <TouchableOpacity onPress={onClose}><Text style={{ fontSize: 20, color: colors.grayText }}>×</Text></TouchableOpacity>
           </View>
 
-          <Text style={{ color: '#555' }}>Produto</Text>
-          <Text style={{ fontWeight: '600', marginBottom: 8 }}>{sale.nome_produto}</Text>
+          <Text style={{ color: colors.grayText }}>Produto</Text>
+          <Text style={{ fontWeight: '600', marginBottom: 8, color: colors.darkText }}>{sale.nome_produto}</Text>
 
-          <Text style={{ color: '#555' }}>Quantidade</Text>
+          <Text style={{ color: colors.grayText }}>Quantidade</Text>
           <TextInput
             value={String(form.quantidade)}
             onChangeText={(t) => setForm((p) => ({ ...p, quantidade: parseInt(t || '0') || 0 }))}
             keyboardType="numeric"
-            style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginBottom: 8 }}
+            style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 8, marginBottom: 8, color: colors.darkText }}
+            placeholderTextColor={colors.grayText}
           />
 
-          <Text style={{ color: '#555' }}>Cliente - Nome</Text>
-          <TextInput value={form.cliente_nome} onChangeText={(t) => setForm((p) => ({ ...p, cliente_nome: t }))} style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginBottom: 8 }} />
+          <Text style={{ color: colors.grayText }}>Cliente - Nome</Text>
+          <TextInput
+            value={form.cliente_nome}
+            onChangeText={(t) => setForm((p) => ({ ...p, cliente_nome: t }))}
+            style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 8, marginBottom: 8, color: colors.darkText }}
+            placeholderTextColor={colors.grayText}
+          />
 
-          <Text style={{ color: '#555' }}>Cliente - Telefone</Text>
-          <TextInput value={form.cliente_telefone} onChangeText={(t) => setForm((p) => ({ ...p, cliente_telefone: t }))} style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginBottom: 8 }} />
+          <Text style={{ color: colors.grayText }}>Cliente - Telefone</Text>
+          <TextInput
+            value={form.cliente_telefone}
+            onChangeText={(t) => setForm((p) => ({ ...p, cliente_telefone: t }))}
+            style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 8, marginBottom: 8, color: colors.darkText }}
+            placeholderTextColor={colors.grayText}
+          />
 
-          <Text style={{ color: '#555' }}>Cliente - E-mail</Text>
-          <TextInput value={form.cliente_email} onChangeText={(t) => setForm((p) => ({ ...p, cliente_email: t }))} style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginBottom: 8 }} />
+          <Text style={{ color: colors.grayText }}>Cliente - E-mail</Text>
+          <TextInput
+            value={form.cliente_email}
+            onChangeText={(t) => setForm((p) => ({ ...p, cliente_email: t }))}
+            style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 8, marginBottom: 8, color: colors.darkText }}
+            placeholderTextColor={colors.grayText}
+          />
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
             <TouchableOpacity onPress={handleDelete} style={{ backgroundColor: '#dc2626', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
               <Text style={{ color: 'white', fontWeight: '600' }}>Excluir</Text>
             </TouchableOpacity>
             <View style={{ flexDirection: 'row' }}>
-              <TouchableOpacity onPress={onClose} style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', marginRight: 8 }}>
-                <Text>Cancelar</Text>
+              <TouchableOpacity onPress={onClose} style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: colors.border, marginRight: 8, backgroundColor: colors.lightGray }}>
+                <Text style={{ color: colors.darkText }}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave} style={{ backgroundColor: DashboardColors.headerBlue, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
+              <TouchableOpacity onPress={handleSave} style={{ backgroundColor: colors.headerBlue, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
                 <Text style={{ color: 'white', fontWeight: '600' }}>Salvar</Text>
               </TouchableOpacity>
             </View>

@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from '../../styles/shared/AppHeaderStyles'; 
+import { useTheme } from '../../context/ThemeContext';
+import { styles } from '../../styles/shared/AppHeaderStyles';
 
 export default function DashboardHeader() {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const { logout, user } = useAuth();
+  const { themeSetting, applyTheme, colors } = useTheme();
 
   // Pega as iniciais do nome do usuário para exibir no ícone
   const userInitials = user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
@@ -16,14 +18,38 @@ export default function DashboardHeader() {
     logout();
   };
 
-  return (
-    <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>EzGestor</Text>
+  const handleToggleTheme = () => {
+    const themeOrder: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
+    const currentIndex = themeOrder.indexOf(themeSetting);
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    applyTheme(themeOrder[nextIndex]);
+  };
 
-      {/* Ícone de Perfil */}
-      <View>
-        <TouchableOpacity style={styles.userCircle} onPress={() => setDropdownVisible(true)}>
-          <MaterialCommunityIcons name="account" size={24} color={styles.userInitial.color} />
+  const getThemeIcon = () => {
+    switch(themeSetting) {
+      case 'light': return 'white-balance-sunny';
+      case 'dark': return 'moon-waning-crescent';
+      case 'system': return 'monitor';
+      default: return 'white-balance-sunny';
+    }
+  };
+
+  return (
+    <View style={[styles.headerContainer, { backgroundColor: colors.background }]}>
+      <Text style={[styles.headerTitle, { color: colors.headerBlue }]}>EzGestor</Text>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        {/* Botão de Tema */}
+        <TouchableOpacity
+          style={[styles.themeButton, { backgroundColor: colors.lightGray }]}
+          onPress={handleToggleTheme}
+        >
+          <MaterialCommunityIcons name={getThemeIcon()} size={20} color={colors.headerBlue} />
+        </TouchableOpacity>
+
+        {/* Ícone de Perfil */}
+        <TouchableOpacity style={[styles.userCircle, { backgroundColor: colors.lightGray }]} onPress={() => setDropdownVisible(true)}>
+          <MaterialCommunityIcons name="account" size={24} color={colors.headerBlue} />
         </TouchableOpacity>
 
         {/* Menu Dropdown (usando um Modal) */}
@@ -32,15 +58,15 @@ export default function DashboardHeader() {
           visible={isDropdownVisible}
           onRequestClose={() => setDropdownVisible(false)}
         >
-          <TouchableOpacity 
-            style={modalStyles.overlay} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={modalStyles.overlay}
+            activeOpacity={1}
             onPressOut={() => setDropdownVisible(false)}
           >
-            <View style={modalStyles.dropdown}>
+            <View style={[modalStyles.dropdown, { backgroundColor: colors.card }]}>
               <TouchableOpacity style={modalStyles.dropdownItem} onPress={handleLogout}>
-                <MaterialCommunityIcons name="logout" size={20} color="#333" />
-                <Text style={modalStyles.dropdownItemText}>Sair</Text>
+                <MaterialCommunityIcons name="logout" size={20} color={colors.darkText} />
+                <Text style={[modalStyles.dropdownItemText, { color: colors.darkText }]}>Sair</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -57,8 +83,7 @@ const modalStyles = StyleSheet.create({
   dropdown: {
     position: 'absolute',
     top: 85,
-    right: 20, 
-    backgroundColor: 'white',
+    right: 20,
     borderRadius: 8,
     padding: 8,
     shadowColor: '#000',
@@ -76,6 +101,5 @@ const modalStyles = StyleSheet.create({
   dropdownItemText: {
     marginLeft: 10,
     fontSize: 16,
-    color: '#333',
   },
 });
