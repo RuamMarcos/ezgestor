@@ -16,13 +16,14 @@ from .serializers import (
     ChangePasswordSerializer,
     UsuarioSerializer,
     TeamMemberUpdateSerializer,
+    UserPreferenceSerializer,
     EmpresaSerializer,
     # Imports Adicionados
     PasswordResetRequestSerializer,
     PasswordResetValidateCodeSerializer,
     PasswordResetConfirmSerializer
 )
-from .models import Empresa, Usuario, Plano, Assinatura, Pagamento, PasswordResetCode # Model Adicionado
+from .models import Empresa, Usuario, Plano, Assinatura, Pagamento, UserPreference, PasswordResetCode # Model Adicionado
 from .permissions import IsAdminUser
 import random
 from django.core.mail import send_mail
@@ -192,6 +193,14 @@ class ProcessarPagamentoView(APIView):
             return Response({"detail": "Plano inválido."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"detail": f"Ocorreu um erro: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        pref, _ = UserPreference.objects.get_or_create(user=self.request.user)
+        return pref
 
 class PasswordResetRequestView(generics.GenericAPIView):
     """

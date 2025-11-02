@@ -2,17 +2,14 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario, Plano
+from .models import Empresa, Usuario, Plano, UserPreference
 
 class EmpresaSerializer(serializers.ModelSerializer):
     """
     Serializer para visualizar e editar os dados da empresa.
     """
     logotipo = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
-    cnpj = serializers.CharField(
-        max_length=18,
-        validators=[UniqueValidator(queryset=Empresa.objects.all())]
-    )
+    cnpj = serializers.CharField(max_length=18)
 
     class Meta:
         model = Empresa
@@ -22,6 +19,18 @@ class EmpresaSerializer(serializers.ModelSerializer):
             'estado', 'pais', 'telefone', 'email_principal'
         ]
         read_only_fields = []
+
+    def validate_cnpj(self, value):
+        """Verifica se o CNPJ já está em uso por outra empresa"""
+        # Durante update, exclui a própria instância da verificação
+        if self.instance:
+            queryset = Empresa.objects.exclude(pk=self.instance.pk)
+        else:
+            queryset = Empresa.objects.all()
+        
+        if queryset.filter(cnpj=value).exists():
+            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+        return value
 
     def update(self, instance, validated_data):
         instance.logotipo = validated_data.get('logotipo', instance.logotipo)
@@ -179,6 +188,19 @@ class ProcessarPagamentoSerializer(serializers.Serializer):
     def validate_plano_id(self, value):
         if not Plano.objects.filter(pk=value).exists():
             raise serializers.ValidationError("Plano não encontrado.")
+        return value
+
+
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreference
+        fields = ['theme', 'updated_at']
+        read_only_fields = ['updated_at']
+
+    def validate_theme(self, value: str) -> str:
+        allowed = {choice for choice, _ in UserPreference.THEME_CHOICES}
+        if value not in allowed:
+            raise serializers.ValidationError("Tema inválido. Use 'light', 'dark' ou 'system'.")
         return value
     
 class PasswordResetRequestSerializer(serializers.Serializer):

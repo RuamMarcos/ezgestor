@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface FinancialsHeaderProps {
   searchTerm: string;
@@ -11,39 +11,42 @@ interface FinancialsHeaderProps {
   onAddTransaction: () => void;
 }
 
-const FinancialsHeader = ({ 
-    searchTerm, 
+const FinancialsHeader = ({
+    searchTerm,
     onSearchChange,
     selectedType,
     onTypeChange,
-    onAddTransaction 
+    onAddTransaction
 }: FinancialsHeaderProps) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <MaterialCommunityIcons name="magnify" size={20} color={DashboardColors.grayText} style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+        <MaterialCommunityIcons name="magnify" size={20} color={colors.grayText} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.darkText }]}
           placeholder="Pesquisar por descrição..."
+          placeholderTextColor={colors.grayText}
           value={searchTerm}
           onChangeText={onSearchChange}
         />
       </View>
       <View style={styles.filtersContainer}>
-        <TouchableOpacity 
-            style={[styles.typeButton, selectedType === '' && styles.typeButtonActive]} 
+        <TouchableOpacity
+            style={[styles.typeButton, { backgroundColor: colors.lightGray }, selectedType === '' && { backgroundColor: colors.headerBlue }]}
             onPress={() => onTypeChange('')}>
-            <Text style={[styles.typeButtonText, selectedType === '' && styles.typeButtonTextActive]}>Todos</Text>
+            <Text style={[styles.typeButtonText, { color: colors.darkText }, selectedType === '' && styles.typeButtonTextActive]}>Todos</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-            style={[styles.typeButton, selectedType === 'entrada' && styles.typeButtonActive]} 
+        <TouchableOpacity
+            style={[styles.typeButton, { backgroundColor: colors.lightGray }, selectedType === 'entrada' && { backgroundColor: colors.headerBlue }]}
             onPress={() => onTypeChange('entrada')}>
-            <Text style={[styles.typeButtonText, selectedType === 'entrada' && styles.typeButtonTextActive]}>Entradas</Text>
+            <Text style={[styles.typeButtonText, { color: colors.darkText }, selectedType === 'entrada' && styles.typeButtonTextActive]}>Entradas</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-            style={[styles.typeButton, selectedType === 'saida' && styles.typeButtonActive]} 
+        <TouchableOpacity
+            style={[styles.typeButton, { backgroundColor: colors.lightGray }, selectedType === 'saida' && { backgroundColor: colors.headerBlue }]}
             onPress={() => onTypeChange('saida')}>
-            <Text style={[styles.typeButtonText, selectedType === 'saida' && styles.typeButtonTextActive]}>Saídas</Text>
+            <Text style={[styles.typeButtonText, { color: colors.darkText }, selectedType === 'saida' && styles.typeButtonTextActive]}>Saídas</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -58,7 +61,6 @@ const styles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 10,
         marginBottom: 10,
@@ -78,14 +80,9 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 20,
-        backgroundColor: '#e9ecef'
-    },
-    typeButtonActive: {
-        backgroundColor: DashboardColors.headerBlue,
     },
     typeButtonText: {
         fontWeight: 'bold',
-        color: DashboardColors.darkText
     },
     typeButtonTextActive: {
         color: 'white'

@@ -11,6 +11,7 @@ from .views import (
     ProcessarPagamentoView,
     TeamMemberDetailView,
     TeamMemberListView,
+    UserPreferenceView,
     EmpresaProfileView,
     # Imports Adicionados
     PasswordResetRequestView,
@@ -35,6 +36,9 @@ urlpatterns = [
 
     path('payment/process/', ProcessarPagamentoView.as_view(), name='processar_pagamento'),
     path('profile/empresa/', EmpresaProfileView.as_view(), name='empresa_profile'),
+
+    # Preferences
+    path('me/preferences/', UserPreferenceView.as_view(), name='user_preferences'),
 
     # password recover
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),

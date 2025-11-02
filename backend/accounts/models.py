@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
+from django.conf import settings
 import uuid
 
 class CustomUserManager(BaseUserManager):
@@ -128,6 +129,25 @@ class Pagamento(models.Model):
 
     def __str__(self):
         return f"Pagamento de {self.valor} para {self.assinatura.empresa.nome_fantasia}"
+
+
+class UserPreference(models.Model):
+    THEME_LIGHT = 'light'
+    THEME_DARK = 'dark'
+    THEME_SYSTEM = 'system'
+
+    THEME_CHOICES = [
+        (THEME_LIGHT, 'Light'),
+        (THEME_DARK, 'Dark'),
+        (THEME_SYSTEM, 'System'),
+    ]
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
+    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default=THEME_SYSTEM)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferências de {getattr(self.user, 'email', str(self.user_id))}"
     
 class PasswordResetCode(models.Model):
     """

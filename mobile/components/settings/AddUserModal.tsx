@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { createTeamMember, type CreateTeamMemberData } from '@/services/TeamService';
-import { styles } from '@/styles/settings/AddUserModalStyles';
+import { useTheme } from '@/context/ThemeContext';
+import { createStyles } from '@/styles/settings/AddUserModalStyles';
 
 interface AddUserModalProps {
   visible: boolean;
@@ -21,6 +21,8 @@ interface AddUserModalProps {
 }
 
 export default function AddUserModal({ visible, onClose, onSuccess }: AddUserModalProps) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreateTeamMemberData>({
     first_name: '',
@@ -116,7 +118,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={DashboardColors.grayText}
+                color={colors.grayText}
               />
             </TouchableOpacity>
           </View>
@@ -133,7 +135,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
                   setFormData({ ...formData, first_name: text })
                 }
                 placeholder="Digite o primeiro nome"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 editable={!loading}
               />
             </View>
@@ -149,7 +151,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
                   setFormData({ ...formData, last_name: text })
                 }
                 placeholder="Digite o sobrenome"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 editable={!loading}
               />
             </View>
@@ -165,7 +167,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
                   setFormData({ ...formData, email: text })
                 }
                 placeholder="Digite o email"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!loading}
@@ -183,7 +185,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
                   setFormData({ ...formData, password: text })
                 }
                 placeholder="Digite a senha (mínimo 8 caracteres)"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 secureTextEntry
                 editable={!loading}
               />
@@ -198,7 +200,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Digite a senha novamente"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 secureTextEntry
                 editable={!loading}
               />
@@ -270,7 +272,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
               activeOpacity={0.7}
             >
               {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={isDark ? colors.background : '#FFFFFF'} />
               ) : (
                 <Text style={styles.submitButtonText}>Adicionar</Text>
               )}

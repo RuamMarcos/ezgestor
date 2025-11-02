@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,20 +7,20 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import {
   aplicarMascaraCep,
   aplicarMascaraCnpj,
   aplicarMascaraTelefone,
 } from '@/utils/masks';
-import { styles } from '@/styles/settings/CompanyProfileStyles';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
+import { createStyles } from '@/styles/settings/CompanyProfileStyles';
 
 interface CompanyData {
   id: number;
@@ -43,32 +43,11 @@ interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
   logotipo: { uri: string; name: string; type: string } | null;
 }
 
-const renderInput = (
-  formData: ICompanyForm,
-  handleChange: (name: keyof ICompanyForm, value: string) => void,
-  errors: Record<string, string>,
-  label: string,
-  name: keyof ICompanyForm,
-  placeholder: string,
-  keyboardType: 'default' | 'numeric' | 'email-address' = 'default'
-) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput
-      style={[styles.input, errors[name] ? styles.inputError : null]}
-      value={formData[name] as string}
-      onChangeText={text => handleChange(name, text)}
-      placeholder={placeholder}
-      keyboardType={keyboardType}
-      placeholderTextColor={DashboardColors.grayText}
-    />
-    {errors[name] && <Text style={styles.errorText}>{errors[name]}</Text>}
-  </View>
-);
-
 export default function CompanyProfileScreen() {
   const router = useRouter();
   const { user, refreshFromServer } = useAuth();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [formData, setFormData] = useState<ICompanyForm>({
     nome_fantasia: '',
     razao_social: '',
@@ -123,8 +102,7 @@ export default function CompanyProfileScreen() {
         });
 
         if (empresa.logotipo) {
-          const logoUrl = `http://127.0.0.1:8000${empresa.logotipo}`;
-          setLogoPreview(logoUrl);
+          setLogoPreview(resolveMediaUrl(empresa.logotipo));
         }
       } catch (error) {
         console.error('Erro ao carregar dados da empresa:', error);
@@ -149,19 +127,41 @@ export default function CompanyProfileScreen() {
     }
   };
 
+  const renderInput = (
+    label: string,
+    name: keyof ICompanyForm,
+    placeholder: string,
+    keyboardType: 'default' | 'numeric' | 'email-address' = 'default'
+  ) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[styles.input, errors[name] ? styles.inputError : null]}
+        value={formData[name] as string}
+        onChangeText={text => handleChange(name, text)}
+        placeholder={placeholder}
+        keyboardType={keyboardType}
+        placeholderTextColor={colors.grayText}
+      />
+      {errors[name] && <Text style={styles.errorText}>{errors[name]}</Text>}
+    </View>
+  );
+
   const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.8, // Reduce quality to avoid large files
     });
 
     if (!result.canceled) {
       const file = result.assets[0];
       const filename = file.uri.split('/').pop() || 'photo.jpg';
       const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image`;
+      const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+      console.log('Imagem selecionada:', { uri: file.uri, name: filename, type });
 
       setLogoPreview(file.uri);
       setFormData(prev => ({
@@ -185,6 +185,7 @@ export default function CompanyProfileScreen() {
     setIsLoading(true);
     const dataToSubmit = new FormData();
 
+    // Add all form fields except logotipo
     Object.entries(formData).forEach(([key, value]) => {
       if (key !== 'logotipo' && value) {
         const unmaskedValue = ['cnpj', 'cep', 'telefone'].includes(key)
@@ -194,24 +195,37 @@ export default function CompanyProfileScreen() {
       }
     });
     
+    // Add image file if present
     if (formData.logotipo) {
-        dataToSubmit.append('logotipo', {
-          uri: formData.logotipo.uri,
-          name: formData.logotipo.name,
-          type: formData.logotipo.type,
-        } as any);
-      }
+      // React Native FormData requires this specific format for file uploads
+      const fileData: any = {
+        uri: formData.logotipo.uri,
+        name: formData.logotipo.name,
+        type: formData.logotipo.type,
+      };
+      
+      console.log('Enviando arquivo:', fileData);
+      dataToSubmit.append('logotipo', fileData);
+    }
 
     try {
-      await api.patch('/accounts/profile/empresa/', dataToSubmit, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      console.log('Enviando dados para o servidor...');
+      // Note: Don't set Content-Type manually for FormData in React Native
+      // Axios will set it automatically with the correct boundary
+      const response = await api.patch('/accounts/profile/empresa/', dataToSubmit);
+      console.log('Resposta do servidor:', response.data);
       await refreshFromServer();
       setToast({ message: 'Dados da empresa atualizados!', type: 'success' });
       setErrors({});
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar dados:', error);
-      setToast({ message: 'Falha ao atualizar os dados.', type: 'error' });
+      console.error('Status:', error.response?.status);
+      console.error('Detalhes do erro:', error.response?.data);
+      console.error('Headers da requisição:', error.config?.headers);
+      setToast({ 
+        message: error.response?.data?.message || 'Falha ao atualizar os dados.', 
+        type: 'error' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -220,7 +234,7 @@ export default function CompanyProfileScreen() {
   if (isPageLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.headerBlue} />
       </View>
     );
   }
@@ -229,7 +243,7 @@ export default function CompanyProfileScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={DashboardColors.headerBlue} />
+          <MaterialCommunityIcons name="arrow-left" size={24} color={colors.headerBlue} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil da Empresa</Text>
       </View>
@@ -246,22 +260,22 @@ export default function CompanyProfileScreen() {
               <Text style={styles.logoButtonText}>Alterar Logo</Text>
             </TouchableOpacity>
           </View>
-          {renderInput(formData, handleChange, errors, 'Nome Fantasia', 'nome_fantasia', 'Nome da sua empresa')}
-          {renderInput(formData, handleChange, errors, 'Razão Social', 'razao_social', 'Razão social completa')}
-          {renderInput(formData, handleChange, errors, 'CNPJ', 'cnpj', '00.000.000/0000-00', 'numeric')}
-          {renderInput(formData, handleChange, errors, 'Inscrição Estadual/Municipal', 'inscricao_estadual', 'Número da inscrição', 'numeric')}
+          {renderInput('Nome Fantasia', 'nome_fantasia', 'Nome da sua empresa')}
+          {renderInput('Razão Social', 'razao_social', 'Razão social completa')}
+          {renderInput('CNPJ', 'cnpj', '00.000.000/0000-00', 'numeric')}
+          {renderInput('Inscrição Estadual/Municipal', 'inscricao_estadual', 'Número da inscrição', 'numeric')}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Endereço e Contato</Text>
-          {renderInput(formData, handleChange, errors, 'CEP', 'cep', '00000-000', 'numeric')}
-          {renderInput(formData, handleChange, errors, 'Endereço', 'endereco', 'Rua, número e complemento')}
-          {renderInput(formData, handleChange, errors, 'Bairro', 'bairro', 'Bairro')}
-          {renderInput(formData, handleChange, errors, 'Cidade', 'cidade', 'Cidade')}
-          {renderInput(formData, handleChange, errors, 'Estado', 'estado', 'Estado')}
-          {renderInput(formData, handleChange, errors, 'País', 'pais', 'País')}
-          {renderInput(formData, handleChange, errors, 'Telefone', 'telefone', '(00) 00000-0000', 'numeric')}
-          {renderInput(formData, handleChange, errors, 'E-mail Principal', 'email_principal', 'contato@suaempresa.com', 'email-address')}
+          {renderInput('CEP', 'cep', '00000-000', 'numeric')}
+          {renderInput('Endereço', 'endereco', 'Rua, número e complemento')}
+          {renderInput('Bairro', 'bairro', 'Bairro')}
+          {renderInput('Cidade', 'cidade', 'Cidade')}
+          {renderInput('Estado', 'estado', 'Estado')}
+          {renderInput('País', 'pais', 'País')}
+          {renderInput('Telefone', 'telefone', '(00) 00000-0000', 'numeric')}
+          {renderInput('E-mail Principal', 'email_principal', 'contato@suaempresa.com', 'email-address')}
         </View>
 
         <TouchableOpacity
@@ -270,7 +284,7 @@ export default function CompanyProfileScreen() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={isDark ? colors.background : '#FFFFFF'} />
           ) : (
             <Text style={styles.saveButtonText}>Salvar Alterações</Text>
           )}

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const styles = StyleSheet.create({
+export const createProductListStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
   list: {
     paddingHorizontal: 20,
   },
@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 24, // Add padding at the bottom to give space for pagination
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
     flex: 1,
@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
   },
   imageWrapper: {
     height: 120,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.lightGray,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -41,11 +41,11 @@ export const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
   },
   cardSub: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
     marginTop: 2,
   },
   statusDot: {
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
   },
   cardStatus: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
   },
   cardActions: {
     marginTop: 8,
@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   itemContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderRadius: 10,
@@ -83,11 +83,11 @@ export const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
   },
   itemSku: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
     marginTop: 2,
   },
   itemDetails: {
@@ -96,12 +96,12 @@ export const styles = StyleSheet.create({
   },
   itemQuantity: {
     fontSize: 16,
-    color: DashboardColors.darkText,
+    color: colors.darkText,
     fontWeight: '500',
   },
   itemPrice: {
     fontSize: 12,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -111,26 +111,27 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusLow: {
-    backgroundColor: '#fee2e2', // Red-100
+    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.35)' : '#fee2e2',
   },
   statusOk: {
-    backgroundColor: '#dcfce7', // Green-100
+    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.35)' : '#dcfce7',
   },
   statusText: {
     fontSize: 12,
     fontWeight: 'bold',
+    color: colors.darkText,
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 50,
-    color: DashboardColors.grayText,
+    color: colors.grayText,
     fontSize: 16,
   },
   actionsContainer: {
     flexDirection: 'row',
     marginLeft: 10,
     borderLeftWidth: 1,
-    borderLeftColor: '#eee',
+    borderLeftColor: colors.border,
     paddingLeft: 10,
   },
   actionButton: {

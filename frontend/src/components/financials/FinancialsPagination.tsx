@@ -18,24 +18,24 @@ const FinancialsPagination = ({ currentPage, totalPages, onPrevPage, onNextPage,
         onClick={onFirstPage}
         disabled={currentPage === 1}
         title="Primeira página"
-        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-700 transition-colors"
       >
         |&lt;
       </button>
       <button
         onClick={onPrevPage}
         disabled={currentPage === 1}
-        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50"
+        className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-400 dark:hover:bg-gray-500 disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-600 transition-colors"
       >
         Anterior
       </button>
-      <span className="text-gray-700">
+      <span className="text-gray-700 dark:text-gray-300">
         Página {currentPage} de {totalPages}
       </span>
       <button
         onClick={onNextPage}
         disabled={currentPage === totalPages}
-        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50"
+        className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-400 dark:hover:bg-gray-500 disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-600 transition-colors"
       >
         Próximo
       </button>
@@ -43,7 +43,7 @@ const FinancialsPagination = ({ currentPage, totalPages, onPrevPage, onNextPage,
         onClick={onLastPage}
         disabled={currentPage === totalPages}
         title="Última página"
-        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-700 transition-colors"
       >
         &gt;|
       </button>
