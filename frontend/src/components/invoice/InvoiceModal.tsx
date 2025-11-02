@@ -1,13 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { getSales, getSaleById, type SaleResponse } from '../../services/salesService';
 import { createLog } from '../../services/logService';
-
-// Lazy import for html2pdf to keep initial bundle small and work in SSR-safe way
-async function loadHtml2Pdf() {
-  // Use bundled build to ensure html2canvas and jsPDF are included
-  const mod: any = await import('html2pdf.js/dist/html2pdf.bundle.min.js');
-  return mod.default || mod;
-}
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface Props {
   isOpen: boolean;
@@ -75,17 +70,32 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
       contentRef.current = el;
       document.body.appendChild(el);
 
-      const html2pdf = await loadHtml2Pdf();
-      const opt = {
-        margin: 0,
-        filename: `NFe-${selectedId}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] },
-      };
+      // Aguarda o layout do elemento antes de capturar (evita PDF em branco)
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-      await html2pdf().set(opt).from(el).save();
+      // Log dimensões para diagnóstico em caso de PDF em branco
+      const rect = el.getBoundingClientRect();
+      console.debug('[NF-e] Dimensões elemento para PDF:', rect.width, rect.height);
+
+      // Gera PDF usando html2canvas + jsPDF diretamente (mais confiável)
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        allowTaint: true,
+        logging: false,
+        windowWidth: el.scrollWidth,
+        windowHeight: el.scrollHeight,
+      });
+
+      // A4 em mm: 210x297
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`NFe-${selectedId}.pdf`);
 
       // Log no sistema
       try {
@@ -116,8 +126,8 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const buildInvoiceContent = (sale: SaleResponse) => {
     const wrapper = document.createElement('div');
     wrapper.id = 'nfe-print-root';
-    // Offscreen mas renderizável (não usar display:none)
-    wrapper.setAttribute('style', 'position:absolute;left:-10000px;top:0;z-index:-1;background:#ffffff;');
+    // Totalmente visível e renderizável, mas fora da viewport do usuário
+    wrapper.setAttribute('style', 'position:absolute;left:0;top:0;z-index:10000;background:#ffffff;');
 
     const buyer = sale.cliente_nome || 'Consumidor Final';
     const issueDate = new Date(sale.data_venda || new Date().toISOString()).toLocaleString('pt-BR');
@@ -126,21 +136,22 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
     const total = Number(sale.preco_total ?? qty * unit);
 
     const css = `
-      * { box-sizing: border-box; }
-      .a4 { width: 210mm; min-height: 297mm; padding: 10mm; background: #fff; color: #111; font-family: Arial, Helvetica, sans-serif; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      /* A4 aproximado em 96dpi: 794x1123 px */
+      .a4 { width: 794px; min-height: 1123px; padding: 32px; background: #fff; color: #111; font-family: Arial, Helvetica, sans-serif; }
       .row { display: flex; gap: 0; }
       .col { flex: 1; }
-      .box { border: 1px solid #222; padding: 6px; }
+      .box { border: 1px solid #222; padding: 6px; margin-bottom: 4px; }
       .title { font-size: 14px; font-weight: 700; }
       .muted { color: #444; }
       .small { font-size: 10px; }
-      .table { width: 100%; border-collapse: collapse; }
+      .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
       .table th, .table td { border: 1px solid #222; padding: 4px; font-size: 10px; }
       .right { text-align: right; }
       .center { text-align: center; }
       .mt8 { margin-top: 8px; }
       .mt12 { margin-top: 12px; }
-      .barcode { height: 28px; border: 1px solid #222; background: repeating-linear-gradient(90deg,#000 0,#000 2px,#fff 2px,#fff 4px); }
+      .barcode { height: 28px; border: 1px solid #222; background: repeating-linear-gradient(90deg,#000 0,#000 2px,#fff 2px,#fff 4px); margin-top: 8px; }
     `;
 
     const html = `
@@ -152,7 +163,7 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
           <div class="col box">
             <div class="center small">DANFE - Documento Auxiliar da Nota Fiscal Eletrônica</div>
-            <div class="barcode mt8"></div>
+            <div class="barcode"></div>
             <div class="small center mt8">Chave de acesso: 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000</div>
           </div>
         </div>
@@ -208,9 +219,7 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
     wrapper.innerHTML = `<style>${css}</style>${html}`;
     return wrapper;
-  };
-
-  const listContent = useMemo(() => (
+  };  const listContent = useMemo(() => (
     <div className="space-y-2 max-h-80 overflow-y-auto border rounded-md p-2">
       {items.length === 0 && !fetching && (
         <p className="text-sm text-gray-500">Nenhuma venda encontrada.</p>
