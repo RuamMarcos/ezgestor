@@ -3,13 +3,13 @@
 from rest_framework import generics, permissions, pagination
 from .models import Log
 from .serializers import LogSerializer
-from accounts.permissions import IsAdminUser # <-- Importar sua permissão
+from accounts.permissions import IsAdminUser
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
     """
     Paginação padrão para os logs (igual à de outros apps).
     """
-    page_size = 15 # Pode ajustar este número
+    page_size = 15
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -26,10 +26,22 @@ class LogListView(generics.ListAPIView):
     def get_queryset(self):
         """
         Filtra os logs para mostrar apenas os da empresa do usuário logado.
+        
+        Adiciona filtros opcionais por 'user_id' e 'action_type'.
         """
-
         empresa_usuario = self.request.user.empresa
-
-        return Log.objects.filter(
+        
+        queryset = Log.objects.filter(
             user__empresa=empresa_usuario
-        ).order_by('-action_time')
+        ).select_related('user').order_by('-action_time')
+        
+        user_id = self.request.query_params.get('user_id', None)
+        action_type = self.request.query_params.get('action_type', None)
+
+        if user_id:
+            queryset = queryset.filter(user__id=user_id)
+        
+        if action_type:
+            queryset = queryset.filter(action_type=action_type)
+
+        return queryset

@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { getLogs } from '../services/logService';
-import type { Log } from '../types/logs';
+import { getTeamMembers } from '../services/teamService';
+import type { TeamMember } from '../services/teamService';
+import type { Log, RawLog } from '../types/logs';
 import { toast } from 'react-toastify';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/solid';
+
+const ACTION_TYPES = [
+  { key: 'CREATE', label: 'Criação' },
+  { key: 'UPDATE', label: 'Atualização' },
+  { key: 'DELETE', label: 'Deleção' },
+  { key: 'SOFT_DELETE', label: 'Desativação' },
+  { key: 'LOGIN', label: 'Login' },
+];
 
 const LogsPage: React.FC = () => {
   const [logs, setLogs] = useState<Log[]>([]);
@@ -10,24 +24,44 @@ const LogsPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [isFetchingUsers, setIsFetchingUsers] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedAction, setSelectedAction] = useState('');
+  const [appliedUser, setAppliedUser] = useState('');
+  const [appliedAction, setAppliedAction] = useState('');
   const ITEMS_PER_PAGE = 15;
+  useEffect(() => {
+    fetchLogs(currentPage, appliedUser, appliedAction);
+  }, [currentPage, appliedUser, appliedAction]);
 
   useEffect(() => {
-    fetchLogs(currentPage);
-  }, [currentPage]);
+    const fetchUsers = async () => {
+      setIsFetchingUsers(true);
+      try {
+        const members = await getTeamMembers();
+        setTeamMembers(members);
+      } catch (error) {
+        console.error('Erro ao buscar membros da equipe:', error);
+        toast.error('Não foi possível carregar a lista de usuários.');
+      } finally {
+        setIsFetchingUsers(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  const fetchLogs = async (page: number) => {
+  const fetchLogs = async (page: number, userId: string, actionType: string) => {
     setIsLoading(true);
     try {
-      const data = await getLogs(page);
+      const data = await getLogs(page, userId, actionType);
 
-      const mappedLogs: Log[] = (data.results || []).map((r: any) => ({
+      const mappedLogs: Log[] = (data.results || []).map((r: RawLog) => ({
         id: r.id,
         user: r.user?.email ?? 'Usuário do Sistema',
         action_type: r.action_type_display,
-        details: r.description, 
-        timestamp: r.action_time, 
+        details: r.description,
+        timestamp: r.action_time,
       }));
 
       setLogs(mappedLogs);
@@ -49,6 +83,23 @@ const LogsPage: React.FC = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    setAppliedUser(selectedUser);
+    setAppliedAction(selectedAction);
+  };
+
+  const handleClearSearch = () => {
+    setSelectedUser('');
+    setSelectedAction('');
+    setAppliedUser('');
+    setAppliedAction('');
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  };
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleString('pt-BR', {
       dateStyle: 'short',
@@ -63,6 +114,77 @@ const LogsPage: React.FC = () => {
         Acompanhe as atividades recentes dos funcionários no sistema.
       </p>
 
+      {/* Formulário de Busca com <select> */}
+      <div className="mb-6 bg-white shadow-sm rounded-lg p-4">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+        >
+          <div className="md:col-span-1">
+            <label
+              htmlFor="searchUser"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Filtrar por Usuário
+            </label>
+            <select
+              id="searchUser"
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              disabled={isFetchingUsers || isLoading}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+            >
+              <option value="">Todos os Usuários</option>
+              {teamMembers.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.email} ({member.first_name})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="md:col-span-1">
+            <label
+              htmlFor="searchAction"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Filtrar por Ação
+            </label>
+            <select
+              id="searchAction"
+              value={selectedAction}
+              onChange={(e) => setSelectedAction(e.target.value)}
+              disabled={isLoading}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+            >
+              <option value="">Todas as Ações</option>
+              {ACTION_TYPES.map((action) => (
+                <option key={action.key} value={action.key}>
+                  {action.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="md:col-span-1 flex space-x-2">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+              Pesquisar
+            </button>
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              disabled={isLoading}
+              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              Limpar
+            </button>
+          </div>
+        </form>
+      </div>
+
       {isLoading && (
         <div className="text-center p-10">
           <p>Carregando logs...</p>
@@ -71,7 +193,10 @@ const LogsPage: React.FC = () => {
 
       {!isLoading && logs.length === 0 && (
         <div className="text-center p-10 bg-gray-50 rounded-lg">
-          <p>Nenhum log encontrado.</p>
+          <p>
+            Nenhum log encontrado
+            {appliedUser || appliedAction ? ' para os filtros aplicados' : ''}.
+          </p>
         </div>
       )}
 

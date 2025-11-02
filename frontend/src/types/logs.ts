@@ -4,6 +4,14 @@ export interface LogUser {
   email: string;
 }
 
+export interface RawLog {
+  id: number;
+  user: LogUser | null;
+  action_type_display: string;
+  description: string;
+  action_time: string;
+}
+
 export interface Log {
   id: number;
   user: string;
@@ -16,5 +24,5 @@ export interface PaginatedLogsResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: Log[];
+  results: RawLog[];
 }
