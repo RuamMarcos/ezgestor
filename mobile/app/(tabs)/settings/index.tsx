@@ -24,6 +24,13 @@ export default function SettingsScreen() {
       icon: 'account-group',
       route: '/(tabs)/settings/user-management',
     },
+    {
+      id: 'system-logs',
+      title: 'Log do Sistema',
+      description: 'Histórico de ações e eventos do sistema',
+      icon: 'history',
+      route: '/(tabs)/settings/system-logs',
+    },
   ];
 
   return (
