@@ -19,6 +19,7 @@ import {
   aplicarMascaraCnpj,
   aplicarMascaraTelefone,
 } from '@/utils/masks';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { createStyles } from '@/styles/settings/CompanyProfileStyles';
 
 interface CompanyData {
@@ -101,8 +102,7 @@ export default function CompanyProfileScreen() {
         });
 
         if (empresa.logotipo) {
-          const logoUrl = `http://127.0.0.1:8000${empresa.logotipo}`;
-          setLogoPreview(logoUrl);
+          setLogoPreview(resolveMediaUrl(empresa.logotipo));
         }
       } catch (error) {
         console.error('Erro ao carregar dados da empresa:', error);
@@ -152,14 +152,16 @@ export default function CompanyProfileScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.8, // Reduce quality to avoid large files
     });
 
     if (!result.canceled) {
       const file = result.assets[0];
       const filename = file.uri.split('/').pop() || 'photo.jpg';
       const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image`;
+      const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+      console.log('Imagem selecionada:', { uri: file.uri, name: filename, type });
 
       setLogoPreview(file.uri);
       setFormData(prev => ({
@@ -183,6 +185,7 @@ export default function CompanyProfileScreen() {
     setIsLoading(true);
     const dataToSubmit = new FormData();
 
+    // Add all form fields except logotipo
     Object.entries(formData).forEach(([key, value]) => {
       if (key !== 'logotipo' && value) {
         const unmaskedValue = ['cnpj', 'cep', 'telefone'].includes(key)
@@ -191,24 +194,38 @@ export default function CompanyProfileScreen() {
         dataToSubmit.append(key, unmaskedValue as string);
       }
     });
+    
+    // Add image file if present
     if (formData.logotipo) {
-      dataToSubmit.append('logotipo', {
+      // React Native FormData requires this specific format for file uploads
+      const fileData: any = {
         uri: formData.logotipo.uri,
         name: formData.logotipo.name,
         type: formData.logotipo.type,
-      } as any);
+      };
+      
+      console.log('Enviando arquivo:', fileData);
+      dataToSubmit.append('logotipo', fileData);
     }
 
     try {
-      await api.patch('/accounts/profile/empresa/', dataToSubmit, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      console.log('Enviando dados para o servidor...');
+      // Note: Don't set Content-Type manually for FormData in React Native
+      // Axios will set it automatically with the correct boundary
+      const response = await api.patch('/accounts/profile/empresa/', dataToSubmit);
+      console.log('Resposta do servidor:', response.data);
       await refreshFromServer();
       setToast({ message: 'Dados da empresa atualizados!', type: 'success' });
       setErrors({});
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar dados:', error);
-      setToast({ message: 'Falha ao atualizar os dados.', type: 'error' });
+      console.error('Status:', error.response?.status);
+      console.error('Detalhes do erro:', error.response?.data);
+      console.error('Headers da requisição:', error.config?.headers);
+      setToast({ 
+        message: error.response?.data?.message || 'Falha ao atualizar os dados.', 
+        type: 'error' 
+      });
     } finally {
       setIsLoading(false);
     }

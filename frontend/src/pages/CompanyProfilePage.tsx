@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { aplicarMascaraCep, aplicarMascaraCnpj, aplicarMascaraTelefone } from '../utils/masks';
+import { resolveMediaUrl } from '../utils/mediaUrl';
 
 interface CompanyData {
   id: number;
@@ -70,9 +71,7 @@ const CompanyProfilePage = () => {
         });
         
         if (empresa.logotipo) {
-          // Constrói a URL completa para o logotipo
-          const logoUrl = `http://127.0.0.1:8000${empresa.logotipo}`;
-          setLogoPreview(logoUrl);
+          setLogoPreview(resolveMediaUrl(empresa.logotipo));
         }
       } catch (error) {
         console.error('Erro ao carregar dados da empresa:', error);
@@ -104,6 +103,28 @@ const CompanyProfilePage = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // Validações
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+      
+      if (!allowedTypes.includes(file.type)) {
+        alert('Apenas arquivos PNG ou JPG são permitidos.');
+        return;
+      }
+      
+      if (file.size > maxSize) {
+        alert('O arquivo deve ter no máximo 2MB.');
+        return;
+      }
+      
+      console.log('Arquivo selecionado:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        sizeInMB: (file.size / 1024 / 1024).toFixed(2) + 'MB'
+      });
+      
       setFormData(prev => ({ ...prev, logotipo: file }));
       setLogoPreview(URL.createObjectURL(file));
     }
@@ -145,19 +166,33 @@ const CompanyProfilePage = () => {
     dataToSubmit.append('email_principal', formData.email_principal);
     
     if (formData.logotipo) {
+      console.log('Adicionando logo:', formData.logotipo);
       dataToSubmit.append('logotipo', formData.logotipo);
     }
 
     try {
-      await api.patch('/accounts/profile/empresa/', dataToSubmit, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      console.log('Enviando dados para o servidor...');
+      // Note: Don't set Content-Type manually for FormData
+      // Axios will set it automatically with the correct boundary
+      const response = await api.patch('/accounts/profile/empresa/', dataToSubmit);
+      console.log('Resposta do servidor:', response.data);
       await refreshFromServer();
       alert('Dados da empresa atualizados com sucesso!');
       setErrors({});
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar dados:', error);
-      alert('Falha ao atualizar os dados. Verifique o console para mais detalhes.');
+      console.error('Status:', error.response?.status);
+      console.error('Detalhes do erro:', error.response?.data);
+      console.error('Headers da requisição:', error.config?.headers);
+      
+      // Mostrar mensagens de erro mais específicas
+      const errorMsg = error.response?.data?.logotipo 
+        ? `Erro no logo: ${error.response.data.logotipo.join(', ')}`
+        : error.response?.data?.detail 
+        ? error.response.data.detail
+        : 'Falha ao atualizar os dados. Verifique o console para mais detalhes.';
+      
+      alert(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -202,7 +237,7 @@ const CompanyProfilePage = () => {
                 type="file"
                 className="hidden"
                 onChange={handleFileChange}
-                accept="image/png, image/jpeg"
+                accept="image/png,image/jpeg,image/jpg"
               />
               <p className="text-xs text-gray-500">PNG, JPG até 2MB</p>
             </div>

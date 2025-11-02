@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import type { CompanyData, ICompanyForm } from '../types/company';
+import { resolveMediaUrl } from '../utils/mediaUrl';
 
 export const useCompanyForm = () => {
   const { user, refreshFromServer } = useAuth();
@@ -44,8 +45,7 @@ export const useCompanyForm = () => {
       });
       
       if (empresa.logotipo_url) {
-        const logoUrl = `http://127.0.0.1:8000${empresa.logotipo_url}`;
-        setLogoPreview(logoUrl);
+        setLogoPreview(resolveMediaUrl(empresa.logotipo_url));
       }
     }
   }, [user]);

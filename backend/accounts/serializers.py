@@ -9,10 +9,7 @@ class EmpresaSerializer(serializers.ModelSerializer):
     Serializer para visualizar e editar os dados da empresa.
     """
     logotipo = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
-    cnpj = serializers.CharField(
-        max_length=18,
-        validators=[UniqueValidator(queryset=Empresa.objects.all())]
-    )
+    cnpj = serializers.CharField(max_length=18)
 
     class Meta:
         model = Empresa
@@ -22,6 +19,18 @@ class EmpresaSerializer(serializers.ModelSerializer):
             'estado', 'pais', 'telefone', 'email_principal'
         ]
         read_only_fields = []
+
+    def validate_cnpj(self, value):
+        """Verifica se o CNPJ já está em uso por outra empresa"""
+        # Durante update, exclui a própria instância da verificação
+        if self.instance:
+            queryset = Empresa.objects.exclude(pk=self.instance.pk)
+        else:
+            queryset = Empresa.objects.all()
+        
+        if queryset.filter(cnpj=value).exists():
+            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+        return value
 
     def update(self, instance, validated_data):
         instance.logotipo = validated_data.get('logotipo', instance.logotipo)
