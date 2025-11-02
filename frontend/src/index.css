@@ -86,3 +86,30 @@ body {
     @apply bg-gray-800 text-gray-100 border-gray-600 hover:bg-gray-700;
   }
 }
+
+/* Prevent global dark-mode overrides from affecting the standalone landing page.
+   Components inside .landing-root should remain in light styling even when .dark
+   is present on the document root. We selectively restore commonly overridden
+   utility classes used by the landing page. */
+.landing-root {
+  /* ensure base is light */
+  background-color: white;
+  color: #1f2937; /* gray-800 */
+}
+.dark .landing-root {
+  color-scheme: light;
+}
+.dark .landing-root .bg-white { background-color: #ffffff !important; }
+.dark .landing-root .bg-gray-50 { background-color: #f9fafb !important; }
+.dark .landing-root .bg-gray-100 { background-color: #f3f4f6 !important; }
+.dark .landing-root .text-gray-900, .dark .landing-root .text-gray-800 { color: #1f2937 !important; }
+.dark .landing-root .text-gray-700, .dark .landing-root .text-gray-600 { color: #4b5563 !important; }
+.dark .landing-root .border-gray-200 { border-color: #e5e7eb !important; }
+.dark .landing-root .border-gray-300 { border-color: #d1d5db !important; }
+.dark .landing-root .hover\:bg-gray-50:hover { background-color: rgba(0,0,0,0.03) !important; }
+.dark .landing-root input, .dark .landing-root textarea, .dark .landing-root select {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+.dark .landing-root img { filter: none !important; }

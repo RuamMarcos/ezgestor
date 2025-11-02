@@ -35,7 +35,7 @@ const LandingPage = () => {
   };
 
   return (
-    <>
+    <div className="landing-root">
       <header
         className={`fixed w-full top-0 z-50 transition-colors duration-300 ${
           scrolled ? "bg-[#4A4E9D] shadow-lg" : "bg-transparent"
@@ -328,7 +328,7 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 };
 
