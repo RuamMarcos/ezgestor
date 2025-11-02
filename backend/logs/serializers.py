@@ -35,3 +35,22 @@ class LogSerializer(serializers.ModelSerializer):
         ]
         # Este endpoint é apenas para leitura
         read_only_fields = fields
+
+
+class LogCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para criar logs de auditoria via API.
+    O campo 'user' é definido pelo request.user no view e não pode ser enviado pelo cliente.
+    """
+    class Meta:
+        model = Log
+        fields = [
+            'action_type',
+            'model_name',
+            'object_id',
+            'description',
+        ]
+        extra_kwargs = {
+            'description': { 'required': True },
+            'action_type': { 'required': True },
+        }

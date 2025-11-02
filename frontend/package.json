@@ -21,7 +21,8 @@
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.28.0",
     "react-toastify": "^11.0.5",
-    "recharts": "^3.3.0"
+    "recharts": "^3.3.0",
+    "html2pdf.js": "^0.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

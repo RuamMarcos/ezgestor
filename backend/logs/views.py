@@ -2,7 +2,7 @@
 
 from rest_framework import generics, permissions, pagination
 from .models import Log
-from .serializers import LogSerializer
+from .serializers import LogSerializer, LogCreateSerializer
 from accounts.permissions import IsAdminUser
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
@@ -45,3 +45,15 @@ class LogListView(generics.ListAPIView):
             queryset = queryset.filter(action_type=action_type)
 
         return queryset
+
+
+class LogCreateView(generics.CreateAPIView):
+    """
+    Endpoint simples para registrar um log manualmente a partir do frontend.
+    Qualquer usuário autenticado pode registrar um log; a listagem segue restrita ao admin.
+    """
+    serializer_class = LogCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

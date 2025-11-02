@@ -1,0 +1,276 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { getSales, getSaleById, type SaleResponse } from '../../services/salesService';
+import { createLog } from '../../services/logService';
+
+// Lazy import for html2pdf to keep initial bundle small and work in SSR-safe way
+async function loadHtml2Pdf() {
+  const mod: any = await import('html2pdf.js');
+  return mod.default || mod;
+}
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface SaleListItem {
+  id: number;
+  title: string;
+  subtitle?: string;
+  total: number;
+  date: string;
+}
+
+const currency = (n: number) =>
+  (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [page] = useState(1);
+  const [search, setSearch] = useState('');
+  const [items, setItems] = useState<SaleListItem[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    // load recent sales when modal opens
+    void fetchSales();
+  }, [isOpen]);
+
+  const fetchSales = async () => {
+    try {
+      setFetching(true);
+      setError(null);
+      const data = await getSales(page, search);
+      const list = (data?.results || []).map((s: any) => ({
+        id: s.id_venda ?? s.id,
+        title: s.nome_produto ?? 'Venda',
+        subtitle: s.cliente_nome || s.nome_vendedor || '',
+        total: Number(s.preco_total ?? 0),
+        date: s.data_venda || new Date().toISOString(),
+      })) as SaleListItem[];
+      setItems(list);
+    } catch (e: any) {
+      setError('Não foi possível carregar as vendas.');
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleEmit = async () => {
+    if (!selectedId) {
+      setError('Selecione uma venda.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const sale: SaleResponse = await getSaleById(selectedId);
+      const el = buildInvoiceContent(sale);
+      contentRef.current = el;
+      document.body.appendChild(el);
+
+      const html2pdf = await loadHtml2Pdf();
+      const opt = {
+        margin: 10,
+        filename: `NFe-${selectedId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: null },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] },
+      };
+
+      await html2pdf().set(opt).from(el).save();
+
+      // Log no sistema
+      try {
+        await createLog({
+          action_type: 'CREATE',
+          model_name: 'nota_fiscal',
+          object_id: selectedId,
+          description: `Emissão de NF-e para venda ID ${selectedId}`,
+        });
+      } catch (e) {
+        // opcional: erro de log não impede o uso
+        console.warn('Falha ao registrar log de emissão de NF-e', e);
+      }
+
+      onClose();
+    } catch (e: any) {
+      console.error(e);
+      setError('Falha ao gerar a NF-e.');
+    } finally {
+      setLoading(false);
+      if (contentRef.current) {
+        document.body.removeChild(contentRef.current);
+        contentRef.current = null;
+      }
+    }
+  };
+
+  const buildInvoiceContent = (sale: SaleResponse) => {
+    const wrapper = document.createElement('div');
+    wrapper.id = 'nfe-print-root';
+    wrapper.className =
+      'fixed inset-0 p-6 z-[9999] overflow-auto bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100';
+
+    const buyer = sale.cliente_nome || 'Consumidor Final';
+    const now = new Date(sale.data_venda || new Date().toISOString());
+    const issueDate = now.toLocaleString('pt-BR');
+
+    // Minimal NF layout
+    wrapper.innerHTML = `
+      <div class="mx-auto max-w-3xl border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between">
+          <div>
+            <h1 class="text-2xl font-bold">Nota Fiscal (não oficial)</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Emitido em: ${issueDate}</p>
+          </div>
+          <div class="text-right">
+            <p class="font-semibold">EZGestor</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">CNPJ: 00.000.000/0000-00</p>
+          </div>
+        </div>
+        <div class="p-6 grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Destinatário</p>
+            <p class="font-medium">${buyer}</p>
+            ${sale.cliente_email ? `<p class="text-sm">${sale.cliente_email}</p>` : ''}
+            ${sale.cliente_telefone ? `<p class="text-sm">${sale.cliente_telefone}</p>` : ''}
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Nº Venda</p>
+            <p class="font-medium">${sale.id_venda}</p>
+          </div>
+        </div>
+        <div class="px-6">
+          <table class="w-full text-sm border-t border-b border-gray-200 dark:border-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="text-left p-2">Produto</th>
+                <th class="text-right p-2">Qtd</th>
+                <th class="text-right p-2">Vlr Unit</th>
+                <th class="text-right p-2">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-t border-gray-100 dark:border-gray-800">
+                <td class="p-2">${sale.nome_produto}</td>
+                <td class="p-2 text-right">${sale.quantidade}</td>
+                <td class="p-2 text-right">${currency(Number(sale.preco_unitario ?? 0))}</td>
+                <td class="p-2 text-right">${currency(Number(sale.preco_total ?? 0))}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="p-6 flex justify-end">
+          <div class="w-64">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
+              <span>${currency(Number(sale.preco_total ?? 0))}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Impostos (0%)</span>
+              <span>${currency(0)}</span>
+            </div>
+            <div class="flex justify-between mt-2 text-lg font-semibold">
+              <span>Total</span>
+              <span>${currency(Number(sale.preco_total ?? 0))}</span>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 pb-6 text-xs text-gray-500 dark:text-gray-400">
+          <p>Documento gerado pelo sistema, sem valor fiscal. Modelo de NF-e apenas para fins de impressão/compartilhamento.</p>
+        </div>
+      </div>
+    `;
+
+    return wrapper;
+  };
+
+  const listContent = useMemo(() => (
+    <div className="space-y-2 max-h-80 overflow-y-auto border rounded-md p-2">
+      {items.length === 0 && !fetching && (
+        <p className="text-sm text-gray-500">Nenhuma venda encontrada.</p>
+      )}
+      {items.map((it) => (
+        <label key={it.id} className="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded">
+          <div className="flex items-center gap-3">
+            <input
+              type="radio"
+              name="selectedSale"
+              value={it.id}
+              checked={selectedId === it.id}
+              onChange={() => setSelectedId(it.id)}
+            />
+            <div>
+              <p className="font-medium text-gray-800 dark:text-gray-100">{it.title}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{it.subtitle || '—'}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-semibold text-blue-600">{currency(it.total)}</p>
+            <p className="text-xs text-gray-500">{new Date(it.date).toLocaleString('pt-BR')}</p>
+          </div>
+        </label>
+      ))}
+    </div>
+  ), [items, selectedId, fetching]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Emitir NF-e</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">×</button>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buscar venda</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className="flex-1 border rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+              placeholder="Cliente, produto..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button
+              onClick={fetchSales}
+              disabled={fetching}
+              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {fetching ? 'Buscando...' : 'Buscar'}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-3 text-sm text-red-600">{error}</div>
+        )}
+
+        {listContent}
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button type="button" onClick={onClose} className="btn-cancel">Cancelar</button>
+          <button
+            type="button"
+            onClick={handleEmit}
+            disabled={!selectedId || loading}
+            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {loading ? 'Gerando...' : 'Emitir NF-e'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceModal;
