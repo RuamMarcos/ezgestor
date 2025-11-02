@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { Product } from '../../services/StockService';
-import { styles } from '../../styles/stock/ProductListStyles';
+import { createProductListStyles } from '../../styles/stock/ProductListStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { confirm } from '@/utils/confirm';
@@ -31,7 +31,8 @@ const ProductList: React.FC<ProductListProps> = ({
   refreshing = false,
   onRefresh
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createProductListStyles(colors, isDark), [colors, isDark]);
 
   const handleDelete = async (productId: number) => {
     const ok = await confirm({
@@ -56,7 +57,7 @@ const ProductList: React.FC<ProductListProps> = ({
         {item.imagem_url ? (
           <Image source={{ uri: item.imagem_url }} style={styles.image} />
         ) : (
-          <MaterialCommunityIcons name="image-off-outline" size={42} color="#cbd5e1" />
+          <MaterialCommunityIcons name="image-off-outline" size={42} color={colors.grayText} />
         )}
       </View>
       <Text style={styles.cardTitle} numberOfLines={1}>{item.nome}</Text>

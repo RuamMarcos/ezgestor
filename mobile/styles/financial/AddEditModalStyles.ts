@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const styles = StyleSheet.create({
+export const createAddEditModalStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -9,9 +10,11 @@ export const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '90%',
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderRadius: 10,
     padding: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -22,21 +25,25 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
+    color: colors.darkText,
   },
   label: {
     fontSize: 16,
     marginTop: 10,
     marginBottom: 5,
+    color: colors.darkText,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: colors.border,
     borderRadius: 5,
     padding: 10,
     fontSize: 16,
+    color: colors.darkText,
+    backgroundColor: isDark ? colors.lightGray : colors.card,
   },
   errorText: {
-    color: 'red',
+    color: '#DC2626',
     marginBottom: 10,
   },
   tipoContainer: {
@@ -49,20 +56,22 @@ export const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: colors.border,
     alignItems: 'center',
     marginHorizontal: 5,
+    backgroundColor: colors.card,
   },
   tipoButtonSaida: {
-    backgroundColor: '#fde8e8',
+    backgroundColor: isDark ? '#451a1a' : '#fde8e8',
     borderColor: '#dc3545',
   },
   tipoButtonEntrada: {
-    backgroundColor: '#eaf7ec',
+    backgroundColor: isDark ? '#1e3a2a' : '#eaf7ec',
     borderColor: '#28a745',
   },
   tipoButtonText: {
     fontSize: 16,
+    color: colors.darkText,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -74,7 +83,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteButtonText: {
-    color: 'red',
+    color: '#DC2626',
     fontSize: 16,
   }
 });

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import Colors from '../../constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 
 interface ModalProps {
@@ -10,7 +9,7 @@ interface ModalProps {
 }
 
 export default function QuickAddModal({ visible, onClose, onSave }: ModalProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [value, setValue] = useState('');
 
   const handleSubmit = () => {
@@ -43,7 +42,7 @@ export default function QuickAddModal({ visible, onClose, onSave }: ModalProps) 
               <Text style={[styles.cancelButtonText, { color: colors.darkText }]}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, { backgroundColor: colors.headerBlue }]} onPress={handleSubmit}>
-              <Text style={styles.saveButtonText}>Salvar</Text>
+              <Text style={[styles.saveButtonText, { color: isDark ? colors.card : '#FFFFFF' }]}>Salvar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -101,7 +100,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     saveButtonText: {
-        color: 'white',
         fontWeight: 'bold',
     },
 });

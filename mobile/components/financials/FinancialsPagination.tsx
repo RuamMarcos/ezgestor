@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
-import { styles } from '../../styles/financials/FinancialsPaginationStyles';
+import { createFinancialsPaginationStyles } from '../../styles/financials/FinancialsPaginationStyles';
+import { useTheme } from '@/context/ThemeContext';
 
 interface PaginationProps {
     currentPage: number;
@@ -9,6 +10,9 @@ interface PaginationProps {
 }
 
 const FinancialsPagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createFinancialsPaginationStyles(colors), [colors]);
+
     if (totalPages <= 1) {
         return null;
     }

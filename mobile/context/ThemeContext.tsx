@@ -4,7 +4,7 @@ import { getMyPreferences, updateMyPreferences } from '../services/UserService';
 import type { ThemeSetting } from '../services/UserService';
 import { useAuth } from './AuthContext';
 
-interface ThemeColors {
+export interface ThemeColors {
   headerBlue: string;
   background: string;
   darkText: string;

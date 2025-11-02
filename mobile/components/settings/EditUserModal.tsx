@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,9 @@ import {
   Switch,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { updateTeamMember, type TeamMember } from '@/services/TeamService';
-import { styles } from '@/styles/settings/EditUserModalStyles';
+import { useTheme } from '@/context/ThemeContext';
+import { createStyles } from '@/styles/settings/EditUserModalStyles';
 
 interface EditUserModalProps {
   visible: boolean;
@@ -29,6 +29,8 @@ interface UpdateTeamMemberData {
 }
 
 export default function EditUserModal({ visible, onClose, onSuccess, member }: EditUserModalProps) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<UpdateTeamMemberData>({
@@ -117,7 +119,7 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={DashboardColors.grayText}
+                color={colors.grayText}
               />
             </TouchableOpacity>
           </View>
@@ -134,7 +136,7 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
                   setFormData({ ...formData, first_name: text })
                 }
                 placeholder="Digite o primeiro nome"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 editable={!loading}
               />
             </View>
@@ -150,7 +152,7 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
                   setFormData({ ...formData, last_name: text })
                 }
                 placeholder="Digite o sobrenome"
-                placeholderTextColor={DashboardColors.grayText}
+                placeholderTextColor={colors.grayText}
                 editable={!loading}
               />
             </View>
@@ -228,8 +230,8 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
                     setFormData({ ...formData, is_active: value })
                   }
                   disabled={loading}
-                  trackColor={{ false: '#D1D5DB', true: DashboardColors.headerBlue }}
-                  thumbColor={formData.is_active ? '#FFFFFF' : '#F3F4F6'}
+                  trackColor={{ false: colors.border, true: colors.headerBlue }}
+                  thumbColor={formData.is_active ? (isDark ? colors.card : '#FFFFFF') : colors.lightGray}
                 />
               </View>
             </View>
@@ -258,7 +260,7 @@ export default function EditUserModal({ visible, onClose, onSuccess, member }: E
               activeOpacity={0.7}
             >
               {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={isDark ? colors.background : '#FFFFFF'} />
               ) : (
                 <Text style={styles.submitButtonText}>Salvar Alterações</Text>
               )}

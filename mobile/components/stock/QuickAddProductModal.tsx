@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import type { Product } from '../../services/StockService';
+import { useTheme } from '@/context/ThemeContext';
+import type { ThemeColors } from '@/context/ThemeContext';
 
 interface QuickAddProductModalProps {
   product: Product | null;
@@ -11,6 +13,8 @@ interface QuickAddProductModalProps {
 
 const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({ product, visible, onClose, onSave }) => {
   const [quantity, setQuantity] = useState('');
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   if (!product) {
     return null;
@@ -44,6 +48,7 @@ const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({ product, vi
             keyboardType="numeric"
             value={quantity}
             onChangeText={setQuantity}
+            placeholderTextColor={colors.grayText}
           />
 
           <View style={styles.buttonContainer}>
@@ -51,13 +56,13 @@ const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({ product, vi
               style={[styles.button, styles.buttonClose]}
               onPress={onClose}
             >
-              <Text style={styles.textStyle}>Cancelar</Text>
+              <Text style={styles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.buttonSave]}
               onPress={handleSave}
             >
-              <Text style={styles.textStyle}>Salvar</Text>
+              <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Salvar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -66,7 +71,7 @@ const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({ product, vi
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -75,7 +80,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',
@@ -94,20 +99,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     fontWeight: 'bold',
+    color: colors.darkText,
   },
   productName: {
     marginBottom: 20,
     textAlign: 'center',
     fontSize: 16,
+    color: colors.grayText,
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: colors.border,
     borderWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
     width: '100%',
     borderRadius: 5,
+    backgroundColor: colors.background,
+    color: colors.darkText,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -121,15 +130,18 @@ const styles = StyleSheet.create({
     width: '48%',
   },
   buttonClose: {
-    backgroundColor: '#ccc',
+    backgroundColor: colors.lightGray,
   },
   buttonSave: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.headerBlue,
   },
-  textStyle: {
-    color: 'white',
+  buttonText: {
     fontWeight: 'bold',
     textAlign: 'center',
+    color: colors.darkText,
+  },
+  buttonTextPrimary: {
+    color: isDark ? colors.card : '#FFFFFF',
   },
 });
 

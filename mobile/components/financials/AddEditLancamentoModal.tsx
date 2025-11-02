@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Modal, View, Text, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
 import { confirm } from '@/utils/confirm';
 import type { LancamentoFinanceiro, LancamentoFinanceiroData } from '@/services/FinancialService';
-import { styles } from '@/styles/financial/AddEditModalStyles';
+import { createAddEditModalStyles } from '@/styles/financial/AddEditModalStyles';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Props {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export default function AddEditLancamentoModal({ isOpen, onClose, onSave, onDelete, initialData }: Props) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createAddEditModalStyles(colors, isDark), [colors, isDark]);
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState(''); // Usar string para TextInput
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('saida');
@@ -91,6 +94,9 @@ export default function AddEditLancamentoModal({ isOpen, onClose, onSave, onDele
             value={descricao}
             onChangeText={setDescricao}
             placeholder="Ex: Pagamento de fornecedor"
+            placeholderTextColor={colors.grayText}
+            selectionColor={colors.headerBlue}
+            keyboardAppearance={isDark ? 'dark' : 'light'}
           />
 
           <Text style={styles.label}>Valor (R$)</Text>
@@ -100,6 +106,9 @@ export default function AddEditLancamentoModal({ isOpen, onClose, onSave, onDele
             onChangeText={setValor}
             placeholder="Ex: 150,00"
             keyboardType="numeric"
+            placeholderTextColor={colors.grayText}
+            selectionColor={colors.headerBlue}
+            keyboardAppearance={isDark ? 'dark' : 'light'}
           />
 
           <Text style={styles.label}>Tipo</Text>
@@ -122,11 +131,14 @@ export default function AddEditLancamentoModal({ isOpen, onClose, onSave, onDele
             value={categoria}
             onChangeText={setCategoria}
             placeholder="Ex: Despesas Fixas"
+            placeholderTextColor={colors.grayText}
+            selectionColor={colors.headerBlue}
+            keyboardAppearance={isDark ? 'dark' : 'light'}
           />
 
           <View style={styles.buttonRow}>
-            <Button title="Cancelar" onPress={onClose} color="#888" />
-            <Button title={isEditing ? 'Atualizar' : 'Salvar'} onPress={handleSave} />
+            <Button title="Cancelar" onPress={onClose} color={colors.grayText} />
+            <Button title={isEditing ? 'Atualizar' : 'Salvar'} onPress={handleSave} color={colors.headerBlue} />
           </View>
 
           {isEditing && onDelete && (

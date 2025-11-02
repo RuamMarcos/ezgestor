@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { deleteTeamMember, type TeamMember } from '@/services/TeamService';
 import { confirm } from '@/utils/confirm';
-import { styles } from '@/styles/settings/DeleteUserModalStyles';
+import { useTheme } from '@/context/ThemeContext';
+import { createStyles } from '@/styles/settings/DeleteUserModalStyles';
 
 interface DeleteUserModalProps {
   visible: boolean;
@@ -21,6 +21,8 @@ interface DeleteUserModalProps {
 }
 
 export default function DeleteUserModal({ visible, onClose, onSuccess, member }: DeleteUserModalProps) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +87,7 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={DashboardColors.grayText}
+                color={colors.grayText}
               />
             </TouchableOpacity>
           </View>
@@ -165,7 +167,7 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
                 <MaterialCommunityIcons
                   name="information"
                   size={20}
-                  color={DashboardColors.headerBlue}
+                  color={colors.headerBlue}
                 />
                 <View style={styles.warningTextContainer}>
                   <Text style={styles.warningTitle}>O que acontecerá:</Text>
@@ -219,7 +221,7 @@ export default function DeleteUserModal({ visible, onClose, onSuccess, member }:
               activeOpacity={0.7}
             >
               {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={isDark ? colors.background : '#FFFFFF'} />
               ) : (
                 <>
                   <MaterialCommunityIcons name="delete" size={18} color="#FFFFFF" />

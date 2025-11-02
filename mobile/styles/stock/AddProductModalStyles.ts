@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const styles = StyleSheet.create({
+export const createAddProductModalStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   modalContainer: {
     width: '90%',
     maxHeight: '80%',
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderRadius: 20,
     padding: 20,
     elevation: 5,
@@ -21,13 +21,16 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: colors.darkText,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 10,
     padding: 12,
     marginBottom: 15,
+    backgroundColor: colors.background,
+    color: colors.darkText,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -41,17 +44,18 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: colors.lightGray,
     marginRight: 10,
   },
   saveButton: {
-    backgroundColor: DashboardColors.headerBlue,
+    backgroundColor: colors.headerBlue,
   },
   cancelButtonText: {
     fontWeight: 'bold',
+    color: colors.darkText,
   },
   saveButtonText: {
-    color: 'white',
+    color: isDark ? colors.card : '#FFFFFF',
     fontWeight: 'bold',
   },
   imagePreview: {
@@ -59,20 +63,25 @@ export const styles = StyleSheet.create({
     height: 160,
     borderRadius: 10,
     marginBottom: 12,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.lightGray,
   },
   imageHint: {
-    color: '#6b7280',
+    color: colors.grayText,
     marginBottom: 8,
     textAlign: 'center',
   },
   imagePickerButton: {
     alignSelf: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     marginBottom: 16,
+    backgroundColor: colors.background,
+  },
+  imagePickerButtonText: {
+    color: colors.darkText,
+    fontWeight: '600',
   },
 });

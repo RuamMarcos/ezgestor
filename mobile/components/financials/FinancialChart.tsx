@@ -7,6 +7,13 @@ import { BarChart } from 'react-native-gifted-charts';
 
 type TimeFrame = '7days' | '30days' | 'currentMonth' | '12months';
 
+const TIMEFRAME_OPTIONS: ReadonlyArray<{ label: string; value: TimeFrame }> = [
+  { label: 'Últimos 7 dias', value: '7days' },
+  { label: 'Últimos 30 dias', value: '30days' },
+  { label: 'Mês atual', value: 'currentMonth' },
+  { label: 'Últimos 12 meses', value: '12months' },
+];
+
 interface ChartDataPoint {
   period: string;
   inflows: number;
@@ -126,16 +133,19 @@ const FinancialChart = () => {
         <Text style={[styles.title, { color: colors.darkText }]}>Entradas vs. Saídas</Text>
       </View>
 
-      <View style={[styles.pickerContainer, { backgroundColor: colors.lightGray, borderColor: colors.border }]}>
+  <View style={[styles.pickerContainer, { backgroundColor: colors.lightGray, borderColor: colors.border }]}>
         <Picker
+          key={`timeframe-${colors.darkText}`}
+          mode="dropdown"
           selectedValue={timeFrame}
           onValueChange={(value) => setTimeFrame(value as TimeFrame)}
-          style={styles.picker}
+          style={[styles.picker, { color: colors.darkText }]}
+          itemStyle={{ color: colors.darkText }}
+          dropdownIconColor={colors.darkText}
         >
-          <Picker.Item label="Últimos 7 dias" value="7days" />
-          <Picker.Item label="Últimos 30 dias" value="30days" />
-          <Picker.Item label="Mês atual" value="currentMonth" />
-          <Picker.Item label="Últimos 12 meses" value="12months" />
+          {TIMEFRAME_OPTIONS.map(({ label, value }) => (
+            <Picker.Item key={value} label={label} value={value} color={colors.darkText} />
+          ))}
         </Picker>
       </View>
 
@@ -149,12 +159,12 @@ const FinancialChart = () => {
             stackData={stackData}
             barWidth={computedBarWidth}
             spacing={barSpacing}
-            yAxisTextStyle={{ color: '#6B7280', fontSize: 10 }}
-            xAxisLabelTextStyle={{ color: '#6B7280', fontSize: 10, transform: [{ rotate: `${angle}deg` }] }}
+            yAxisTextStyle={{ color: colors.grayText, fontSize: 10 }}
+            xAxisLabelTextStyle={{ color: colors.grayText, fontSize: 10, transform: [{ rotate: `${angle}deg` }] }}
             xAxisThickness={0.75}
             yAxisThickness={0.75}
             rulesType={'solid'}
-            rulesColor={'#e5e7eb'}
+            rulesColor={colors.border}
             noOfSections={5}
             maxValue={Math.max(1, Math.ceil(maxStack * 1.2))}
             showLine={hasAtLeastTwoPoints}

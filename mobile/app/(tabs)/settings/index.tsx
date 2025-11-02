@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AdminRoute } from '@/components/AdminRoute';
-import { styles } from '@/styles/settings/SettingsStyles';
 import { useTheme } from '@/context/ThemeContext';
+import { createStyles } from '@/styles/settings/SettingsStyles';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const settingsOptions = [
     {
@@ -29,37 +30,37 @@ export default function SettingsScreen() {
 
   return (
     <AdminRoute>
-      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.darkText }]}>Configurações</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.grayText }]}>Gerencie as configurações do sistema</Text>
+          <Text style={styles.headerTitle}>Configurações</Text>
+          <Text style={styles.headerSubtitle}>Gerencie as configurações do sistema</Text>
         </View>
 
-      <View style={styles.optionsContainer}>
-        {settingsOptions.map((option) => (
-          <TouchableOpacity
-            key={option.id}
-            style={[styles.optionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => router.push(option.route as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.optionIconContainer}>
+        <View style={styles.optionsContainer}>
+          {settingsOptions.map((option) => (
+            <TouchableOpacity
+              key={option.id}
+              style={styles.optionCard}
+              onPress={() => router.push(option.route as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.optionIconContainer}>
+                <MaterialCommunityIcons
+                  name={option.icon as any}
+                  size={32}
+                  color={colors.headerBlue}
+                />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={styles.optionTitle}>{option.title}</Text>
+                <Text style={styles.optionDescription}>{option.description}</Text>
+              </View>
               <MaterialCommunityIcons
-                name={option.icon as any}
-                size={32}
-                color={colors.headerBlue}
+                name="chevron-right"
+                size={24}
+                color={colors.grayText}
               />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={[styles.optionTitle, { color: colors.darkText }]}>{option.title}</Text>
-              <Text style={[styles.optionDescription, { color: colors.grayText }]}>{option.description}</Text>
-            </View>
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={24}
-              color={colors.grayText}
-            />
-          </TouchableOpacity>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>

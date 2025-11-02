@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   Pressable,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
-import { styles } from '@/styles/settings/UserActionSheetStyles';
+import { useTheme } from '@/context/ThemeContext';
+import { createStyles } from '@/styles/settings/UserActionSheetStyles';
 
 interface UserActionSheetProps {
   visible: boolean;
@@ -25,6 +25,9 @@ export default function UserActionSheet({
   onDelete,
   userName,
 }: UserActionSheetProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Modal
       visible={visible}
@@ -51,7 +54,7 @@ export default function UserActionSheet({
                 <MaterialCommunityIcons
                   name="pencil"
                   size={22}
-                  color={DashboardColors.headerBlue}
+                  color={colors.headerBlue}
                 />
               </View>
               <Text style={styles.actionText}>Editar Usuário</Text>

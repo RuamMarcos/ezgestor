@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const styles = StyleSheet.create({
+export const createStockStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: DashboardColors.background,
+        backgroundColor: colors.background,
     },
     center: {
         justifyContent: 'center',
@@ -21,16 +21,16 @@ export const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: DashboardColors.darkText,
+        color: colors.darkText,
     },
     addButton: {
-        backgroundColor: DashboardColors.headerBlue,
+        backgroundColor: colors.headerBlue,
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 8,
     },
     addButtonText: {
-        color: 'white',
+        color: isDark ? colors.card : '#FFFFFF',
         fontWeight: 'bold',
     },
     searchContainer: {
@@ -39,57 +39,58 @@ export const styles = StyleSheet.create({
     },
     searchInput: {
         height: 48,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: DashboardColors.lightGray,
+        borderColor: colors.border,
         borderRadius: 8,
         paddingHorizontal: 16,
         fontSize: 16,
         marginBottom: 10,
+        color: colors.darkText,
     },
     paginationContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: 'center',
         paddingVertical: 12,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.card,
         borderTopWidth: 1,
-        borderTopColor: DashboardColors.lightGray,
+        borderTopColor: colors.border,
         width: '100%',
         marginTop: 10,
     },
     paginationButton: {
         paddingHorizontal: 18,
         paddingVertical: 10,
-        backgroundColor: DashboardColors.headerBlue,
+        backgroundColor: colors.headerBlue,
         borderRadius: 8,
     },
     smallNavButton: {
         paddingHorizontal: 8,
         paddingVertical: 8,
-        backgroundColor: DashboardColors.lightGray,
+        backgroundColor: colors.lightGray,
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
     },
     smallNavButtonText: {
-        color: DashboardColors.darkText,
+        color: colors.darkText,
         fontSize: 14,
         fontWeight: '600',
     },
     disabledButton: {
-        backgroundColor: DashboardColors.lightGray,
+        backgroundColor: colors.lightGray,
         opacity: 0.7,
     },
     paginationButtonText: {
-        color: '#FFFFFF',
+        color: isDark ? colors.card : '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
     },
     paginationText: {
         fontSize: 16,
         fontWeight: '600',
-        color: DashboardColors.darkText,
+        color: colors.darkText,
     },
     loadingOverlay: {
         position: 'absolute',
