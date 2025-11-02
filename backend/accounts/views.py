@@ -28,6 +28,8 @@ import random
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.conf import settings
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from django.contrib.auth.signals import user_logged_in 
 
 
 class EmpresaProfileView(generics.RetrieveUpdateAPIView):
@@ -44,6 +46,21 @@ class EmpresaProfileView(generics.RetrieveUpdateAPIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+        except Exception as e:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if hasattr(serializer, 'user'):
+            user_logged_in.send(sender=serializer.user.__class__,
+                                request=request,
+                                user=serializer.user)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 # View de cadastro de empresa
 class EmpresaRegistrationView(generics.CreateAPIView):
