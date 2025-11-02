@@ -4,7 +4,8 @@ import { createLog } from '../../services/logService';
 
 // Lazy import for html2pdf to keep initial bundle small and work in SSR-safe way
 async function loadHtml2Pdf() {
-  const mod: any = await import('html2pdf.js');
+  // Use bundled build to ensure html2canvas and jsPDF are included
+  const mod: any = await import('html2pdf.js/dist/html2pdf.bundle.min.js');
   return mod.default || mod;
 }
 
@@ -76,10 +77,10 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       const html2pdf = await loadHtml2Pdf();
       const opt = {
-        margin: 10,
+        margin: 0,
         filename: `NFe-${selectedId}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: null },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', allowTaint: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] },
       };
@@ -115,80 +116,97 @@ const InvoiceModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const buildInvoiceContent = (sale: SaleResponse) => {
     const wrapper = document.createElement('div');
     wrapper.id = 'nfe-print-root';
-    wrapper.className =
-      'fixed inset-0 p-6 z-[9999] overflow-auto bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100';
+    // Offscreen mas renderizável (não usar display:none)
+    wrapper.setAttribute('style', 'position:absolute;left:-10000px;top:0;z-index:-1;background:#ffffff;');
 
     const buyer = sale.cliente_nome || 'Consumidor Final';
-    const now = new Date(sale.data_venda || new Date().toISOString());
-    const issueDate = now.toLocaleString('pt-BR');
+    const issueDate = new Date(sale.data_venda || new Date().toISOString()).toLocaleString('pt-BR');
+    const qty = Number(sale.quantidade || 1);
+    const unit = Number(sale.preco_unitario ?? 0);
+    const total = Number(sale.preco_total ?? qty * unit);
 
-    // Minimal NF layout
-    wrapper.innerHTML = `
-      <div class="mx-auto max-w-3xl border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900">
-        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between">
-          <div>
-            <h1 class="text-2xl font-bold">Nota Fiscal (não oficial)</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Emitido em: ${issueDate}</p>
+    const css = `
+      * { box-sizing: border-box; }
+      .a4 { width: 210mm; min-height: 297mm; padding: 10mm; background: #fff; color: #111; font-family: Arial, Helvetica, sans-serif; }
+      .row { display: flex; gap: 0; }
+      .col { flex: 1; }
+      .box { border: 1px solid #222; padding: 6px; }
+      .title { font-size: 14px; font-weight: 700; }
+      .muted { color: #444; }
+      .small { font-size: 10px; }
+      .table { width: 100%; border-collapse: collapse; }
+      .table th, .table td { border: 1px solid #222; padding: 4px; font-size: 10px; }
+      .right { text-align: right; }
+      .center { text-align: center; }
+      .mt8 { margin-top: 8px; }
+      .mt12 { margin-top: 12px; }
+      .barcode { height: 28px; border: 1px solid #222; background: repeating-linear-gradient(90deg,#000 0,#000 2px,#fff 2px,#fff 4px); }
+    `;
+
+    const html = `
+      <div class="a4">
+        <div class="row" style="gap:8px;">
+          <div class="col box">
+            <div class="title">NF-e</div>
+            <div class="small muted">Número: ${String(sale.id_venda).padStart(6,'0')} &nbsp;&nbsp; Série: 1</div>
           </div>
-          <div class="text-right">
-            <p class="font-semibold">EZGestor</p>
-            <p class="text-sm text-gray-600 dark:text-gray-400">CNPJ: 00.000.000/0000-00</p>
+          <div class="col box">
+            <div class="center small">DANFE - Documento Auxiliar da Nota Fiscal Eletrônica</div>
+            <div class="barcode mt8"></div>
+            <div class="small center mt8">Chave de acesso: 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000</div>
           </div>
         </div>
-        <div class="p-6 grid grid-cols-2 gap-4">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Destinatário</p>
-            <p class="font-medium">${buyer}</p>
-            ${sale.cliente_email ? `<p class="text-sm">${sale.cliente_email}</p>` : ''}
-            ${sale.cliente_telefone ? `<p class="text-sm">${sale.cliente_telefone}</p>` : ''}
+
+        <div class="row mt12" style="gap:8px;">
+          <div class="col box">
+            <div class="small muted">Destinatário</div>
+            <div><strong>${buyer}</strong></div>
+            ${sale.cliente_email ? `<div class="small">${sale.cliente_email}</div>` : ''}
+            ${sale.cliente_telefone ? `<div class="small">${sale.cliente_telefone}</div>` : ''}
           </div>
-          <div class="text-right">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Nº Venda</p>
-            <p class="font-medium">${sale.id_venda}</p>
+          <div class="col box">
+            <div class="small muted">Data/Hora de emissão</div>
+            <div>${issueDate}</div>
           </div>
         </div>
-        <div class="px-6">
-          <table class="w-full text-sm border-t border-b border-gray-200 dark:border-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-800">
+
+        <div class="box mt12">
+          <table class="table">
+            <thead>
               <tr>
-                <th class="text-left p-2">Produto</th>
-                <th class="text-right p-2">Qtd</th>
-                <th class="text-right p-2">Vlr Unit</th>
-                <th class="text-right p-2">Total</th>
+                <th class="center">Cód</th>
+                <th>Descrição do Produto/Serviço</th>
+                <th class="right">Qtd</th>
+                <th class="right">Vlr Unit</th>
+                <th class="right">Vlr Total</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="border-t border-gray-100 dark:border-gray-800">
-                <td class="p-2">${sale.nome_produto}</td>
-                <td class="p-2 text-right">${sale.quantidade}</td>
-                <td class="p-2 text-right">${currency(Number(sale.preco_unitario ?? 0))}</td>
-                <td class="p-2 text-right">${currency(Number(sale.preco_total ?? 0))}</td>
+              <tr>
+                <td class="center">${(sale as any).produto_id ?? sale.id_venda}</td>
+                <td>${sale.nome_produto || 'Produto'}</td>
+                <td class="right">${qty}</td>
+                <td class="right">${currency(unit)}</td>
+                <td class="right">${currency(total)}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="p-6 flex justify-end">
-          <div class="w-64">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
-              <span>${currency(Number(sale.preco_total ?? 0))}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600 dark:text-gray-400">Impostos (0%)</span>
-              <span>${currency(0)}</span>
-            </div>
-            <div class="flex justify-between mt-2 text-lg font-semibold">
-              <span>Total</span>
-              <span>${currency(Number(sale.preco_total ?? 0))}</span>
-            </div>
+
+        <div class="row mt12" style="gap:8px;">
+          <div class="col box">
+            <div class="small">Base Cálculo ICMS: 0,00 &nbsp;&nbsp; Valor ICMS: 0,00 &nbsp;&nbsp; Valor Total da Nota: ${currency(total)}</div>
           </div>
         </div>
-        <div class="px-6 pb-6 text-xs text-gray-500 dark:text-gray-400">
-          <p>Documento gerado pelo sistema, sem valor fiscal. Modelo de NF-e apenas para fins de impressão/compartilhamento.</p>
+
+        <div class="box mt12 small">
+          <strong>Informações Complementares:</strong>
+          <div>Documento gerado pelo sistema (sem valor fiscal). Modelo de DANFE para impressão/compartilhamento.</div>
         </div>
       </div>
     `;
 
+    wrapper.innerHTML = `<style>${css}</style>${html}`;
     return wrapper;
   };
 
