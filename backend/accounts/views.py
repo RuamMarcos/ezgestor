@@ -335,7 +335,7 @@ class PaymentHistoryView(generics.ListAPIView):
     Retorna o histórico de pagamentos da empresa do usuário logado.
     """
     serializer_class = PagamentoSerializer
-    permission_classes = [permissions.IsAuthenticated, IsEmpresaOwner]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get_queryset(self):
         try:
