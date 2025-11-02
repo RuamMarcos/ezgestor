@@ -47,29 +47,49 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Load from server on login and start polling
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Clear polling when user logs out
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+    
     let cancelled = false;
-    const load = async () => {
+    
+    // Delay initial load to ensure user is fully authenticated
+    const initialLoadTimer = setTimeout(async () => {
       try {
         const pref = await getMyPreferences();
         if (!cancelled) setThemeSetting(pref.theme);
-      } catch {}
-    };
-    load();
+      } catch (error) {
+        // Silently fail - user might not have preferences yet
+        console.debug('Could not load theme preferences:', error);
+      }
+    }, 500); // Wait 500ms after login
 
     //pool every 8192 milliseconds
     const poll = async () => {
       try {
         const pref = await getMyPreferences();
-        setThemeSetting((old) => (old !== pref.theme ? pref.theme : old));
-      } catch {}
+        if (!cancelled) {
+          setThemeSetting((old) => (old !== pref.theme ? pref.theme : old));
+        }
+      } catch (error) {
+        // Silently fail - avoid spamming console
+        console.debug('Could not poll theme preferences:', error);
+      }
     };
     pollingRef.current = window.setInterval(poll, 8192);
 
     return () => {
       cancelled = true;
-      if (pollingRef.current) window.clearInterval(pollingRef.current);
-      pollingRef.current = null;
+      clearTimeout(initialLoadTimer);
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
     };
   }, [user]);
 

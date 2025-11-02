@@ -64,22 +64,38 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Load from backend and start polling when authenticated
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Clear polling when user logs out
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+    
     let cancelled = false;
 
-    const load = async () => {
+    // Delay initial load to ensure user is fully authenticated
+    const initialLoadTimer = setTimeout(async () => {
       try {
         const pref = await getMyPreferences();
         if (!cancelled) setThemeSetting(pref.theme);
-      } catch {}
-    };
-    load();
+      } catch (error) {
+        // Silently fail - user might not have preferences yet
+        console.debug('Could not load theme preferences:', error);
+      }
+    }, 500); // Wait 500ms after login
 
     const poll = async () => {
       try {
         const pref = await getMyPreferences();
-        setThemeSetting((old) => (old !== pref.theme ? pref.theme : old));
-      } catch {}
+        if (!cancelled) {
+          setThemeSetting((old) => (old !== pref.theme ? pref.theme : old));
+        }
+      } catch (error) {
+        // Silently fail - avoid spamming console
+        console.debug('Could not poll theme preferences:', error);
+      }
     };
 
     const startPolling = () => {
@@ -102,6 +118,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return () => {
       cancelled = true;
+      clearTimeout(initialLoadTimer);
       sub.remove();
       stopPolling();
     };
