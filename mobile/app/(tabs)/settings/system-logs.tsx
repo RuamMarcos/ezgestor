@@ -7,7 +7,10 @@ import {
   StyleSheet,
   RefreshControl,
   Button,
+  TouchableOpacity,
 } from 'react-native';
+import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AdminRoute } from '@/components/AdminRoute';
 import { getLogs } from '@/services/LogService';
 import type { RawLog } from '@/types/logs';
@@ -59,6 +62,7 @@ const ACTION_TYPES = [
 ];
 
 export default function SystemLogsScreen() {
+  const router = useRouter();
   const [logs, setLogs] = useState<RawLog[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -218,8 +222,24 @@ export default function SystemLogsScreen() {
   if (loading && !refreshing && logs.length === 0) {
     return (
       <AdminRoute>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={DashboardColors.blue} />
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="arrow-left"
+                size={24}
+                color={DashboardColors.headerBlue}
+              />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Logs do Sistema</Text>
+          </View>
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={DashboardColors.blue} />
+          </View>
         </View>
       </AdminRoute>
     );
@@ -228,10 +248,26 @@ export default function SystemLogsScreen() {
   if (error && logs.length === 0) {
     return (
       <AdminRoute>
-        <View style={styles.centered}>
-          {/* Renderiza o header mesmo em caso de erro para permitir novos filtros */}
-          {renderHeader()} 
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="arrow-left"
+                size={24}
+                color={DashboardColors.headerBlue}
+              />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Logs do Sistema</Text>
+          </View>
+          <View style={styles.centered}>
+            {/* Renderiza o header mesmo em caso de erro para permitir novos filtros */}
+            {renderHeader()} 
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
         </View>
       </AdminRoute>
     );
@@ -239,36 +275,52 @@ export default function SystemLogsScreen() {
 
   return (
     <AdminRoute>
-      <FlatList
-        data={logs}
-        renderItem={({ item }) => <LogItem item={item} />}
-        keyExtractor={(item) => item.id.toString()}
-        style={styles.container}
-        contentContainerStyle={styles.listContentContainer}
-        ListHeaderComponent={renderHeader}
-        onEndReached={() => {
-          if (hasNextPage && !loadingMore && !loading) {
-            fetchLogs(false);
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={24}
+              color={DashboardColors.headerBlue}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Logs do Sistema</Text>
+        </View>
+        <FlatList
+          data={logs}
+          renderItem={({ item }) => <LogItem item={item} />}
+          keyExtractor={(item) => item.id.toString()}
+          style={styles.listContainer}
+          contentContainerStyle={styles.listContentContainer}
+          ListHeaderComponent={renderHeader}
+          onEndReached={() => {
+            if (hasNextPage && !loadingMore && !loading) {
+              fetchLogs(false);
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={() => (
+            <View style={styles.centered}>
+              <Text style={styles.emptyText}>
+                Nenhum log encontrado
+                {appliedUser || appliedAction ? ' para os filtros aplicados' : ''}.
+              </Text>
+            </View>
+          )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[DashboardColors.blue]}
+            />
           }
-        }}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={() => (
-          <View style={styles.centered}>
-            <Text style={styles.emptyText}>
-              Nenhum log encontrado
-              {appliedUser || appliedAction ? ' para os filtros aplicados' : ''}.
-            </Text>
-          </View>
-        )}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[DashboardColors.blue]}
-          />
-        }
-      />
+        />
+      </View>
     </AdminRoute>
   );
 }

@@ -6,6 +6,25 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: DashboardColors.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: DashboardColors.darkText,
+  },
+  listContainer: {
+    flex: 1,
+  },
   listContentContainer: {
     padding: 16,
   },
