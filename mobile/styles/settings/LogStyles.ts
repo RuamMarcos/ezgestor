@@ -57,4 +57,36 @@ export const styles = StyleSheet.create({
     color: DashboardColors.grayText,
     textAlign: 'right',
   },
+  filterContainer: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  filterLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  picker: {
+    width: '100%',
+    height: 50,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  button: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
 });
