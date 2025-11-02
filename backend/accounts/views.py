@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.shortcuts import get_object_or_404
 from datetime import date, timedelta
 from .serializers import (
     MyTokenObtainPairSerializer, 
@@ -316,18 +317,7 @@ class CurrentSubscriptionView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get_object(self):
-        try:
-            assinatura = get_object_or_404(Assinatura, empresa=self.request.user.empresa)
-            return assinatura
-        except Assinatura.DoesNotExist:
-            return None
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance is None:
-            return Response({"detail": "Nenhuma assinatura encontrada para esta empresa."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return get_object_or_404(Assinatura, empresa=self.request.user.empresa)
 
 
 class PaymentHistoryView(generics.ListAPIView):
