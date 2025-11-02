@@ -16,4 +16,5 @@ export interface IPagamento {
   data_pagamento: string; 
   valor: string;
   status: string;
+  metodo: string;
 }
