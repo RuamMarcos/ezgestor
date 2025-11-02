@@ -358,7 +358,7 @@ function DashboardPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={()=>setReportModalOpen(false)} className="px-4 py-2 rounded-lg border">Cancelar</button>
+              <button onClick={()=>setReportModalOpen(false)} className="btn-cancel">Cancelar</button>
               <button onClick={generateSelectedReport} disabled={downloading} className="px-4 py-2 rounded-lg bg-green-600 text-white">
                 {downloading ? 'Gerando…' : 'Gerar'}
               </button>

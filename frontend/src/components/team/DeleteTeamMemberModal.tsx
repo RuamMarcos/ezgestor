@@ -107,7 +107,7 @@ const DeleteTeamMemberModal: React.FC<DeleteTeamMemberModalProps> = ({ isOpen, o
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 disabled:opacity-50"
+            className="btn-cancel disabled:opacity-50"
           >
             Cancelar
           </button>

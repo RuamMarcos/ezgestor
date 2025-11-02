@@ -76,3 +76,13 @@ body {
   color: #f9fafb !important;
   border-color: #4b5563 !important;
 }
+
+/* Reusable cancel button with proper contrast in light and dark themes */
+@layer components {
+  .btn-cancel {
+    @apply px-4 py-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors;
+  }
+  .dark .btn-cancel {
+    @apply bg-gray-800 text-gray-100 border-gray-600 hover:bg-gray-700;
+  }
+}
