@@ -10,7 +10,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import StockPage from './pages/StockPage'; 
 import SalesPage from './pages/SalesPage';
 import FinancialsPage from './pages/FinancialsPage';
-
+import LogsPage from './pages/LogsPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import SettingsLayout from './layouts/SettingsLayout';
 import TeamManagementPage from './pages/TeamManagementPage';
@@ -57,6 +57,7 @@ function App() {
             <Route index element={<Navigate to="conta" replace />} /> 
             <Route path="usuarios" element={<TeamManagementPage />} />
             <Route path="conta" element={<CompanyProfilePage />} />
+            <Route path="logs" element={<LogsPage />} />
           </Route>
         </Route>
 
