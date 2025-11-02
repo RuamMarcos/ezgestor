@@ -30,7 +30,9 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.conf import settings
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from django.contrib.auth.signals import user_logged_in 
+from django.contrib.auth.signals import user_logged_in
+from .serializers import PagamentoSerializer, AssinaturaSerializer
+from .permissions import IsAdminUser 
 
 
 class EmpresaProfileView(generics.RetrieveUpdateAPIView):
@@ -305,3 +307,39 @@ class PasswordResetConfirmView(generics.GenericAPIView):
 
         except (Usuario.DoesNotExist, PasswordResetCode.DoesNotExist):
             return Response({"detail": "Código inválido ou expirado. Tente novamente."}, status=status.HTTP_400_BAD_REQUEST)
+
+class CurrentSubscriptionView(generics.RetrieveAPIView):
+    """
+    Retorna a assinatura ativa da empresa do usuário logado.
+    """
+    serializer_class = AssinaturaSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+
+    def get_object(self):
+        try:
+            assinatura = get_object_or_404(Assinatura, empresa=self.request.user.empresa)
+            return assinatura
+        except Assinatura.DoesNotExist:
+            return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({"detail": "Nenhuma assinatura encontrada para esta empresa."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class PaymentHistoryView(generics.ListAPIView):
+    """
+    Retorna o histórico de pagamentos da empresa do usuário logado.
+    """
+    serializer_class = PagamentoSerializer
+    permission_classes = [permissions.IsAuthenticated, IsEmpresaOwner]
+
+    def get_queryset(self):
+        try:
+            assinatura = Assinatura.objects.get(empresa=self.request.user.empresa)
+            return Pagamento.objects.filter(assinatura=assinatura).order_by('-data_pagamento')
+        except Assinatura.DoesNotExist:
+            return Pagamento.objects.none()

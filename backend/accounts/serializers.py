@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario, Plano, UserPreference
+from .models import Empresa, Usuario, Plano, UserPreference, Assinatura, Pagamento
 
 class EmpresaSerializer(serializers.ModelSerializer):
     """
@@ -211,7 +211,6 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, value):
-        # Normaliza o email para minúsculas para consistência
         return value.lower()
 
 class PasswordResetValidateCodeSerializer(serializers.Serializer):
@@ -234,3 +233,24 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         return value.lower()
+
+class PlanoSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(source='get_nome_display')
+    
+    class Meta:
+        model = Plano
+        fields = ['id_plano', 'nome', 'preco_mensal']
+
+class AssinaturaSerializer(serializers.ModelSerializer):
+    plano = PlanoSerializer(read_only=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Assinatura
+        fields = ['id_assinatura', 'plano', 'status', 'data_proximo_pagamento'] 
+
+class PagamentoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Pagamento
+        fields = ['id_pagamento', 'data_pagamento', 'valor', 'status']
