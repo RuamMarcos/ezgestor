@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '@/context/ThemeContext';
+import { DashboardColors } from '@/constants/DashboardColors';
 import type { TeamMember } from '@/services/TeamService';
-import { useUserListStyles } from '@/styles/settings/UserListStyles';
+import { styles } from '@/styles/settings/UserListStyles';
 
 interface UserListProps {
   members: TeamMember[];
@@ -26,9 +26,6 @@ export default function UserList({
   filterRole,
   ListFooterComponent,
 }: UserListProps) {
-  const { colors } = useTheme();
-  const styles = useUserListStyles(colors);
-
   const renderMemberItem = ({ item }: { item: TeamMember }) => (
     <View style={styles.memberCard}>
       <View style={styles.memberAvatar}>
@@ -88,7 +85,7 @@ export default function UserList({
         <MaterialCommunityIcons
           name="dots-vertical"
           size={24}
-          color={colors.grayText}
+          color={DashboardColors.grayText}
         />
       </TouchableOpacity>
     </View>
@@ -99,7 +96,7 @@ export default function UserList({
       <MaterialCommunityIcons
         name="account-group-outline"
         size={80}
-        color={colors.grayText}
+        color={DashboardColors.grayText}
       />
       <Text style={styles.emptyStateTitle}>Nenhum usuário encontrado</Text>
       <Text style={styles.emptyStateText}>
@@ -120,8 +117,7 @@ export default function UserList({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={[colors.headerBlue]}
-          tintColor={colors.headerBlue}
+          colors={[DashboardColors.headerBlue]}
         />
       }
       ListEmptyComponent={!loading ? renderEmptyComponent : null}

@@ -7,7 +7,7 @@ import {
   Pressable,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '@/context/ThemeContext';
+import { DashboardColors } from '@/constants/DashboardColors';
 import { styles } from '@/styles/settings/UserActionSheetStyles';
 
 interface UserActionSheetProps {
@@ -25,8 +25,6 @@ export default function UserActionSheet({
   onDelete,
   userName,
 }: UserActionSheetProps) {
-  const { colors } = useTheme();
-  const dynamicStyles = styles(colors);
   return (
     <Modal
       visible={visible}
@@ -34,56 +32,56 @@ export default function UserActionSheet({
       transparent={true}
       onRequestClose={onClose}
     >
-      <Pressable style={dynamicStyles.modalOverlay} onPress={onClose}>
-        <Pressable style={dynamicStyles.modalContent} onPress={(e) => e.stopPropagation()}>
-          <View style={dynamicStyles.header}>
-            <Text style={dynamicStyles.title}>{userName}</Text>
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{userName}</Text>
           </View>
 
-          <View style={dynamicStyles.actionsList}>
+          <View style={styles.actionsList}>
             <TouchableOpacity
-              style={dynamicStyles.actionButton}
+              style={styles.actionButton}
               onPress={() => {
                 onClose();
                 onEdit();
               }}
               activeOpacity={0.7}
             >
-              <View style={dynamicStyles.actionIconContainer}>
+              <View style={styles.actionIconContainer}>
                 <MaterialCommunityIcons
                   name="pencil"
                   size={22}
-                  color={colors.headerBlue}
+                  color={DashboardColors.headerBlue}
                 />
               </View>
-              <Text style={dynamicStyles.actionText}>Editar Usuário</Text>
+              <Text style={styles.actionText}>Editar Usuário</Text>
             </TouchableOpacity>
 
-            <View style={dynamicStyles.divider} />
+            <View style={styles.divider} />
 
             <TouchableOpacity
-              style={dynamicStyles.actionButton}
+              style={styles.actionButton}
               onPress={() => {
                 onClose();
                 onDelete();
               }}
               activeOpacity={0.7}
             >
-              <View style={dynamicStyles.actionIconContainer}>
+              <View style={styles.actionIconContainer}>
                 <MaterialCommunityIcons name="delete" size={22} color="#EF4444" />
               </View>
-              <Text style={[dynamicStyles.actionText, dynamicStyles.deleteText]}>
+              <Text style={[styles.actionText, styles.deleteText]}>
                 Excluir Usuário
               </Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            style={dynamicStyles.cancelButton}
+            style={styles.cancelButton}
             onPress={onClose}
             activeOpacity={0.7}
           >
-            <Text style={dynamicStyles.cancelButtonText}>Cancelar</Text>
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

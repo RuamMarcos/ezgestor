@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 
-export const styles = (colors: any) => StyleSheet.create({
+export const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -19,7 +19,7 @@ export const styles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E5E7EB',
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -29,7 +29,7 @@ export const styles = (colors: any) => StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: colors.darkText,
+    color: DashboardColors.darkText,
   },
   modalBody: {
     padding: 20,
@@ -37,7 +37,7 @@ export const styles = (colors: any) => StyleSheet.create({
   userInfoCard: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: colors.lightGray,
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     marginBottom: 20,
   },
@@ -45,7 +45,7 @@ export const styles = (colors: any) => StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.headerBlue,
+    backgroundColor: DashboardColors.headerBlue,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -62,12 +62,12 @@ export const styles = (colors: any) => StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.darkText,
+    color: DashboardColors.darkText,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: colors.grayText,
+    color: DashboardColors.grayText,
     marginBottom: 8,
   },
   userTags: {
@@ -176,7 +176,7 @@ export const styles = (colors: any) => StyleSheet.create({
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#E5E7EB',
     gap: 12,
   },
   button: {
@@ -189,12 +189,12 @@ export const styles = (colors: any) => StyleSheet.create({
     gap: 6,
   },
   cancelButton: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: '#F3F4F6',
   },
   cancelButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.grayText,
+    color: DashboardColors.grayText,
   },
   deleteButton: {
     backgroundColor: '#EF4444',

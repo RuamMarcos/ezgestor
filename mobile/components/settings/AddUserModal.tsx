@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '@/context/ThemeContext';
+import { DashboardColors } from '@/constants/DashboardColors';
 import { createTeamMember, type CreateTeamMemberData } from '@/services/TeamService';
 import { styles } from '@/styles/settings/AddUserModalStyles';
 
@@ -21,8 +21,6 @@ interface AddUserModalProps {
 }
 
 export default function AddUserModal({ visible, onClose, onSuccess }: AddUserModalProps) {
-  const { colors } = useTheme();
-  const dynamicStyles = styles(colors);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreateTeamMemberData>({
     first_name: '',
@@ -110,144 +108,144 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
       transparent={true}
       onRequestClose={handleClose}
     >
-      <View style={dynamicStyles.modalOverlay}>
-        <View style={dynamicStyles.modalContent}>
-          <View style={dynamicStyles.modalHeader}>
-            <Text style={dynamicStyles.modalTitle}>Adicionar Usuário</Text>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Adicionar Usuário</Text>
             <TouchableOpacity onPress={handleClose} disabled={loading}>
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={colors.grayText}
+                color={DashboardColors.grayText}
               />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={dynamicStyles.modalBody} showsVerticalScrollIndicator={false}>
-            <View style={dynamicStyles.formGroup}>
-              <Text style={dynamicStyles.label}>
-                Primeiro Nome <Text style={dynamicStyles.required}>*</Text>
+          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Primeiro Nome <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={dynamicStyles.input}
+                style={styles.input}
                 value={formData.first_name}
                 onChangeText={(text) =>
                   setFormData({ ...formData, first_name: text })
                 }
                 placeholder="Digite o primeiro nome"
-                placeholderTextColor={colors.grayText}
+                placeholderTextColor={DashboardColors.grayText}
                 editable={!loading}
               />
             </View>
 
-            <View style={dynamicStyles.formGroup}>
-              <Text style={dynamicStyles.label}>
-                Sobrenome <Text style={dynamicStyles.required}>*</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Sobrenome <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={dynamicStyles.input}
+                style={styles.input}
                 value={formData.last_name}
                 onChangeText={(text) =>
                   setFormData({ ...formData, last_name: text })
                 }
                 placeholder="Digite o sobrenome"
-                placeholderTextColor={colors.grayText}
+                placeholderTextColor={DashboardColors.grayText}
                 editable={!loading}
               />
             </View>
 
-            <View style={dynamicStyles.formGroup}>
-              <Text style={dynamicStyles.label}>
-                Email <Text style={dynamicStyles.required}>*</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Email <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={dynamicStyles.input}
+                style={styles.input}
                 value={formData.email}
                 onChangeText={(text) =>
                   setFormData({ ...formData, email: text })
                 }
                 placeholder="Digite o email"
-                placeholderTextColor={colors.grayText}
+                placeholderTextColor={DashboardColors.grayText}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!loading}
               />
             </View>
 
-            <View style={dynamicStyles.formGroup}>
-              <Text style={dynamicStyles.label}>
-                Senha <Text style={dynamicStyles.required}>*</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Senha <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={dynamicStyles.input}
+                style={styles.input}
                 value={formData.password}
                 onChangeText={(text) =>
                   setFormData({ ...formData, password: text })
                 }
                 placeholder="Digite a senha (mínimo 8 caracteres)"
-                placeholderTextColor={colors.grayText}
+                placeholderTextColor={DashboardColors.grayText}
                 secureTextEntry
                 editable={!loading}
               />
             </View>
 
-            <View style={dynamicStyles.formGroup}>
-              <Text style={dynamicStyles.label}>
-                Confirmar Senha <Text style={dynamicStyles.required}>*</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Confirmar Senha <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={dynamicStyles.input}
+                style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Digite a senha novamente"
-                placeholderTextColor={colors.grayText}
+                placeholderTextColor={DashboardColors.grayText}
                 secureTextEntry
                 editable={!loading}
               />
             </View>
 
-            <View style={dynamicStyles.formGroup}>
-              <Text style={dynamicStyles.label}>
-                Nível de Acesso <Text style={dynamicStyles.required}>*</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Nível de Acesso <Text style={styles.required}>*</Text>
               </Text>
-              <View style={dynamicStyles.radioGroup}>
+              <View style={styles.radioGroup}>
                 <TouchableOpacity
-                  style={dynamicStyles.radioOption}
+                  style={styles.radioOption}
                   onPress={() =>
                     setFormData({ ...formData, nivel_acesso: 'funcionario' })
                   }
                   disabled={loading}
                   activeOpacity={0.7}
                 >
-                  <View style={dynamicStyles.radioButton}>
+                  <View style={styles.radioButton}>
                     {formData.nivel_acesso === 'funcionario' && (
-                      <View style={dynamicStyles.radioButtonSelected} />
+                      <View style={styles.radioButtonSelected} />
                     )}
                   </View>
-                  <View style={dynamicStyles.radioLabelContainer}>
-                    <Text style={dynamicStyles.radioLabel}>Funcionário</Text>
-                    <Text style={dynamicStyles.radioDescription}>
+                  <View style={styles.radioLabelContainer}>
+                    <Text style={styles.radioLabel}>Funcionário</Text>
+                    <Text style={styles.radioDescription}>
                       Acesso limitado às funcionalidades básicas
                     </Text>
                   </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={dynamicStyles.radioOption}
+                  style={styles.radioOption}
                   onPress={() =>
                     setFormData({ ...formData, nivel_acesso: 'administrador' })
                   }
                   disabled={loading}
                   activeOpacity={0.7}
                 >
-                  <View style={dynamicStyles.radioButton}>
+                  <View style={styles.radioButton}>
                     {formData.nivel_acesso === 'administrador' && (
-                      <View style={dynamicStyles.radioButtonSelected} />
+                      <View style={styles.radioButtonSelected} />
                     )}
                   </View>
-                  <View style={dynamicStyles.radioLabelContainer}>
-                    <Text style={dynamicStyles.radioLabel}>Administrador</Text>
-                    <Text style={dynamicStyles.radioDescription}>
+                  <View style={styles.radioLabelContainer}>
+                    <Text style={styles.radioLabel}>Administrador</Text>
+                    <Text style={styles.radioDescription}>
                       Acesso completo a todas as funcionalidades
                     </Text>
                   </View>
@@ -256,17 +254,17 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
             </View>
           </ScrollView>
 
-          <View style={dynamicStyles.modalFooter}>
+          <View style={styles.modalFooter}>
             <TouchableOpacity
-              style={[dynamicStyles.button, dynamicStyles.cancelButton]}
+              style={[styles.button, styles.cancelButton]}
               onPress={handleClose}
               disabled={loading}
               activeOpacity={0.7}
             >
-              <Text style={dynamicStyles.cancelButtonText}>Cancelar</Text>
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[dynamicStyles.button, dynamicStyles.submitButton, loading && dynamicStyles.buttonDisabled]}
+              style={[styles.button, styles.submitButton, loading && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={loading}
               activeOpacity={0.7}
@@ -274,7 +272,7 @@ export default function AddUserModal({ visible, onClose, onSuccess }: AddUserMod
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={dynamicStyles.submitButtonText}>Adicionar</Text>
+                <Text style={styles.submitButtonText}>Adicionar</Text>
               )}
             </TouchableOpacity>
           </View>

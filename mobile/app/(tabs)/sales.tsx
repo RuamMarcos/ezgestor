@@ -8,13 +8,13 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/context/ThemeContext';
 import api from '../../utils/api';
 import SalesHeader from '@/components/sales/SalesHeader';
 import SaleListItem from '@/components/sales/SaleListItem';
 import AddSaleModal from '@/components/sales/AddSaleModal';
 import EditSaleModal from '@/components/sales/EditSaleModal';
 import { styles } from '../../styles/sales/SalesStyles';
+import { DashboardColors } from '@/constants/DashboardColors';
 
 interface Venda {
   id_venda: number;
@@ -28,7 +28,6 @@ interface Venda {
 }
 
 export default function VendasScreen() {
-  const { colors } = useTheme();
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [busca, setBusca] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,17 +93,17 @@ export default function VendasScreen() {
     if (loading || totalPages <= 1) return null;
 
     return (
-      <View style={[styles.paginationContainer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      <View style={styles.paginationContainer}>
         <TouchableOpacity
-          style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.smallNavButton, { backgroundColor: colors.lightGray }]}
+          style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
           onPress={() => setCurrentPage(1)}
           disabled={currentPage === 1}
         >
-          <Text style={[styles.smallNavButtonText, { color: colors.darkText }]}>|&lt;</Text>
+          <Text style={styles.smallNavButtonText}>|&lt;</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.paginationButton, { backgroundColor: colors.headerBlue }]}
+          style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
           onPress={() => {
             if (currentPage > 1) {
               setCurrentPage(currentPage - 1);
@@ -112,13 +111,13 @@ export default function VendasScreen() {
           }}
           disabled={currentPage === 1}
         >
-          <Text style={[styles.paginationButtonText, { color: currentPage === 1 ? colors.darkText : colors.background }]}>Anterior</Text>
+          <Text style={styles.paginationButtonText}>Anterior</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.paginationText, { color: colors.darkText }]}>{currentPage} de {totalPages}</Text>
+        <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
 
         <TouchableOpacity
-          style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.paginationButton, { backgroundColor: colors.headerBlue }]}
+          style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
           onPress={() => {
             if (currentPage < totalPages) {
               setCurrentPage(currentPage + 1);
@@ -126,38 +125,38 @@ export default function VendasScreen() {
           }}
           disabled={currentPage === totalPages}
         >
-          <Text style={[styles.paginationButtonText, { color: currentPage === totalPages ? colors.darkText : colors.background }]}>Próximo</Text>
+          <Text style={styles.paginationButtonText}>Próximo</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton, { backgroundColor: colors.lightGray }] : [styles.smallNavButton, { backgroundColor: colors.lightGray }]}
+          style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
           onPress={() => setCurrentPage(totalPages)}
           disabled={currentPage === totalPages}
         >
-          <Text style={[styles.smallNavButtonText, { color: colors.darkText }]}>&gt;|</Text>
+          <Text style={styles.smallNavButtonText}>&gt;|</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.safeArea}>
       <SalesHeader onAddSale={() => setModalVisible(true)} />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <TextInput
-            style={[styles.searchInput, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={styles.searchInput}
             placeholder="Pesquisar por produto ou vendedor..."
             value={busca}
             onChangeText={setBusca}
-            placeholderTextColor={colors.grayText}
+            placeholderTextColor={DashboardColors.grayText}
           />
         </View>
         
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {loading && currentPage === 1 ? (
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color={colors.headerBlue} />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
         ) : (
             <FlatList
               data={vendas}
@@ -172,7 +171,7 @@ export default function VendasScreen() {
               ListEmptyComponent={
                 !loading ? (
                   <View style={styles.emptyListContainer}>
-                    <Text style={[styles.emptyListText, { color: colors.grayText }]}>Nenhuma venda encontrada.</Text>
+                    <Text style={styles.emptyListText}>Nenhuma venda encontrada.</Text>
                   </View>
                 ) : null
               }

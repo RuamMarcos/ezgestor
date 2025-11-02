@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/context/ThemeContext';
 import { getLancamentos, getFinancialStats, createLancamento, updateLancamento, deleteLancamento } from '@/services/FinancialService';
 import type { LancamentoFinanceiro, FinancialStats, LancamentoFinanceiroData } from '@/services/FinancialService';
 import SummaryCard from '@/components/dashboard/SummaryCard';
@@ -14,13 +12,12 @@ import AddEditLancamentoModal from '@/components/financials/AddEditLancamentoMod
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AdminRoute } from '@/components/AdminRoute';
 
+
 const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 };
 
 export default function FinancialScreen() {
-    const { colors } = useTheme();
-    const insets = useSafeAreaInsets();
     const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
     const [stats, setStats] = useState<FinancialStats | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -147,79 +144,68 @@ export default function FinancialScreen() {
     };
 
     if (initialLoading) {
-        return <ActivityIndicator size="large" style={{ flex: 1 }} color={colors.headerBlue} />;
+        return <ActivityIndicator size="large" style={{ flex: 1 }} />;
     }
 
     return (
         <AdminRoute>
-            <View style={[styles.screen, { backgroundColor: colors.background }]} >
+            <View style={styles.screen}>
                 <FlatList
                     data={lancamentos}
                     keyExtractor={(item) => item.id_lancamento.toString()}
                     renderItem={({ item }) => <TransactionListItem item={item} onPress={() => openEditModal(item)} />}
                     ListHeaderComponent={
-                        <View style={{ backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 0 }}>
+                        <View>
                             <View style={styles.headerSpacing}>
-                                <Text style={[styles.pageTitle, { color: colors.darkText }]}>Fluxo de Caixa</Text>
+                                <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
                             </View>
                             {stats && (
-                                <View style={[styles.cardsSection, { backgroundColor: colors.background }]}>
+                                <View style={styles.cardsSection}>
                                     <View style={styles.cardsRow}>
-                                        <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" span="half" />
-                                        <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" span="half" />
-                                    </View>
-                                    <View style={styles.cardsRowFull}>
-                                        <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" span="full" />
-                                    </View>
+                                    <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" span="half" />
+                                    <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" span="half" />
                                 </View>
-                            )}
-                            <View style={[styles.chartContainer, { backgroundColor: colors.background }]}>
-                                <FinancialChart />
+                                <View style={styles.cardsRowFull}>
+                                    <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" span="full" />
+                                </View>
                             </View>
-                            <FinancialsHeader 
-                                searchTerm={searchTerm}
-                                onSearchChange={setSearchTerm}
-                                selectedType={selectedType}
-                                onTypeChange={setSelectedType}
-                                onAddTransaction={openAddModal}
-                            />
-                            <Text style={[styles.listTitle, { color: colors.darkText }]}>Histórico de Transações</Text>
+                        )}
+                        <View style={styles.chartContainer}>
+                            <FinancialChart />
                         </View>
-                    }
-                    contentContainerStyle={[styles.listContent, { backgroundColor: colors.background, paddingBottom: insets.bottom }]}
-                    refreshing={listLoading}
-                    onRefresh={() => fetchFinancials(currentPage, searchTerm, selectedType)}
-                    />
-                    {/* Fixed bottom section anchored to viewport */}
-                    <View style={{
-                        position: 'absolute',
-                        bottom: insets.bottom,
-                        left: 0,
-                        right: 0,
-                        backgroundColor: colors.background,
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'space-around',
-                        paddingVertical: 0,
-                        marginBottom: 0,
-                        marginTop: 0,
-                        paddingTop: 5,
-                        paddingBottom: 0,
-                    }}>
+                        <FinancialsHeader 
+                            searchTerm={searchTerm}
+                            onSearchChange={setSearchTerm}
+                            selectedType={selectedType}
+                            onTypeChange={setSelectedType}
+                            onAddTransaction={openAddModal} // ATUALIZE AQUI
+                        />
+                        <Text style={styles.listTitle}>Histórico de Transações</Text>
+                    </View>
+                }
+                ListFooterComponent={
+                    listLoading ? <ActivityIndicator style={styles.footerLoader}/> : (
                         <FinancialsPagination
                             currentPage={currentPage}
                             totalPages={totalPages}
                             onPageChange={setCurrentPage}
-                            onAddTransaction={openAddModal}
                         />
-                    </View>
-                    <AddEditLancamentoModal
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onSave={handleSave}
-                        onDelete={handleDelete}
-                        initialData={editingLancamento}
-                    />
+                    )
+                }
+                contentContainerStyle={styles.listContent}
+                refreshing={listLoading}
+                onRefresh={() => fetchFinancials(currentPage, searchTerm, selectedType)}
+            />
+            <AddEditLancamentoModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                initialData={editingLancamento}
+            />
+            <TouchableOpacity style={styles.fab} onPress={openAddModal}>
+                <MaterialCommunityIcons name="plus" size={24} color="white" />
+            </TouchableOpacity>
             </View>
         </AdminRoute>
     );

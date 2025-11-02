@@ -1,17 +1,18 @@
 import { StyleSheet } from 'react-native';
+import { DashboardColors } from '@/constants/DashboardColors';
 
-export const useUserListStyles = (colors: any) => StyleSheet.create({
+export const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     flexGrow: 1,
   },
   memberCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -19,19 +20,18 @@ export const useUserListStyles = (colors: any) => StyleSheet.create({
     elevation: 3,
   },
   memberAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: colors.headerBlue,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: DashboardColors.headerBlue,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   memberAvatarText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+    fontSize: 16,
+    fontWeight: '600',
   },
   memberInfo: {
     flex: 1,
@@ -39,12 +39,12 @@ export const useUserListStyles = (colors: any) => StyleSheet.create({
   memberName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.darkText,
-    marginBottom: 4,
+    color: DashboardColors.darkText,
+    marginBottom: 2,
   },
   memberEmail: {
-    fontSize: 14,
-    color: colors.grayText,
+    fontSize: 13,
+    color: DashboardColors.grayText,
     marginBottom: 8,
   },
   memberTags: {
@@ -53,72 +53,65 @@ export const useUserListStyles = (colors: any) => StyleSheet.create({
   },
   roleTag: {
     paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 8,
+    borderRadius: 4,
   },
   adminTag: {
-    backgroundColor: colors.headerBlue,
-    borderColor: colors.headerBlue,
+    backgroundColor: '#FEE2E2',
   },
   employeeTag: {
-    backgroundColor: colors.lightGray,
-    borderColor: colors.border,
+    backgroundColor: '#DBEAFE',
   },
   roleTagText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   adminTagText: {
-    color: '#FFFFFF',
+    color: '#991B1B',
   },
   employeeTagText: {
-    color: colors.grayText,
+    color: '#1E40AF',
   },
   statusTag: {
     paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 8,
+    borderRadius: 4,
   },
   activeTag: {
-    backgroundColor: '#10B981', // Green for active
-    borderColor: '#10B981',
+    backgroundColor: '#D1FAE5',
   },
   inactiveTag: {
-    backgroundColor: '#EF4444', // Red for inactive
-    borderColor: '#EF4444',
+    backgroundColor: '#FEE2E2',
   },
   statusTagText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   activeTagText: {
-    color: '#FFFFFF',
+    color: '#065F46',
   },
   inactiveTagText: {
-    color: '#FFFFFF',
+    color: '#991B1B',
   },
   menuButton: {
     padding: 8,
   },
   emptyState: {
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: 80,
-    backgroundColor: colors.background,
+    alignItems: 'center',
+    paddingVertical: 60,
   },
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.darkText,
+    color: DashboardColors.darkText,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: colors.grayText,
+    color: DashboardColors.grayText,
     textAlign: 'center',
-    lineHeight: 20,
   },
 });

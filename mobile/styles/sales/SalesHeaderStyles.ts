@@ -6,10 +6,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 20,
-    marginTop: -40,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     backgroundColor: DashboardColors.background,
   },
   title: {

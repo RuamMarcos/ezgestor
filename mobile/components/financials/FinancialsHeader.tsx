@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '@/context/ThemeContext';
+import { DashboardColors } from '@/constants/DashboardColors';
 
 interface FinancialsHeaderProps {
   searchTerm: string;
@@ -18,35 +18,32 @@ const FinancialsHeader = ({
     onTypeChange,
     onAddTransaction 
 }: FinancialsHeaderProps) => {
-  const { colors } = useTheme();
-
   return (
     <View style={styles.container}>
-      <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-        <MaterialCommunityIcons name="magnify" size={20} color={colors.grayText} style={styles.searchIcon} />
+      <View style={styles.searchContainer}>
+        <MaterialCommunityIcons name="magnify" size={20} color={DashboardColors.grayText} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Pesquisar por descrição..."
           value={searchTerm}
           onChangeText={onSearchChange}
-          placeholderTextColor={colors.grayText}
         />
       </View>
       <View style={styles.filtersContainer}>
         <TouchableOpacity 
-            style={[styles.typeButton, { backgroundColor: colors.lightGray }, selectedType === '' && { backgroundColor: colors.headerBlue }]} 
+            style={[styles.typeButton, selectedType === '' && styles.typeButtonActive]} 
             onPress={() => onTypeChange('')}>
-            <Text style={[styles.typeButtonText, { color: colors.darkText }, selectedType === '' && { color: colors.background }]}>Todos</Text>
+            <Text style={[styles.typeButtonText, selectedType === '' && styles.typeButtonTextActive]}>Todos</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-            style={[styles.typeButton, { backgroundColor: colors.lightGray }, selectedType === 'entrada' && { backgroundColor: colors.headerBlue }]} 
+            style={[styles.typeButton, selectedType === 'entrada' && styles.typeButtonActive]} 
             onPress={() => onTypeChange('entrada')}>
-            <Text style={[styles.typeButtonText, { color: colors.darkText }, selectedType === 'entrada' && { color: colors.background }]}>Entradas</Text>
+            <Text style={[styles.typeButtonText, selectedType === 'entrada' && styles.typeButtonTextActive]}>Entradas</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-            style={[styles.typeButton, { backgroundColor: colors.lightGray }, selectedType === 'saida' && { backgroundColor: colors.headerBlue }]} 
+            style={[styles.typeButton, selectedType === 'saida' && styles.typeButtonActive]} 
             onPress={() => onTypeChange('saida')}>
-            <Text style={[styles.typeButtonText, { color: colors.darkText }, selectedType === 'saida' && { color: colors.background }]}>Saídas</Text>
+            <Text style={[styles.typeButtonText, selectedType === 'saida' && styles.typeButtonTextActive]}>Saídas</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -55,17 +52,16 @@ const FinancialsHeader = ({
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 0,
-        paddingVertical: 0,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 10,
         marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
     },
     searchIcon: {
         marginRight: 5,
@@ -82,9 +78,17 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 20,
+        backgroundColor: '#e9ecef'
+    },
+    typeButtonActive: {
+        backgroundColor: DashboardColors.headerBlue,
     },
     typeButtonText: {
         fontWeight: 'bold',
+        color: DashboardColors.darkText
+    },
+    typeButtonTextActive: {
+        color: 'white'
     }
 });
 

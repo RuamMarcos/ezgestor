@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
 import { styles } from '../../styles/sales/SalesHeaderStyles';
 
 interface SalesHeaderProps {
@@ -8,13 +7,11 @@ interface SalesHeaderProps {
 }
 
 const SalesHeader = ({ onAddSale }: SalesHeaderProps) => {
-  const { colors } = useTheme();
-
   return (
-    <View style={[styles.headerContainer, { backgroundColor: colors.card }]}>
-      <Text style={[styles.title, { color: colors.darkText }]}>Vendas</Text>
-      <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.headerBlue }]} onPress={onAddSale}>
-        <Text style={[styles.addButtonText, { color: colors.background }]}>Nova Venda</Text>
+    <View style={styles.headerContainer}>
+      <Text style={styles.title}>Vendas</Text>
+      <TouchableOpacity style={styles.addButton} onPress={onAddSale}>
+        <Text style={styles.addButtonText}>Nova Venda</Text>
       </TouchableOpacity>
     </View>
   );

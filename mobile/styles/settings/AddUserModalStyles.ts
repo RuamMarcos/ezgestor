@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 import { DashboardColors } from '@/constants/DashboardColors';
 
-export const styles = (colors: any) => StyleSheet.create({
+export const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -19,12 +19,12 @@ export const styles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E5E7EB',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: colors.darkText,
+    color: DashboardColors.darkText,
   },
   modalBody: {
     padding: 20,
@@ -35,7 +35,7 @@ export const styles = (colors: any) => StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.darkText,
+    color: DashboardColors.darkText,
     marginBottom: 8,
   },
   required: {
@@ -43,13 +43,13 @@ export const styles = (colors: any) => StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E5E7EB',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: colors.darkText,
-    backgroundColor: colors.card,
+    color: DashboardColors.darkText,
+    backgroundColor: '#FFFFFF',
   },
   radioGroup: {
     gap: 12,
@@ -59,16 +59,16 @@ export const styles = (colors: any) => StyleSheet.create({
     alignItems: 'flex-start',
     padding: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E5E7EB',
     borderRadius: 8,
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
   },
   radioButton: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.headerBlue,
+    borderColor: DashboardColors.headerBlue,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -78,7 +78,7 @@ export const styles = (colors: any) => StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.headerBlue,
+    backgroundColor: DashboardColors.headerBlue,
   },
   radioLabelContainer: {
     flex: 1,
@@ -86,18 +86,18 @@ export const styles = (colors: any) => StyleSheet.create({
   radioLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.darkText,
+    color: DashboardColors.darkText,
     marginBottom: 2,
   },
   radioDescription: {
     fontSize: 12,
-    color: colors.grayText,
+    color: DashboardColors.grayText,
   },
   modalFooter: {
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#E5E7EB',
     gap: 12,
   },
   button: {
@@ -108,15 +108,15 @@ export const styles = (colors: any) => StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: '#F3F4F6',
   },
   cancelButtonText: {
-    color: colors.darkText,
+    color: DashboardColors.darkText,
     fontSize: 14,
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: colors.headerBlue,
+    backgroundColor: DashboardColors.headerBlue,
   },
   submitButtonText: {
     color: '#FFFFFF',

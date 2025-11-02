@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
 import { LancamentoFinanceiro } from '@/services/FinancialService';
+import { DashboardColors } from '@/constants/DashboardColors';
 import { TouchableOpacity } from 'react-native';
 
 interface Props {
@@ -24,24 +24,25 @@ const formatDate = (dateString: string): string => {
 };
 
 const TransactionListItem = ({ item, onPress }: Props) => {
-  const { colors } = useTheme();
-  const isEntrada = item.tipo === 'entrada';
-  const color = isEntrada ? '#10B981' : '#F59E0B';
+    const isEntrada = item.tipo === 'entrada';
+    const color = isEntrada ? DashboardColors.green : DashboardColors.orange;
+    const valorFormatado = formatCurrency(parseFloat(item.valor));
+    const dataFormatada = new Date(item.data_lancamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
-  return (
-      <TouchableOpacity style={styles.container} onPress={onPress}>
-      <View style={[styles.container, { backgroundColor: colors.card }]}>
-          <View style={styles.info}>
-              <Text style={[styles.description, { color: colors.darkText }]}>{item.descricao}</Text>
-              <Text style={[styles.date, { color: colors.grayText }]}>{formatDate(item.data_lancamento)}</Text>
-          </View>
-          <Text style={[styles.amount, { color }]}>
-              {isEntrada ? '' : '- '}
-              {formatCurrency(item.valor)}
-          </Text>
-      </View>
-      </TouchableOpacity>
-  );
+    return (
+        <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
+        <View style={styles.container}>
+            <View style={styles.info}>
+                <Text style={styles.description}>{item.descricao}</Text>
+                <Text style={styles.date}>{formatDate(item.data_lancamento)}</Text>
+            </View>
+            <Text style={[styles.amount, { color }]}>
+                {isEntrada ? '' : '- '}
+                {formatCurrency(item.valor)}
+            </Text>
+        </View>
+        </TouchableOpacity>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -50,6 +51,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 15,
+        backgroundColor: 'white',
         borderRadius: 8,
         marginBottom: 10,
         marginHorizontal: 20,
@@ -63,6 +65,7 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 12,
+        color: DashboardColors.grayText,
         marginTop: 4,
     },
     amount: {
@@ -70,5 +73,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     }
 });
+
 
 export default TransactionListItem;
