@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, StyleSheet, TextInput } from 'react-native';
 import Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 import api from '@/utils/api';
 import { createLog } from '@/services/LogService';
 import { useTheme } from '@/context/ThemeContext';
@@ -86,10 +88,65 @@ export default function InvoiceModal({ visible, onClose }: InvoiceModalProps) {
       setLoading(true);
       const html = buildInvoiceHtml(sale);
       const { uri } = await Print.printToFileAsync({ html });
-      if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('PDF gerado', `Arquivo salvo em: ${uri}`);
+
+      const filename = `NFe-${sale.id_venda}.pdf`;
+
+      // Android: oferecer salvar diretamente em uma pasta escolhida (SAF)
+      if (Platform.OS === 'android') {
+        try {
+          const SAF = (FileSystem as any).StorageAccessFramework;
+          if (SAF && SAF.requestDirectoryPermissionsAsync) {
+            const perm = await SAF.requestDirectoryPermissionsAsync();
+            if (perm.granted) {
+              const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any });
+              const fileUri = await SAF.createFileAsync(
+                perm.directoryUri,
+                filename,
+                'application/pdf'
+              );
+              await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: 'base64' as any });
+              Alert.alert('Sucesso', `NF-e salva em: ${fileUri}`);
+            } else if (await Sharing.isAvailableAsync()) {
+              await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: filename });
+            } else {
+              Alert.alert('PDF gerado', `Arquivo local: ${uri}`);
+            }
+          } else if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: filename });
+          } else {
+            Alert.alert('PDF gerado', `Arquivo local: ${uri}`);
+          }
+        } catch (androidErr: any) {
+          console.log('Erro ao salvar via SAF:', androidErr);
+          // fallback: compartilhar
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: filename });
+          } else {
+            Alert.alert('PDF gerado', `Arquivo local: ${uri}`);
+          }
+        }
+      } else if (Platform.OS === 'web') {
+        // Web: fazer download do arquivo
+        try {
+          const resp = await fetch(uri);
+          const blob = await resp.blob();
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } catch (webErr) {
+          console.log('Erro no download web:', webErr);
+          Alert.alert('PDF gerado', 'Não foi possível acionar o download automático no browser.');
+        }
       } else {
-        await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
+        // iOS ou outros: compartilhar
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: filename });
+        } else {
+          Alert.alert('PDF gerado', `Arquivo local: ${uri}`);
+        }
       }
       // registra log no backend
       try {
