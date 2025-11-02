@@ -5,6 +5,7 @@ import { styles } from '../../styles/dashboard/DashboardStyles';
 import SummaryCard from '@/components/dashboard/SummaryCard';
 import ActionCard from '@/components/dashboard/ActionCard';
 import ReportModal from '@/components/shared/ReportModal';
+import InvoiceModal from '@/components/shared/InvoiceModal';
 import { getFinancialStats, FinancialStats } from '@/services/FinancialService';
 import api from '@/utils/api';
 import DailySalesChart from '@/components/dashboard/DailySalesChart';
@@ -41,6 +42,7 @@ export default function DashboardScreen() {
   const [lowStockCount, setLowStockCount] = useState<number>(0);
   const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [chartLoading, setChartLoading] = useState(true);
 
@@ -123,7 +125,7 @@ export default function DashboardScreen() {
 
   const actions = useMemo(() => [
     { id: '1', label: 'Gerar Relatórios', iconName: 'file-chart' as const, onPress: () => setReportModalOpen(true) },
-    { id: '2', label: 'Atualizar', iconName: 'refresh' as const, onPress: loadData },
+    { id: '2', label: 'Emitir NF-e', iconName: 'file-document' as const, onPress: () => setInvoiceModalOpen(true) },
   ], []);
 
   if (loading && !stats) {
@@ -183,6 +185,7 @@ export default function DashboardScreen() {
         </View>
 
         <ReportModal visible={reportModalOpen} onClose={()=>setReportModalOpen(false)} />
+        <InvoiceModal visible={invoiceModalOpen} onClose={()=>setInvoiceModalOpen(false)} />
       </ScrollView>
     </AdminRoute>
   );
