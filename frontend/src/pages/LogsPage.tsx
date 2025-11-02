@@ -24,10 +24,10 @@ const LogsPage: React.FC = () => {
 
       const mappedLogs: Log[] = (data.results || []).map((r: any) => ({
         id: r.id,
-        user: r.user?.username ?? r.user?.email ?? r.username ?? 'Usuário desconhecido',
-        action_type: r.action_type ?? r.actionType ?? '',
-        details: r.details ?? r.detail ?? '',
-        timestamp: r.timestamp ?? r.created_at ?? new Date().toISOString(),
+        user: r.user?.email ?? 'Usuário do Sistema',
+        action_type: r.action_type_display,
+        details: r.description, 
+        timestamp: r.action_time, 
       }));
 
       setLogs(mappedLogs);

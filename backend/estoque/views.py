@@ -76,9 +76,6 @@ class ProdutoListCreateView(generics.ListCreateAPIView):
 
         return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(empresa=self.request.user.empresa)
-
 
 class ProdutoDetailView(generics.RetrieveUpdateDestroyAPIView):
     """

@@ -13,6 +13,7 @@ from vendas.models import Venda
 from estoque.models import Produto
 from django.db.models.functions import TruncDate, TruncMonth
 from accounts.permissions import IsAdminUser
+from logs.utils import log_action
 
 from datetime import timedelta, date
 
@@ -25,6 +26,19 @@ class LancamentoFinanceiroListView(generics.ListCreateAPIView):
     serializer_class = LancamentoFinanceiroSerializer
     permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination
+
+    def perform_create(self, serializer):
+        """ Log para 'CREATE' de Lançamento Financeiro """
+        instance = serializer.save(empresa=self.request.user.empresa)
+        
+        desc = f"Usuário '{self.request.user.email}' criou lançamento {instance.tipo}: '{instance.descricao}' (Valor: R$ {instance.valor})."
+        
+        log_action(
+            self.request.user, 
+            'CREATE', 
+            instance,
+            custom_description=desc
+        )
 
     def get_queryset(self):
         # Garante que o usuário só possa ver os lançamentos da sua própria empresa
@@ -56,10 +70,33 @@ class LancamentoFinanceiroDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
-        # Garante que o usuário só possa acessar/modificar
-        # lançamentos da sua própria empresa.
         empresa_usuario = self.request.user.empresa
         return LancamentoFinanceiro.objects.filter(empresa=empresa_usuario)
+    
+    def perform_update(self, serializer):
+        """ Log para 'UPDATE' de Lançamento Financeiro """
+        instance = serializer.save()
+        
+        desc = f"Usuário '{self.request.user.email}' atualizou lançamento: '{instance.descricao}' (Valor: R$ {instance.valor})."
+        log_action(
+            self.request.user, 
+            'UPDATE', 
+            instance,
+            custom_description=desc
+        )
+
+    def perform_destroy(self, instance):
+        """ Log para 'DELETE' de Lançamento Financeiro """
+        
+        desc = f"Usuário '{self.request.user.email}' deletou lançamento: '{instance.descricao}' (Valor: R$ {instance.valor}, ID: {instance.pk})."
+        log_action(
+            self.request.user, 
+            'DELETE', 
+            instance,
+            custom_description=desc
+        )
+        
+        instance.delete()
 
 class LancamentoCategoriasView(views.APIView):
     """
