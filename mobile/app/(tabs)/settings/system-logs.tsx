@@ -37,7 +37,7 @@ const LogItem = ({ item }: { item: RawLog }) => {
       <Text style={styles.logDescription}>{item.description}</Text>
       <View style={styles.logMetaContainer}>
         <Text style={styles.logMetaText}>
-          Usuário: {item.user?.username || 'Sistema'}
+          Usuário: {item.user?.email || 'Sistema'}
         </Text>
         <Text style={styles.logMetaText}>
           Ação: {item.action_type_display}
@@ -199,7 +199,7 @@ export default function SystemLogsScreen() {
             title="Limpar"
             onPress={handleClearSearch}
             disabled={loading}
-            color={DashboardColors.lightGray}
+            color={DashboardColors.grayText}
           />
         </View>
         <View style={styles.button}>
