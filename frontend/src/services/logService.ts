@@ -24,3 +24,17 @@ export const getLogs = async (
   );
   return data;
 };
+
+/**
+ * Cria um log de ação manualmente (ex.: emissão de NF-e via frontend).
+ * O usuário autenticado será atribuído pelo backend.
+ */
+export const createLog = async (params: {
+  action_type: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'LOGIN';
+  model_name?: string;
+  object_id?: number;
+  description: string;
+}) => {
+  const { data } = await api.post('/logs/create/', params);
+  return data;
+};

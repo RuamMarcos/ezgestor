@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Footer from '../components/Footer';
 import StatCard from '../components/StatCard';
 import AddSaleModal from '../components/sales/AddSaleModal';
+import InvoiceModal from '../components/invoice/InvoiceModal';
 import { getDailySalesSummary } from '../services/salesService';
 import DailySalesChart from '../components/charts/DailySalesChart';
 import api from '../api';
@@ -228,6 +229,8 @@ function DashboardPage() {
     }
   };
 
+  const [isNfeModalOpen, setIsNfeModalOpen] = useState(false);
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm">
       
@@ -358,7 +361,7 @@ function DashboardPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={()=>setReportModalOpen(false)} className="px-4 py-2 rounded-lg border">Cancelar</button>
+              <button onClick={()=>setReportModalOpen(false)} className="btn-cancel">Cancelar</button>
               <button onClick={generateSelectedReport} disabled={downloading} className="px-4 py-2 rounded-lg bg-green-600 text-white">
                 {downloading ? 'Gerando…' : 'Gerar'}
               </button>
@@ -366,7 +369,7 @@ function DashboardPage() {
           </div>
         </div>
       )}
-        <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
+        <button onClick={() => setIsNfeModalOpen(true)} className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg">
           Emitir NF-e
         </button>
       </div>
@@ -396,6 +399,11 @@ function DashboardPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSaleAdded={handleSaleAdded}
+      />
+
+      <InvoiceModal
+        isOpen={isNfeModalOpen}
+        onClose={() => setIsNfeModalOpen(false)}
       />
 
     </div>

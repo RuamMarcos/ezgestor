@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../utils/api';
 import type { PaginatedLogsResponse } from '../types/logs';
 
 /**
@@ -23,3 +23,14 @@ export const getLogs = async (
   );
   return data;
 };
+
+type CreateLogPayload = {
+  action_type: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'LOGIN';
+  model_name?: string | null;
+  object_id?: number | null;
+  description: string;
+};
+
+export async function createLog(payload: CreateLogPayload): Promise<void> {
+  await api.post('/logs/create/', payload);
+}
