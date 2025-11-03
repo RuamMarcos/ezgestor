@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.shortcuts import get_object_or_404
 from datetime import date, timedelta
 from .serializers import (
     MyTokenObtainPairSerializer, 
@@ -18,10 +19,10 @@ from .serializers import (
     TeamMemberUpdateSerializer,
     UserPreferenceSerializer,
     EmpresaSerializer,
-    # Imports Adicionados
     PasswordResetRequestSerializer,
     PasswordResetValidateCodeSerializer,
-    PasswordResetConfirmSerializer
+    PasswordResetConfirmSerializer,
+    UpdatePaymentMethodSerializer, # 1. Importe o novo serializer
 )
 from .models import Empresa, Usuario, Plano, Assinatura, Pagamento, UserPreference, PasswordResetCode # Model Adicionado
 from .permissions import IsAdminUser
@@ -30,7 +31,9 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.conf import settings
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from django.contrib.auth.signals import user_logged_in 
+from django.contrib.auth.signals import user_logged_in
+from .serializers import PagamentoSerializer, AssinaturaSerializer
+from .permissions import IsAdminUser 
 
 
 class EmpresaProfileView(generics.RetrieveUpdateAPIView):
@@ -305,3 +308,59 @@ class PasswordResetConfirmView(generics.GenericAPIView):
 
         except (Usuario.DoesNotExist, PasswordResetCode.DoesNotExist):
             return Response({"detail": "Código inválido ou expirado. Tente novamente."}, status=status.HTTP_400_BAD_REQUEST)
+
+class CurrentSubscriptionView(generics.RetrieveAPIView):
+    """
+    Retorna a assinatura ativa da empresa do usuário logado.
+    """
+    serializer_class = AssinaturaSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+
+    def get_object(self):
+        return get_object_or_404(Assinatura, empresa=self.request.user.empresa)
+
+
+class PaymentHistoryView(generics.ListAPIView):
+    """
+    Retorna o histórico de pagamentos da empresa do usuário logado.
+    """
+    serializer_class = PagamentoSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+
+    def get_queryset(self):
+        try:
+            assinatura = Assinatura.objects.get(empresa=self.request.user.empresa)
+            return Pagamento.objects.filter(assinatura=assinatura).order_by('-data_pagamento')
+        except Assinatura.DoesNotExist:
+            return Pagamento.objects.none()
+
+
+class UpdatePaymentMethodView(APIView):
+    """
+    Atualiza o método de pagamento padrão para a assinatura.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    serializer_class = UpdatePaymentMethodSerializer # 2. Use o serializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            assinatura = Assinatura.objects.get(empresa=request.user.empresa)
+            validated_data = serializer.validated_data
+
+            # 3. Salva os dados no modelo
+            assinatura.metodo_pagamento_padrao = 'cartao'
+            assinatura.cartao_final = validated_data['numero'][-4:]
+            assinatura.cartao_validade = validated_data['validade']
+            assinatura.cartao_bandeira = 'visa' # Simulado
+            assinatura.save()
+
+            return Response({"status": "Método de pagamento atualizado com sucesso."}, status=status.HTTP_200_OK)
+        
+        except Assinatura.DoesNotExist:
+            return Response({"detail": "Nenhuma assinatura encontrada para esta empresa."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

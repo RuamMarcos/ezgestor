@@ -15,6 +15,7 @@ import AdminProtectedRoute from './components/AdminProtectedRoute';
 import SettingsLayout from './layouts/SettingsLayout';
 import TeamManagementPage from './pages/TeamManagementPage';
 import CompanyProfilePage from './pages/CompanyProfilePage';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path="usuarios" element={<TeamManagementPage />} />
             <Route path="conta" element={<CompanyProfilePage />} />
             <Route path="logs" element={<LogsPage />} />
+            <Route path="assinatura" element={<SubscriptionPage />} />
           </Route>
         </Route>
 

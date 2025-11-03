@@ -20,6 +20,13 @@ export default function SettingsScreen() {
       route: '/(tabs)/settings/company-profile',
     },
     {
+      id: 'subscription',
+      title: 'Minha Assinatura',
+      description: 'Gerencie seu plano e pagamentos',
+      icon: 'credit-card-outline',
+      route: '/(tabs)/settings/subscription',
+    },
+    {
       id: 'user-management',
       title: 'Gerenciamento de Usuários',
       description: 'Gerencie os usuários do sistema',

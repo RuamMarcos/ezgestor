@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { UserIcon, UsersIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { UserIcon, UsersIcon, ArrowLeftIcon, DocumentTextIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Minha Conta', href: '/configuracoes/conta', icon: UserIcon },
   { name: 'Usuários', href: '/configuracoes/usuarios', icon: UsersIcon },
   { name: 'Logs do Sistema', href: '/configuracoes/logs', icon: DocumentTextIcon },
+  { name: 'Assinatura', href: '/configuracoes/assinatura', icon: CreditCardIcon },
 ];
 
 function classNames(...classes: string[]) {

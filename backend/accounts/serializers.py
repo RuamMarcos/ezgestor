@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario, Plano, UserPreference
+from .models import Empresa, Usuario, Plano, UserPreference, Assinatura, Pagamento
 
 class EmpresaSerializer(serializers.ModelSerializer):
     """
@@ -211,7 +211,6 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, value):
-        # Normaliza o email para minúsculas para consistência
         return value.lower()
 
 class PasswordResetValidateCodeSerializer(serializers.Serializer):
@@ -234,3 +233,35 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         return value.lower()
+
+class PlanoSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(source='get_nome_display')
+    
+    class Meta:
+        model = Plano
+        fields = ['id_plano', 'nome', 'preco_mensal']
+
+class AssinaturaSerializer(serializers.ModelSerializer):
+    plano = PlanoSerializer(read_only=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Assinatura
+        fields = [
+            'id_assinatura', 'plano', 'status', 'data_proximo_pagamento',
+            'metodo_pagamento_padrao', 'cartao_final', 'cartao_bandeira', 'cartao_validade'
+        ]
+
+class PagamentoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Pagamento
+        fields = ['id_pagamento', 'data_pagamento', 'valor', 'status', 'metodo']
+
+
+class UpdatePaymentMethodSerializer(serializers.Serializer):
+    """Serializer para validar os dados do novo cartão."""
+    numero = serializers.CharField(max_length=19, required=True)
+    validade = serializers.CharField(max_length=5, required=True)
+    cvv = serializers.CharField(max_length=4, required=True)
+    nome = serializers.CharField(max_length=100, required=True)
