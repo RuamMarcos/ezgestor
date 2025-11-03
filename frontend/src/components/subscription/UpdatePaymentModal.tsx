@@ -46,9 +46,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
 
     setLoading(true);
     try {
-      await updatePaymentMethod({
-        metodo: 'cartao',
-      });
+      await updatePaymentMethod(dadosCartao);
       toast.success('Forma de pagamento atualizada com sucesso!');
       onSuccess();
       onClose();
