@@ -1,5 +1,5 @@
 // mobile/app/(tabs)/stock.tsx
-import React, { useState, useEffect, useRef, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import { Text, TouchableOpacity, ActivityIndicator, View, Platform, TextInput, Animated, Easing, Alert } from 'react-native';
 import { confirm } from '@/utils/confirm';
 import { useFocusEffect} from '@react-navigation/native';
@@ -9,11 +9,13 @@ import AddProductModal from '../../components/stock/AddProductModal';
 import EditProductModal from '../../components/stock/EditProductModal';
 import QuickAddProductModal from '../../components/stock/QuickAddProductModal'; // Importe o novo modal
 import QuickAddModal from '../../components/stock/QuickAddModal';
-import { DashboardColors } from '@/constants/DashboardColors';
-import { styles } from '../../styles/stock/StockStyles';
+import { createStockStyles } from '../../styles/stock/StockStyles';
 import Svg, { Path } from 'react-native-svg';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function StockScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = useMemo(() => createStockStyles(colors, isDark), [colors, isDark]);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -265,7 +267,7 @@ export default function StockScreen() {
                     placeholder="Pesquisar por produto ou SKU..."
                     value={busca}
                     onChangeText={setBusca}
-                    placeholderTextColor={DashboardColors.grayText}
+                    placeholderTextColor={colors.grayText}
                 />
             </View>
             
@@ -309,7 +311,7 @@ export default function StockScreen() {
 
             {loading && (
                 <View style={styles.loadingOverlay}>
-                     <ActivityIndicator size="large" color="#FFFFFF" />
+                     <ActivityIndicator size="large" color={colors.headerBlue} />
                 </View>
             )}
         </View>

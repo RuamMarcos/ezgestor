@@ -1,25 +1,25 @@
 import { StyleSheet } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const styles = StyleSheet.create({
+export const createFinancialsPaginationStyles = (colors: ThemeColors) => StyleSheet.create({
   // Usar mesmo padrão do sales pagination
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: DashboardColors.lightGray,
+    borderTopColor: colors.border,
   },
   paginationButton: {
     paddingHorizontal: 18,
     paddingVertical: 10,
-    backgroundColor: DashboardColors.headerBlue,
+    backgroundColor: colors.headerBlue,
     borderRadius: 8,
   },
   paginationButtonDisabled: {
-    backgroundColor: DashboardColors.lightGray,
+    backgroundColor: colors.lightGray,
     opacity: 0.7,
   },
   paginationButtonText: {
@@ -30,19 +30,19 @@ export const styles = StyleSheet.create({
   smallNavButton: {
     paddingHorizontal: 8,
     paddingVertical: 8,
-    backgroundColor: DashboardColors.lightGray,
+    backgroundColor: colors.lightGray,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   smallNavButtonText: {
-    color: DashboardColors.darkText,
+    color: colors.darkText,
     fontSize: 14,
     fontWeight: '600',
   },
   paginationText: {
     fontSize: 16,
     fontWeight: '600',
-    color: DashboardColors.darkText,
+    color: colors.darkText,
   },
 });

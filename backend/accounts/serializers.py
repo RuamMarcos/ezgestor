@@ -1,7 +1,40 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import Empresa, Usuario, Plano
+from .models import Empresa, Usuario, Plano, UserPreference, Assinatura, Pagamento
+
+class EmpresaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para visualizar e editar os dados da empresa.
+    """
+    logotipo = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
+    cnpj = serializers.CharField(max_length=18)
+
+    class Meta:
+        model = Empresa
+        fields = [
+            'id', 'nome_fantasia', 'razao_social', 'cnpj', 'logotipo', 
+            'inscricao_estadual', 'endereco', 'cep', 'bairro', 'cidade', 
+            'estado', 'pais', 'telefone', 'email_principal'
+        ]
+        read_only_fields = []
+
+    def validate_cnpj(self, value):
+        """Verifica se o CNPJ já está em uso por outra empresa"""
+        # Durante update, exclui a própria instância da verificação
+        if self.instance:
+            queryset = Empresa.objects.exclude(pk=self.instance.pk)
+        else:
+            queryset = Empresa.objects.all()
+        
+        if queryset.filter(cnpj=value).exists():
+            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+        return value
+
+    def update(self, instance, validated_data):
+        instance.logotipo = validated_data.get('logotipo', instance.logotipo)
+        return super().update(instance, validated_data)
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -10,6 +43,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Adicionar campos customizados ao token
         token['first_name'] = user.first_name
         token['email'] = user.email
+
+        token['nivel_acesso'] = user.nivel_acesso
 
         # Adicionar status da assinatura ao token
         has_active_subscription = False
@@ -31,7 +66,17 @@ class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer para visualização de dados de usuário."""
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso']
+        fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso', 'is_active']    
+
+class TeamMemberUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para atualizar um membro da equipe (Admin).
+    Não permite alterar email ou senha por aqui.
+    """
+    class Meta:
+        model = Usuario
+        fields = ['first_name', 'last_name', 'nivel_acesso', 'is_active']
+        read_only_fields = ['email'] 
 
 class EmpresaRegistrationSerializer(serializers.ModelSerializer):
     """Serializer para o registo de uma nova empresa e do seu administrador."""
@@ -78,24 +123,42 @@ class TeamMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['id', 'email', 'first_name', 'last_name', 'nivel_acesso', 'password']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {
+                'error_messages': {
+                    'unique': 'Este e-mail já está cadastrado no sistema.',
+                    'invalid': 'Insira um endereço de e-mail válido.',
+                    'required': 'O campo de e-mail é obrigatório.'
+                }
+            }
+        }
+
+    def validate_email(self, value):
+        """Validação customizada para e-mail duplicado com mensagem em português."""
+        if Usuario.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este e-mail já está cadastrado no sistema.")
+        return value
 
     def create(self, validated_data):
+        validated_data['is_active'] = True 
         user = Usuario.objects.create_user(**validated_data)
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    """Serializer para ver e editar o perfil do usuário logado."""
-    nome_fantasia_empresa = serializers.CharField(source='empresa.nome_fantasia', read_only=True)
+    """
+    Serializer para visualizar e editar os dados do perfil do usuário.
+    """
+    empresa = EmpresaSerializer(read_only=True)
     has_active_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = Usuario
         fields = [
-            'id', 'email', 'first_name', 'last_name',
-            'nome_fantasia_empresa', 'has_active_subscription'
+            'id', 'email', 'first_name', 'last_name', 'nivel_acesso',
+            'empresa', 'has_active_subscription'
         ]
-        read_only_fields = ['email', 'id', 'nome_fantasia_empresa', 'has_active_subscription']
+        read_only_fields = ['email', 'id', 'empresa', 'has_active_subscription', 'nivel_acesso']
 
     def get_has_active_subscription(self, obj):
         try:
@@ -126,3 +189,79 @@ class ProcessarPagamentoSerializer(serializers.Serializer):
         if not Plano.objects.filter(pk=value).exists():
             raise serializers.ValidationError("Plano não encontrado.")
         return value
+
+
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreference
+        fields = ['theme', 'updated_at']
+        read_only_fields = ['updated_at']
+
+    def validate_theme(self, value: str) -> str:
+        allowed = {choice for choice, _ in UserPreference.THEME_CHOICES}
+        if value not in allowed:
+            raise serializers.ValidationError("Tema inválido. Use 'light', 'dark' ou 'system'.")
+        return value
+    
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer para solicitar a redefinição de senha.
+    Apenas valida o campo de e-mail.
+    """
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value.lower()
+
+class PasswordResetValidateCodeSerializer(serializers.Serializer):
+    """
+    Serializer para validar o código de redefinição.
+    """
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+    
+    def validate_email(self, value):
+        return value.lower()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer para confirmar a nova senha.
+    """
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+    new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_email(self, value):
+        return value.lower()
+
+class PlanoSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(source='get_nome_display')
+    
+    class Meta:
+        model = Plano
+        fields = ['id_plano', 'nome', 'preco_mensal']
+
+class AssinaturaSerializer(serializers.ModelSerializer):
+    plano = PlanoSerializer(read_only=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Assinatura
+        fields = [
+            'id_assinatura', 'plano', 'status', 'data_proximo_pagamento',
+            'metodo_pagamento_padrao', 'cartao_final', 'cartao_bandeira', 'cartao_validade'
+        ]
+
+class PagamentoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Pagamento
+        fields = ['id_pagamento', 'data_pagamento', 'valor', 'status', 'metodo']
+
+
+class UpdatePaymentMethodSerializer(serializers.Serializer):
+    """Serializer para validar os dados do novo cartão."""
+    numero = serializers.CharField(max_length=19, required=True)
+    validade = serializers.CharField(max_length=5, required=True)
+    cvv = serializers.CharField(max_length=4, required=True)
+    nome = serializers.CharField(max_length=100, required=True)

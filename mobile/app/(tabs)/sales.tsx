@@ -14,7 +14,7 @@ import SaleListItem from '@/components/sales/SaleListItem';
 import AddSaleModal from '@/components/sales/AddSaleModal';
 import EditSaleModal from '@/components/sales/EditSaleModal';
 import { styles } from '../../styles/sales/SalesStyles';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Venda {
   id_venda: number;
@@ -28,6 +28,7 @@ interface Venda {
 }
 
 export default function VendasScreen() {
+  const { colors } = useTheme();
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [busca, setBusca] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,19 +67,12 @@ export default function VendasScreen() {
   };
 
   const handleSaleAdded = async () => {
-    // Fecha o modal e navega para a última página, onde a nova venda estará
+    // Fecha o modal
     setModalVisible(false);
-    try {
-      const resp = await api.get('/vendas/', { params: { page: 1, search: busca } });
-      const totalItems = resp.data?.count ?? 0;
-      const lastPage = Math.max(1, Math.ceil(totalItems / 10));
-      setCurrentPage(lastPage);
-      // Opcional: chamada direta para atualização imediata
-      // buscarVendas(lastPage, busca);
-    } catch (e) {
-      // Se falhar, mantenha o refresh na página atual
-      buscarVendas(currentPage, busca);
-    }
+    
+    // Recarrega a primeira página para mostrar a nova venda
+    setCurrentPage(1);
+    await buscarVendas(1, busca);
   };
 
   useEffect(() => {
@@ -147,23 +141,23 @@ export default function VendasScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <SalesHeader onAddSale={() => setModalVisible(true)} />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { backgroundColor: colors.card, color: colors.darkText, borderColor: colors.border }]}
             placeholder="Pesquisar por produto ou vendedor..."
             value={busca}
             onChangeText={setBusca}
-            placeholderTextColor={DashboardColors.grayText}
+            placeholderTextColor={colors.grayText}
           />
         </View>
-        
+
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {loading && currentPage === 1 ? (
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color={DashboardColors.headerBlue} />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color={colors.headerBlue} />
         ) : (
             <FlatList
               data={vendas}

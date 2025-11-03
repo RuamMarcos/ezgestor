@@ -31,7 +31,7 @@ function QuickAddModal({ onClose, onSave }: ModalProps) {
             className="w-full px-4 py-2 border rounded-lg text-center"
           />
           <div className="flex justify-center gap-4 pt-4">
-            <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg">Cancelar</button>
+            <button type="button" onClick={onClose} className="btn-cancel px-6 py-2">Cancelar</button>
             <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-lg">Salvar</button>
           </div>
         </form>

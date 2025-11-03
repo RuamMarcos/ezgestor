@@ -12,3 +12,5 @@ mysqlclient==2.2.4
 Pillow
 WeasyPrint==61.2
 xhtml2pdf==0.2.15
+django-storages==1.14.4
+google-cloud-storage==2.18.2

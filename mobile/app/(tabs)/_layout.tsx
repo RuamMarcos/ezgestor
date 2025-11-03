@@ -1,25 +1,30 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DashboardColors } from '@/constants/DashboardColors';
 import { View, Text, StyleSheet } from 'react-native';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DashboardHeader from '@/components/shared/AppHeader';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
+  const { nivelAcesso } = useAuth();
+  const { colors, isDark } = useTheme();
+  const isAdmin = nivelAcesso === 'administrador';
+
   return (
     <ProtectedRoute>
-      <SafeAreaView style={{ flex: 1, backgroundColor: DashboardColors.background }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <DashboardHeader />
         <Tabs
           screenOptions={{
             headerShown: false,
             tabBarShowLabel: false,
-            tabBarActiveTintColor: DashboardColors.headerBlue,
-            tabBarInactiveTintColor: DashboardColors.grayText,
+            tabBarActiveTintColor: colors.headerBlue,
+            tabBarInactiveTintColor: colors.grayText,
             tabBarStyle: {
-            backgroundColor: '#FFFFFF',
+            backgroundColor: colors.card,
             borderTopWidth: 0,
             height: 70,
             paddingBottom: 10,
@@ -33,13 +38,15 @@ export default function TabLayout() {
           },
           }}
         >
+          {/* Dashboard - Apenas Administradores */}
           <Tabs.Screen
             name="dashboard"
             options={{
+              href: isAdmin ? '/(tabs)/dashboard' : null,
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
-                  { backgroundColor: focused ? '#E8EAF6' : 'transparent' }
+                  { backgroundColor: focused ? (isDark ? colors.lightGray : '#E8EAF6') : 'transparent' }
                 ]}>
                   <MaterialCommunityIcons name="home-variant" size={28} color={color} />
                   <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Início</Text>
@@ -47,13 +54,14 @@ export default function TabLayout() {
               ),
             }}
           />
+          {/* Vendas - Todos */}
           <Tabs.Screen
             name="sales"
             options={{
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
-                  { backgroundColor: focused ? '#E8EAF6' : 'transparent' }
+                  { backgroundColor: focused ? (isDark ? colors.lightGray : '#E8EAF6') : 'transparent' }
                 ]}>
                   <MaterialCommunityIcons name="cart-outline" size={28} color={color} />
                   <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Vendas</Text>
@@ -61,13 +69,14 @@ export default function TabLayout() {
               ),
             }}
           />
+          {/* Estoque - Todos */}
           <Tabs.Screen
             name="stock"
             options={{
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
-                  { backgroundColor: focused ? '#E8EAF6' : 'transparent' }
+                  { backgroundColor: focused ? (isDark ? colors.lightGray : '#E8EAF6') : 'transparent' }
                 ]}>
                   <MaterialCommunityIcons name="archive-outline" size={28} color={color} />
                   <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Estoque</Text>
@@ -75,16 +84,34 @@ export default function TabLayout() {
               ),
             }}
           />
+          {/* Financeiro - Apenas Administradores */}
           <Tabs.Screen
             name="financial"
             options={{
+              href: isAdmin ? '/(tabs)/financial' : null,
               tabBarIcon: ({ focused, color }) => (
                 <View style={[
                   styles.tabIconContainer,
-                  { backgroundColor: focused ? '#E8EAF6' : 'transparent' }
+                  { backgroundColor: focused ? (isDark ? colors.lightGray : '#E8EAF6') : 'transparent' }
                 ]}>
                   <MaterialCommunityIcons name="currency-usd" size={28} color={color} />
                   <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Financeiro</Text>
+                </View>
+              ),
+            }}
+          />
+          {/* Configurações - Apenas Administradores */}
+          <Tabs.Screen
+            name="settings"
+            options={{
+              href: isAdmin ? '/(tabs)/settings' : null,
+              tabBarIcon: ({ focused, color }) => (
+                <View style={[
+                  styles.tabIconContainer,
+                  { backgroundColor: focused ? (isDark ? colors.lightGray : '#E8EAF6') : 'transparent' }
+                ]}>
+                  <MaterialCommunityIcons name="cog-outline" size={28} color={color} />
+                  <Text style={{ color, fontSize: 12, fontWeight: 'bold' }}>Config</Text>
                 </View>
               ),
             }}

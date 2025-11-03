@@ -12,6 +12,8 @@ from django.utils import timezone
 from vendas.models import Venda
 from estoque.models import Produto
 from django.db.models.functions import TruncDate, TruncMonth
+from accounts.permissions import IsAdminUser
+from logs.utils import log_action
 
 from datetime import timedelta, date
 
@@ -22,8 +24,21 @@ class LancamentoFinanceiroListView(generics.ListCreateAPIView):
     Suporte a filtros: search (busca na descrição) e categoria.
     """
     serializer_class = LancamentoFinanceiroSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination
+
+    def perform_create(self, serializer):
+        """ Log para 'CREATE' de Lançamento Financeiro """
+        instance = serializer.save(empresa=self.request.user.empresa)
+        
+        desc = f"Usuário '{self.request.user.email}' criou lançamento {instance.tipo}: '{instance.descricao}' (Valor: R$ {instance.valor})."
+        
+        log_action(
+            self.request.user, 
+            'CREATE', 
+            instance,
+            custom_description=desc
+        )
 
     def get_queryset(self):
         # Garante que o usuário só possa ver os lançamentos da sua própria empresa
@@ -52,20 +67,43 @@ class LancamentoFinanceiroDetailView(generics.RetrieveUpdateDestroyAPIView):
     View para ler, atualizar ou deletar um lançamento financeiro específico.
     """
     serializer_class = LancamentoFinanceiroSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
-        # Garante que o usuário só possa acessar/modificar
-        # lançamentos da sua própria empresa.
         empresa_usuario = self.request.user.empresa
         return LancamentoFinanceiro.objects.filter(empresa=empresa_usuario)
+    
+    def perform_update(self, serializer):
+        """ Log para 'UPDATE' de Lançamento Financeiro """
+        instance = serializer.save()
+        
+        desc = f"Usuário '{self.request.user.email}' atualizou lançamento: '{instance.descricao}' (Valor: R$ {instance.valor})."
+        log_action(
+            self.request.user, 
+            'UPDATE', 
+            instance,
+            custom_description=desc
+        )
+
+    def perform_destroy(self, instance):
+        """ Log para 'DELETE' de Lançamento Financeiro """
+        
+        desc = f"Usuário '{self.request.user.email}' deletou lançamento: '{instance.descricao}' (Valor: R$ {instance.valor}, ID: {instance.pk})."
+        log_action(
+            self.request.user, 
+            'DELETE', 
+            instance,
+            custom_description=desc
+        )
+        
+        instance.delete()
 
 class LancamentoCategoriasView(views.APIView):
     """
     Retorna uma lista de todas as categorias de lançamento distintas
     para a empresa do usuário logado.
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
@@ -88,7 +126,7 @@ class FinancialStatsView(views.APIView):
     - Total de Saídas
     - Saldo Atual
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
@@ -128,7 +166,7 @@ class DashboardStatsView(views.APIView):
     - estimatedProfit: Aproximação de lucro (Σ (preco_venda - preco_custo) * quantidade) no mês atual
     - recentSales: Últimas vendas (id, clientName, description, value)
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa
@@ -198,7 +236,7 @@ class CashFlowSeriesView(views.APIView):
     Response shape:
       { timeframe, start, end, data: [{ period, inflows, outflows, net }] }
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
         empresa = request.user.empresa

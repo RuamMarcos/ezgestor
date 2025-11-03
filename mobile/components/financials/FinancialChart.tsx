@@ -1,11 +1,18 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, LayoutChangeEvent, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, LayoutChangeEvent, ScrollView, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { getCashflowSeries, type CashflowPoint } from '@/services/FinancialService';
 import { BarChart } from 'react-native-gifted-charts';
 
 type TimeFrame = '7days' | '30days' | 'currentMonth' | '12months';
+
+const TIMEFRAME_OPTIONS: ReadonlyArray<{ label: string; value: TimeFrame }> = [
+  { label: 'Últimos 7 dias', value: '7days' },
+  { label: 'Últimos 30 dias', value: '30days' },
+  { label: 'Mês atual', value: 'currentMonth' },
+  { label: 'Últimos 12 meses', value: '12months' },
+];
 
 interface ChartDataPoint {
   period: string;
@@ -17,6 +24,7 @@ interface ChartDataPoint {
 const screenWidth = Dimensions.get('window').width;
 
 const FinancialChart = () => {
+  const { colors, isDark } = useTheme();
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('12months');
   const [containerWidth, setContainerWidth] = useState<number>(screenWidth - 40);
 
@@ -59,6 +67,23 @@ const FinancialChart = () => {
   const safeData: ChartDataPoint[] = chartData.length > 0
     ? chartData
     : [{ period: '-', inflows: 0, outflows: 0, net: 0 }];
+
+  const pickerDropdownTextColor = useMemo(() => {
+    if (Platform.OS === 'android' && isDark) {
+      return '#111827';
+    }
+    return colors.darkText;
+  }, [isDark, colors.darkText]);
+
+  const pickerBackgroundColor = useMemo(() => {
+    if (isDark) {
+      if (Platform.OS === 'web') {
+        return '#111827';
+      }
+      return colors.card;
+    }
+    return colors.lightGray;
+  }, [isDark, colors.card, colors.lightGray]);
 
   const totalInflows = chartData.reduce((sum, item) => sum + item.inflows, 0);
   const totalOutflows = chartData.reduce((sum, item) => sum + item.outflows, 0);
@@ -120,21 +145,24 @@ const FinancialChart = () => {
   const chartKey = useMemo(() => `tf-${timeFrame}-${safeData.length}`, [timeFrame, safeData.length]);
 
   return (
-    <View style={styles.container} onLayout={onContainerLayout}>
+    <View style={[styles.container, { backgroundColor: colors.card }]} onLayout={onContainerLayout}>
       <View style={styles.header}>
-        <Text style={styles.title}>Entradas vs. Saídas</Text>
+        <Text style={[styles.title, { color: colors.darkText }]}>Entradas vs. Saídas</Text>
       </View>
 
-      <View style={styles.pickerContainer}>
+  <View style={[styles.pickerContainer, { backgroundColor: pickerBackgroundColor, borderColor: colors.border }]}>
         <Picker
+          key={`timeframe-${colors.darkText}`}
+          mode="dropdown"
           selectedValue={timeFrame}
           onValueChange={(value) => setTimeFrame(value as TimeFrame)}
-          style={styles.picker}
+          style={[styles.picker, { color: colors.darkText, backgroundColor: pickerBackgroundColor }]}
+          itemStyle={{ color: pickerDropdownTextColor }}
+          dropdownIconColor={colors.darkText}
         >
-          <Picker.Item label="Últimos 7 dias" value="7days" />
-          <Picker.Item label="Últimos 30 dias" value="30days" />
-          <Picker.Item label="Mês atual" value="currentMonth" />
-          <Picker.Item label="Últimos 12 meses" value="12months" />
+          {TIMEFRAME_OPTIONS.map(({ label, value }) => (
+            <Picker.Item key={value} label={label} value={value} color={pickerDropdownTextColor} />
+          ))}
         </Picker>
       </View>
 
@@ -148,12 +176,12 @@ const FinancialChart = () => {
             stackData={stackData}
             barWidth={computedBarWidth}
             spacing={barSpacing}
-            yAxisTextStyle={{ color: '#6B7280', fontSize: 10 }}
-            xAxisLabelTextStyle={{ color: '#6B7280', fontSize: 10, transform: [{ rotate: `${angle}deg` }] }}
+            yAxisTextStyle={{ color: colors.grayText, fontSize: 10 }}
+            xAxisLabelTextStyle={{ color: colors.grayText, fontSize: 10, transform: [{ rotate: `${angle}deg` }] }}
             xAxisThickness={0.75}
             yAxisThickness={0.75}
             rulesType={'solid'}
-            rulesColor={'#e5e7eb'}
+            rulesColor={colors.border}
             noOfSections={5}
             maxValue={Math.max(1, Math.ceil(maxStack * 1.2))}
             showLine={hasAtLeastTwoPoints}
@@ -162,8 +190,8 @@ const FinancialChart = () => {
             renderTooltip={(item: any, index: number) => {
               const p = safeData[index] || { period: '', inflows: 0, outflows: 0, net: 0 };
               return (
-                <View style={{ backgroundColor: 'white', borderRadius: 8, padding: 8, borderWidth: 1, borderColor: '#e5e7eb' }}>
-                  <Text style={{ color: '#111827', fontWeight: '600', marginBottom: 4 }}>{p.period}</Text>
+                <View style={{ backgroundColor: colors.card, borderRadius: 8, padding: 8, borderWidth: 1, borderColor: colors.border }}>
+                  <Text style={{ color: colors.darkText, fontWeight: '600', marginBottom: 4 }}>{p.period}</Text>
                   <Text style={{ color: colorInflows }}>Entradas: {formatCurrency(p.inflows)}</Text>
                   <Text style={{ color: colorOutflows }}>Saídas: {formatCurrency(p.outflows)}</Text>
                   <Text style={{ color: colorNet }}>Saldo: {formatCurrency(p.net)}</Text>
@@ -178,36 +206,36 @@ const FinancialChart = () => {
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={{ width: 12, height: 12, backgroundColor: colorInflows, borderRadius: 2 }} />
-          <Text style={{ color: '#374151', fontSize: 12 }}>Entradas</Text>
+          <Text style={{ color: colors.grayText, fontSize: 12 }}>Entradas</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={{ width: 12, height: 12, backgroundColor: colorOutflows, borderRadius: 2 }} />
-          <Text style={{ color: '#374151', fontSize: 12 }}>Saídas</Text>
+          <Text style={{ color: colors.grayText, fontSize: 12 }}>Saídas</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={{ width: 12, height: 2, backgroundColor: colorNet }} />
-          <Text style={{ color: '#374151', fontSize: 12 }}>Saldo</Text>
+          <Text style={{ color: colors.grayText, fontSize: 12 }}>Saldo</Text>
         </View>
       </View>
 
       {/* Summary Cards */}
       <View style={styles.summaryContainer}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Entradas</Text>
+        <View style={[styles.summaryCard, { backgroundColor: colors.lightGray }]}>
+          <Text style={[styles.summaryLabel, { color: colors.grayText }]}>Entradas</Text>
           <Text style={[styles.summaryValue, { color: '#10B981' }]}>
             {formatCurrency(totalInflows)}
           </Text>
         </View>
-        
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Saídas</Text>
+
+        <View style={[styles.summaryCard, { backgroundColor: colors.lightGray }]}>
+          <Text style={[styles.summaryLabel, { color: colors.grayText }]}>Saídas</Text>
           <Text style={[styles.summaryValue, { color: '#F59E0B' }]}>
             {formatCurrency(totalOutflows)}
           </Text>
         </View>
-        
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Líquido</Text>
+
+        <View style={[styles.summaryCard, { backgroundColor: colors.lightGray }]}>
+          <Text style={[styles.summaryLabel, { color: colors.grayText }]}>Líquido</Text>
           <Text style={[styles.summaryValue, { color: '#8B5CF6' }]}>
             {formatCurrency(totalNet)}
           </Text>
@@ -219,7 +247,6 @@ const FinancialChart = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -242,14 +269,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: DashboardColors.darkText,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
     marginBottom: 16,
-    backgroundColor: '#F9FAFB',
   },
   picker: {
     height: 50,
@@ -272,14 +296,12 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
     borderRadius: 8,
     padding: 10,
     alignItems: 'center',
   },
   summaryLabel: {
     fontSize: 10,
-    color: DashboardColors.grayText,
     fontWeight: '600',
     marginBottom: 4,
     textAlign: 'center',

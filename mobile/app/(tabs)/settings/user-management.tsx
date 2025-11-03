@@ -1,0 +1,349 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { getTeamMembers, type TeamMember } from '@/services/TeamService';
+import AddUserModal from '@/components/settings/AddUserModal';
+import EditUserModal from '@/components/settings/EditUserModal';
+import DeleteUserModal from '@/components/settings/DeleteUserModal';
+import UserActionSheet from '@/components/settings/UserActionSheet';
+import UserList from '@/components/settings/UserList';
+import { useTheme } from '@/context/ThemeContext';
+import { createStyles } from '@/styles/settings/UserManagementStyles';
+
+export default function UserManagementScreen() {
+  const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>([]);
+  const [paginatedMembers, setPaginatedMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState<string>('todos');
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
+
+  const fetchMembers = useCallback(async () => {
+    try {
+      const data = await getTeamMembers();
+      setMembers(data);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  useEffect(() => {
+    let result = [...members];
+
+    if (searchTerm) {
+      result = result.filter(
+        (member) =>
+          `${member.first_name} ${member.last_name}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          member.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterRole !== 'todos') {
+      result = result.filter((member) => member.nivel_acesso === filterRole);
+    }
+
+    setFilteredMembers(result);
+    setCurrentPage(1); // Reset para primeira página ao filtrar
+  }, [members, searchTerm, filterRole]);
+
+  // Efeito para calcular paginação
+  useEffect(() => {
+    const total = Math.ceil(filteredMembers.length / itemsPerPage);
+    setTotalPages(total);
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedMembers(filteredMembers.slice(startIndex, endIndex));
+  }, [filteredMembers, currentPage, itemsPerPage]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchMembers();
+  };
+
+  const handleAddSuccess = () => {
+    setIsAddModalVisible(false);
+    fetchMembers();
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditModalVisible(false);
+    setSelectedMember(null);
+    fetchMembers();
+  };
+
+  const handleDeleteSuccess = () => {
+    setIsDeleteModalVisible(false);
+    setSelectedMember(null);
+    fetchMembers();
+  };
+
+  const handleMemberPress = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsActionSheetVisible(true);
+  };
+
+  const handleEdit = () => {
+    setIsEditModalVisible(true);
+  };
+
+  const handleDelete = () => {
+    setIsDeleteModalVisible(true);
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          style={currentPage === 1 ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+          onPress={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.smallNavButtonText}>|&lt;</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={currentPage === 1 ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+          onPress={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1);
+            }
+          }}
+          disabled={currentPage === 1}
+        >
+          <Text style={styles.paginationButtonText}>Anterior</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationText}>{currentPage} de {totalPages}</Text>
+
+        <TouchableOpacity
+          style={currentPage === totalPages ? [styles.paginationButton, styles.disabledButton] : styles.paginationButton}
+          onPress={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1);
+            }
+          }}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.paginationButtonText}>Próximo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={currentPage === totalPages ? [styles.smallNavButton, styles.disabledButton] : styles.smallNavButton}
+          onPress={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          <Text style={styles.smallNavButtonText}>&gt;|</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={24}
+              color={colors.headerBlue}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Gerenciamento de Usuários</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.headerBlue} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={24}
+              color={colors.headerBlue}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Gerenciamento de Usuários</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setIsAddModalVisible(true)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name="plus"
+            size={20}
+            color={isDark ? colors.background : '#FFFFFF'}
+          />
+          <Text style={styles.addButtonText}>Adicionar Usuário</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <View style={styles.searchContainer}>
+          <MaterialCommunityIcons
+            name="magnify"
+            size={20}
+            color={colors.grayText}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar por nome ou email..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholderTextColor={colors.grayText}
+          />
+        </View>
+
+        <View style={styles.filterRow}>
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              filterRole === 'todos' && styles.filterChipActive,
+            ]}
+            onPress={() => setFilterRole('todos')}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterRole === 'todos' && styles.filterChipTextActive,
+              ]}
+            >
+              Todos
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              filterRole === 'administrador' && styles.filterChipActive,
+            ]}
+            onPress={() => setFilterRole('administrador')}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterRole === 'administrador' && styles.filterChipTextActive,
+              ]}
+            >
+              Administrador
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              filterRole === 'funcionario' && styles.filterChipActive,
+            ]}
+            onPress={() => setFilterRole('funcionario')}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterRole === 'funcionario' && styles.filterChipTextActive,
+              ]}
+            >
+              Funcionário
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <UserList
+        members={paginatedMembers}
+        loading={loading}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        onMemberPress={handleMemberPress}
+        searchTerm={searchTerm}
+        filterRole={filterRole}
+        ListFooterComponent={renderPagination()}
+      />
+
+      <AddUserModal
+        visible={isAddModalVisible}
+        onClose={() => setIsAddModalVisible(false)}
+        onSuccess={handleAddSuccess}
+      />
+
+      <UserActionSheet
+        visible={isActionSheetVisible}
+        onClose={() => setIsActionSheetVisible(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        userName={
+          selectedMember
+            ? `${selectedMember.first_name} ${selectedMember.last_name}`
+            : ''
+        }
+      />
+
+      <EditUserModal
+        visible={isEditModalVisible}
+        onClose={() => {
+          setIsEditModalVisible(false);
+          setSelectedMember(null);
+        }}
+        onSuccess={handleEditSuccess}
+        member={selectedMember}
+      />
+
+      <DeleteUserModal
+        visible={isDeleteModalVisible}
+        onClose={() => {
+          setIsDeleteModalVisible(false);
+          setSelectedMember(null);
+        }}
+        onSuccess={handleDeleteSuccess}
+        member={selectedMember}
+      />
+    </View>
+  );
+}

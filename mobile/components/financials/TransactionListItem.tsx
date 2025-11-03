@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LancamentoFinanceiro } from '@/services/FinancialService';
-import { DashboardColors } from '@/constants/DashboardColors';
+import { useTheme } from '@/context/ThemeContext';
 import { TouchableOpacity } from 'react-native';
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
 
 interface ItemProps {
     item: LancamentoFinanceiro;
-    onPress: () => void; 
+    onPress: () => void;
 }
 
 const formatCurrency = (value: string): string => {
@@ -24,17 +24,18 @@ const formatDate = (dateString: string): string => {
 };
 
 const TransactionListItem = ({ item, onPress }: Props) => {
+    const { colors } = useTheme();
     const isEntrada = item.tipo === 'entrada';
-    const color = isEntrada ? DashboardColors.green : DashboardColors.orange;
+    const color = isEntrada ? '#28A745' : '#FD7E14';
     const valorFormatado = formatCurrency(parseFloat(item.valor));
     const dataFormatada = new Date(item.data_lancamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
     return (
         <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.card }]}>
             <View style={styles.info}>
-                <Text style={styles.description}>{item.descricao}</Text>
-                <Text style={styles.date}>{formatDate(item.data_lancamento)}</Text>
+                <Text style={[styles.description, { color: colors.darkText }]}>{item.descricao}</Text>
+                <Text style={[styles.date, { color: colors.grayText }]}>{formatDate(item.data_lancamento)}</Text>
             </View>
             <Text style={[styles.amount, { color }]}>
                 {isEntrada ? '' : '- '}
@@ -51,7 +52,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 15,
-        backgroundColor: 'white',
         borderRadius: 8,
         marginBottom: 10,
         marginHorizontal: 20,
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 12,
-        color: DashboardColors.grayText,
         marginTop: 4,
     },
     amount: {

@@ -272,4 +272,4 @@ function StockPage() {
   );
 }
 
-export default StockPage;
+export default StockPage; 

@@ -49,10 +49,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	libpango-1.0-0 \
 	libcairo2 \
 	libgdk-pixbuf-2.0-0 \
+	sqlite3 \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Set environment variables for Gunicorn
-ENV GUNICORN_CMD_ARGS="--workers=2 --threads=4 --worker-class=gthread --bind=0.0.0.0:8080"
+# --preload loads the app in the master so config errors exit before workers spawn
+# --log-level error reduces Gunicorn's own verbosity on failure
+ENV GUNICORN_CMD_ARGS="--workers=2 --threads=4 --worker-class=gthread --bind=0.0.0.0:8080 --preload --log-level error"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 

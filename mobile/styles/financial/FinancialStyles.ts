@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const styles = StyleSheet.create({
+export const createFinancialStyles = (colors: ThemeColors) => StyleSheet.create({
 	screen: {
 		flex: 1,
-		backgroundColor: DashboardColors.background,
+		backgroundColor: colors.background,
 	},
 	listContent: {
 		paddingBottom: 24,
@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
 	pageTitle: {
 		fontSize: 24,
 		fontWeight: 'bold',
-		color: DashboardColors.darkText,
+		color: colors.darkText,
 	},
 	cardsSection: {
 		paddingHorizontal: 20,
@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		marginTop: 16,
 		marginBottom: 12,
-		color: DashboardColors.darkText,
+		color: colors.darkText,
 	},
 	footerLoader: {
 		marginVertical: 20,
@@ -51,8 +51,8 @@ export const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		right: 20,
-		bottom: 20,
-		backgroundColor: DashboardColors.headerBlue,
+		bottom: 75,
+		backgroundColor: colors.headerBlue,
 		borderRadius: 28,
 		elevation: 8,
 		shadowColor: '#000',

@@ -10,6 +10,12 @@ import DashboardLayout from './layouts/DashboardLayout';
 import StockPage from './pages/StockPage'; 
 import SalesPage from './pages/SalesPage';
 import FinancialsPage from './pages/FinancialsPage';
+import LogsPage from './pages/LogsPage';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import SettingsLayout from './layouts/SettingsLayout';
+import TeamManagementPage from './pages/TeamManagementPage';
+import CompanyProfilePage from './pages/CompanyProfilePage';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 function App() {
   return (
@@ -22,7 +28,7 @@ function App() {
         <Route path="/plans" element={<PlansPage />} />
         <Route path="/payment" element={<PaymentPage />} />
 
-        {/* Protected Routes with the new Layout */}
+        {/* Protected Routes - Accessible by funcionario and administrador */}
         <Route 
           element={
             <ProtectedRoute>
@@ -30,10 +36,31 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<DashboardPage />} />
+          {/* Rotas acessíveis por funcionário e administrador */}
           <Route path="/stock" element={<StockPage />} />
           <Route path="/vendas" element={<SalesPage />} />
-          <Route path="/fluxo-de-caixa" element={<FinancialsPage />} />
+        </Route>
+
+        {/* Admin Only Routes */}
+        <Route 
+          element={
+            <ProtectedRoute>
+              <AdminProtectedRoute />
+            </ProtectedRoute>
+          }
+        >
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/fluxo-de-caixa" element={<FinancialsPage />} />
+          </Route>
+
+          <Route path="/configuracoes" element={<SettingsLayout />}>
+            <Route index element={<Navigate to="conta" replace />} /> 
+            <Route path="usuarios" element={<TeamManagementPage />} />
+            <Route path="conta" element={<CompanyProfilePage />} />
+            <Route path="logs" element={<LogsPage />} />
+            <Route path="assinatura" element={<SubscriptionPage />} />
+          </Route>
         </Route>
 
         {/* Fallback Route */}

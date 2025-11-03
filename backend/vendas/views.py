@@ -13,6 +13,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncDate
 from django.db.models import Sum
+from logs.utils import log_action
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -48,6 +49,11 @@ class VendaViewSet(viewsets.ModelViewSet):
             ).distinct()
 
         return queryset
+
+    def perform_create(self, serializer):
+        """ Log para 'CREATE' """
+        instance = serializer.save() 
+        log_action(self.request.user, 'CREATE', instance)
 
     @action(detail=False, methods=['get'])
     def produtos_disponiveis(self, request):
@@ -154,6 +160,8 @@ class VendaViewSet(viewsets.ModelViewSet):
                 }
             )
 
+        log_action(self.request.user, 'UPDATE', instance)
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -167,17 +175,32 @@ class VendaViewSet(viewsets.ModelViewSet):
         Ao excluir uma venda:
         - Devolve a quantidade vendida para o estoque do produto.
         - Exclui o lançamento financeiro associado a esta venda.
+        - Salva um log de deleção.
         """
         instance: Venda = self.get_object()
+        
+        # 1. Capturar dados para o log ANTES de deletar
+        from logs.models import Log # Importar o modelo aqui
+        instance_pk = instance.pk
+        instance_model_name = instance._meta.model_name
+        instance_desc = f"Venda ID {instance.pk} ({instance.quantidade}x {instance.produto.nome})"
+
+        # 2. Seu código original
         with transaction.atomic():
             produto: Produto = instance.produto
             produto.quantidade_estoque = produto.quantidade_estoque + instance.quantidade
             produto.save(update_fields=['quantidade_estoque'])
 
-            # Encontra e deleta todos os lançamentos associados a esta venda.
             LancamentoFinanceiro.objects.filter(venda=instance).delete()
-
-            # Exclui a própria venda
             instance.delete()
+        
+        # 3. Adicionar o Log manualmente
+        Log.objects.create(
+            user=request.user,
+            action_type='DELETE',
+            model_name=instance_model_name,
+            object_id=instance_pk,
+            description=f"Usuário '{request.user.email}' deletou (hard delete) venda: '{instance_desc}'."
+        )
             
         return Response(status=status.HTTP_204_NO_CONTENT)

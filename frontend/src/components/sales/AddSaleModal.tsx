@@ -345,7 +345,7 @@ export default function AddSaleModal({ isOpen, onClose, onSaleAdded }: AddSaleMo
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              className="flex-1 btn-cancel font-medium"
               disabled={loading}
             >
               Cancelar

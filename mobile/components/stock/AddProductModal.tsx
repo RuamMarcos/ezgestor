@@ -1,10 +1,10 @@
 // mobile/components/stock/AddProductModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Colors from '../../constants/Colors';
 import type { Product } from '../../services/StockService';
-import { styles } from '../../styles/stock/AddProductModalStyles';
+import { createAddProductModalStyles } from '../../styles/stock/AddProductModalStyles';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ModalProps {
   visible: boolean;
@@ -22,6 +22,8 @@ interface FormDataState {
 }
 
 export default function AddProductModal({ visible, onClose, onSave }: ModalProps) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createAddProductModalStyles(colors, isDark), [colors, isDark]);
   const [formData, setFormData] = useState<FormDataState>({
     nome: '',
     codigo_do_produto: '',
@@ -88,21 +90,21 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Nome do Produto *"
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={colors.grayText}
               value={formData.nome}
               onChangeText={(text) => handleChange('nome', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Código/SKU"
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={colors.grayText}
               value={formData.codigo_do_produto}
               onChangeText={(text) => handleChange('codigo_do_produto', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Preço de Venda *"
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={colors.grayText}
               keyboardType="numeric"
               value={formData.preco_venda}
               onChangeText={(text) => handleChange('preco_venda', text)}
@@ -110,7 +112,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Preço de Custo"
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={colors.grayText}
               keyboardType="numeric"
               value={formData.preco_custo}
               onChangeText={(text) => handleChange('preco_custo', text)}
@@ -118,7 +120,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Qtd. em Estoque"
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={colors.grayText}
               keyboardType="numeric"
               value={formData.quantidade_estoque}
               onChangeText={(text) => handleChange('quantidade_estoque', text)}
@@ -126,7 +128,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
             <TextInput
               style={styles.input}
               placeholder="Qtd. Mínima"
-              placeholderTextColor={Colors.placeholder}
+              placeholderTextColor={colors.grayText}
               keyboardType="numeric"
               value={formData.quantidade_minima_estoque}
               onChangeText={(text) => handleChange('quantidade_minima_estoque', text)}
@@ -137,7 +139,7 @@ export default function AddProductModal({ visible, onClose, onSave }: ModalProps
               <Text style={styles.imageHint}>Opcional: selecione uma imagem para o produto</Text>
             )}
             <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
-              <Text>Selecionar Imagem</Text>
+              <Text style={styles.imagePickerButtonText}>Selecionar Imagem</Text>
             </TouchableOpacity>
             <View style={styles.buttonRow}>
               <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>

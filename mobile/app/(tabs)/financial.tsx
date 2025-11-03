@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { getLancamentos, getFinancialStats, createLancamento, updateLancamento, deleteLancamento } from '@/services/FinancialService';
 import type { LancamentoFinanceiro, FinancialStats, LancamentoFinanceiroData } from '@/services/FinancialService';
@@ -7,9 +7,11 @@ import TransactionListItem from '@/components/financials/TransactionListItem';
 import FinancialsPagination from '@/components/financials/FinancialsPagination';
 import FinancialsHeader from '@/components/financials/FinancialsHeader';
 import FinancialChart from '@/components/financials/FinancialChart';
-import { styles } from '@/styles/financial/FinancialStyles';
+import { createFinancialStyles } from '@/styles/financial/FinancialStyles';
 import AddEditLancamentoModal from '@/components/financials/AddEditLancamentoModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AdminRoute } from '@/components/AdminRoute';
+import { useTheme } from '@/context/ThemeContext';
 
 
 const formatCurrency = (value: number): string => {
@@ -17,6 +19,8 @@ const formatCurrency = (value: number): string => {
 };
 
 export default function FinancialScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = useMemo(() => createFinancialStyles(colors), [colors]);
     const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
     const [stats, setStats] = useState<FinancialStats | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -143,28 +147,33 @@ export default function FinancialScreen() {
     };
 
     if (initialLoading) {
-        return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+        return <ActivityIndicator size="large" color={colors.headerBlue} style={{ flex: 1, backgroundColor: colors.background }} />;
     }
 
+    const incomeCardColor = isDark ? '#166534' : '#28a745';
+    const expenseCardColor = isDark ? '#7f1d1d' : '#dc3545';
+    const balanceCardColor = isDark ? '#0f766e' : '#17a2b8';
+
     return (
-        <View style={styles.screen}>
-            <FlatList
-                data={lancamentos}
-                keyExtractor={(item) => item.id_lancamento.toString()}
-                renderItem={({ item }) => <TransactionListItem item={item} onPress={() => openEditModal(item)} />}
-                ListHeaderComponent={
-                    <View>
-                        <View style={styles.headerSpacing}>
-                            <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
-                        </View>
-                        {stats && (
-                            <View style={styles.cardsSection}>
-                                <View style={styles.cardsRow}>
-                                    <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor="#28a745" span="half" />
-                                    <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor="#dc3545" span="half" />
+        <AdminRoute>
+            <View style={styles.screen}>
+                <FlatList
+                    data={lancamentos}
+                    keyExtractor={(item) => item.id_lancamento.toString()}
+                    renderItem={({ item }) => <TransactionListItem item={item} onPress={() => openEditModal(item)} />}
+                    ListHeaderComponent={
+                        <View>
+                            <View style={styles.headerSpacing}>
+                                <Text style={styles.pageTitle}>Fluxo de Caixa</Text>
+                            </View>
+                            {stats && (
+                                <View style={styles.cardsSection}>
+                                    <View style={styles.cardsRow}>
+                                    <SummaryCard title="Entradas" value={formatCurrency(stats.total_entradas)} backgroundColor={incomeCardColor} span="half" />
+                                    <SummaryCard title="Saídas" value={formatCurrency(stats.total_saidas)} backgroundColor={expenseCardColor} span="half" />
                                 </View>
                                 <View style={styles.cardsRowFull}>
-                                    <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor="#17a2b8" span="full" />
+                                    <SummaryCard title="Saldo" value={formatCurrency(stats.saldo_atual)} backgroundColor={balanceCardColor} span="full" />
                                 </View>
                             </View>
                         )}
@@ -182,7 +191,7 @@ export default function FinancialScreen() {
                     </View>
                 }
                 ListFooterComponent={
-                    listLoading ? <ActivityIndicator style={styles.footerLoader}/> : (
+                    listLoading ? <ActivityIndicator style={styles.footerLoader} color={colors.headerBlue} /> : (
                         <FinancialsPagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -193,6 +202,7 @@ export default function FinancialScreen() {
                 contentContainerStyle={styles.listContent}
                 refreshing={listLoading}
                 onRefresh={() => fetchFinancials(currentPage, searchTerm, selectedType)}
+                showsVerticalScrollIndicator={false}
             />
             <AddEditLancamentoModal
                 isOpen={isModalOpen}
@@ -204,6 +214,7 @@ export default function FinancialScreen() {
             <TouchableOpacity style={styles.fab} onPress={openAddModal}>
                 <MaterialCommunityIcons name="plus" size={24} color="white" />
             </TouchableOpacity>
-        </View>
+            </View>
+        </AdminRoute>
     );
 }

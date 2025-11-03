@@ -1,10 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { DashboardColors } from '@/constants/DashboardColors';
 
 export const styles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
     // Shadow iOS
@@ -17,7 +15,6 @@ export const styles = StyleSheet.create({
   },
   imageWrapper: {
     height: 110,
-    backgroundColor: '#f1f5f9',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -32,17 +29,14 @@ export const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: DashboardColors.darkText,
   },
   cardSub: {
     fontSize: 12,
-    color: DashboardColors.grayText,
     marginTop: 2,
   },
   cardPrice: {
     fontSize: 14,
     marginTop: 6,
     fontWeight: '700',
-    color: DashboardColors.headerBlue,
   },
 });

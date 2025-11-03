@@ -5,3 +5,111 @@
 .bg-primary-gradient {
   background: linear-gradient(to bottom right, #4A4E9D 0%, #2A2D5C 100%);
 }
+
+/* Smooth color transitions on theme change */
+html, body, #root {
+  @apply transition-colors duration-300;
+}
+
+/* Default light/dark base colors (can be extended in components) */
+body {
+  @apply bg-white text-gray-900;
+}
+
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+
+/* Global dark-mode overrides for common utility classes used across the app */
+/* This ensures existing components without explicit dark: variants still adapt */
+.dark .bg-white { background-color: #1f2937 !important; } /* gray-800 */
+.dark .bg-gray-50 { background-color: #0f172a !important; } /* slate-950 */
+.dark .bg-gray-100 { background-color: #374151 !important; } /* gray-700 */
+.dark .text-gray-900, .dark .text-gray-800 { color: #f3f4f6 !important; } /* gray-100 */
+.dark .text-gray-700, .dark .text-gray-600 { color: #d1d5db !important; } /* gray-300 */
+.dark .border-gray-200 { border-color: #374151 !important; } /* gray-700 */
+.dark .border-gray-300 { border-color: #4b5563 !important; } /* gray-600 */
+
+/* Common hover utility seen in navs */
+.dark .hover\:bg-gray-50:hover { background-color: #374151 !important; }
+
+/* Inputs and form controls in dark mode */
+.dark input:not([type='checkbox']):not([type='radio']),
+.dark textarea,
+.dark select {
+  background-color: #111827 !important; /* gray-900 */
+  color: #f9fafb !important; /* gray-50 */
+  border-color: #4b5563 !important; /* gray-600 */
+  caret-color: #f9fafb;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af !important; /* gray-400 */
+}
+
+/* Blue accents for selected items in dark */
+.dark .bg-blue-50 { background-color: rgba(30, 64, 175, 0.25) !important; } /* blue-700/25 */
+.dark .text-blue-700 { color: #93c5fd !important; } /* blue-300 */
+
+/* Dark mode shadows/rings for cards */
+.dark .shadow,
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+  --tw-shadow-color: rgba(0,0,0,0.6);
+}
+.dark .ring-gray-900\/5 { box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgba(255,255,255,0.05); }
+
+/* Tables and pagination */
+.dark thead.bg-gray-50 { background-color: #111827 !important; }
+.dark tbody.bg-white { background-color: #1f2937 !important; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151 !important; }
+
+/* Buttons/links commonly used in pagination */
+.dark a[href*="page="][class*="bg-white"],
+.dark button[class*="bg-white"][class*="rounded"],
+.dark .hover\:bg-gray-50:hover {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+/* Reusable cancel button with proper contrast in light and dark themes */
+@layer components {
+  .btn-cancel {
+    @apply px-4 py-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors;
+  }
+  .dark .btn-cancel {
+    @apply bg-gray-800 text-gray-100 border-gray-600 hover:bg-gray-700;
+  }
+}
+
+/* Prevent global dark-mode overrides from affecting the standalone landing page.
+   Components inside .landing-root should remain in light styling even when .dark
+   is present on the document root. We selectively restore commonly overridden
+   utility classes used by the landing page. */
+.landing-root {
+  /* ensure base is light */
+  background-color: white;
+  color: #1f2937; /* gray-800 */
+}
+.dark .landing-root {
+  color-scheme: light;
+}
+.dark .landing-root .bg-white { background-color: #ffffff !important; }
+.dark .landing-root .bg-gray-50 { background-color: #f9fafb !important; }
+.dark .landing-root .bg-gray-100 { background-color: #f3f4f6 !important; }
+.dark .landing-root .text-gray-900, .dark .landing-root .text-gray-800 { color: #1f2937 !important; }
+.dark .landing-root .text-gray-700, .dark .landing-root .text-gray-600 { color: #4b5563 !important; }
+.dark .landing-root .border-gray-200 { border-color: #e5e7eb !important; }
+.dark .landing-root .border-gray-300 { border-color: #d1d5db !important; }
+.dark .landing-root .hover\:bg-gray-50:hover { background-color: rgba(0,0,0,0.03) !important; }
+.dark .landing-root input, .dark .landing-root textarea, .dark .landing-root select {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+.dark .landing-root img { filter: none !important; }

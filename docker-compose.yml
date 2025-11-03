@@ -9,7 +9,9 @@ services:
       - "8000:8080"
     volumes:
       - db_data:/app/sqlite-data
+      - ./secrets:/secrets:ro
     environment:
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
@@ -18,7 +20,14 @@ services:
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Default to a persistent SQLite file inside the volume-backed directory
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
+      CLOUD_SQL_CONNECTION_NAME: ${CLOUD_SQL_CONNECTION_NAME:-}
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
+      # Unified cloud switch defaults to False (local mode requires no .env)
+      USE_CLOUD_BACKENDS: ${USE_CLOUD_BACKENDS:-False}
+      # GCS bucket name (required only when USE_CLOUD_BACKENDS=True)
+      GS_BUCKET_NAME: ${GS_BUCKET_NAME:-}
+      # Fixed path inside container to the service account json
+      GOOGLE_APPLICATION_CREDENTIALS: /secrets/sa.json
 
   migrate:
     build:
@@ -26,6 +35,7 @@ services:
     image: ezgestor-app:latest
     command: ["sh", "-c", "python manage.py makemigrations --noinput && python manage.py migrate --noinput"]
     environment:
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-True}
@@ -33,10 +43,15 @@ services:
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:19006,http://127.0.0.1:19006}
       # Match the web default so migrations hit the same DB by default
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/sqlite-data/db.sqlite3}
+      CLOUD_SQL_CONNECTION_NAME: ${CLOUD_SQL_CONNECTION_NAME:-}
       CONN_MAX_AGE: ${CONN_MAX_AGE:-0}
+      USE_CLOUD_BACKENDS: ${USE_CLOUD_BACKENDS:-False}
+      GS_BUCKET_NAME: ${GS_BUCKET_NAME:-}
+      GOOGLE_APPLICATION_CREDENTIALS: /secrets/sa.json
     volumes:
       - db_data:/app/sqlite-data
       - ./backend:/app
+      - ./secrets:/secrets:ro
     restart: "no"
 
   cloudsql-proxy:

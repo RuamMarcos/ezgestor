@@ -15,6 +15,7 @@ secrets/
 .cursorignore
 .specstory
 .cursor/
+.claude/
 .github/
 
 .DS_Store

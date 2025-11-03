@@ -1,6 +1,16 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  forgotPasswordContainer: {
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+    marginTop: -10,
+  },
+  forgotPasswordLink: {
+    color: '#4A4E9D',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
   container: {
     flex: 1,
   backgroundColor: 'transparent',

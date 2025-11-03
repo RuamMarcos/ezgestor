@@ -68,13 +68,33 @@ const LoginScreen = () => {
       }
     } catch (error: any) {
       console.error('Erro na requisição de login:', error);
+      
+      // Traduzir mensagens de erro comuns do backend
+      let errorMsg = 'Falha ao fazer login. Verifique suas credenciais e tente novamente.';
+      
       if (error?.response?.data?.detail) {
-        setErrorMessage(String(error.response.data.detail));
+        const detail = String(error.response.data.detail).toLowerCase();
+        
+        // Mapear mensagens de erro em inglês para português
+        if (detail.includes('no active account') || detail.includes('invalid credentials')) {
+          errorMsg = 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.';
+        } else if (detail.includes('unable to log in')) {
+          errorMsg = 'Não foi possível fazer login. Verifique suas credenciais.';
+        } else if (detail.includes('user not found')) {
+          errorMsg = 'Usuário não encontrado.';
+        } else {
+          errorMsg = String(error.response.data.detail);
+        }
       } else if (error?.message) {
-        setErrorMessage(String(error.message));
-      } else {
-        setErrorMessage('Falha ao fazer login. Verifique suas credenciais e tente novamente.');
+        const msg = String(error.message).toLowerCase();
+        if (msg.includes('network')) {
+          errorMsg = 'Erro de conexão. Verifique sua internet e tente novamente.';
+        } else {
+          errorMsg = String(error.message);
+        }
       }
+      
+      setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +103,10 @@ const LoginScreen = () => {
 
   const handleRegister = () => {
     router.push('/(auth)/register');
+  };
+
+  const handleForgotPassword = () => {
+    router.push('/(auth)/password-recovery');
   };
 
   return (
@@ -139,6 +163,14 @@ const LoginScreen = () => {
                 />
               </View>
             </View>
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity 
+              style={styles.forgotPasswordContainer} 
+              onPress={handleForgotPassword}
+            >
+              <Text style={styles.forgotPasswordLink}>Esqueci minha senha</Text>
+            </TouchableOpacity>
 
             {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 

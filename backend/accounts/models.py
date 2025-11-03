@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.conf import settings
+from django.conf import settings
+import uuid
 
 class CustomUserManager(BaseUserManager):
     """
@@ -43,6 +46,16 @@ class Empresa(models.Model):
     razao_social = models.CharField(max_length=255)
     cnpj = models.CharField(max_length=18, unique=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)
+    logotipo = models.ImageField(upload_to='logotipos/', null=True, blank=True)
+    inscricao_estadual = models.CharField(max_length=20, blank=True, null=True)
+    endereco = models.CharField(max_length=255, blank=True, null=True)
+    cep = models.CharField(max_length=9, blank=True, null=True)
+    bairro = models.CharField(max_length=100, blank=True, null=True)
+    cidade = models.CharField(max_length=100, blank=True, null=True)
+    estado = models.CharField(max_length=50, blank=True, null=True)
+    pais = models.CharField(max_length=50, blank=True, null=True, default='Brasil')
+    telefone = models.CharField(max_length=20, blank=True, null=True)
+    email_principal = models.EmailField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.nome_fantasia
@@ -101,6 +114,10 @@ class Assinatura(models.Model):
     data_proximo_pagamento = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     meses_ativos = models.PositiveIntegerField()
+    metodo_pagamento_padrao = models.CharField(max_length=20, null=True, blank=True)
+    cartao_final = models.CharField(max_length=4, null=True, blank=True)
+    cartao_bandeira = models.CharField(max_length=20, null=True, blank=True)
+    cartao_validade = models.CharField(max_length=5, null=True, blank=True) # MM/YY
 
     def __str__(self):
         return f"{self.empresa.nome_fantasia} - {self.plano.get_nome_display()}"
@@ -116,3 +133,34 @@ class Pagamento(models.Model):
 
     def __str__(self):
         return f"Pagamento de {self.valor} para {self.assinatura.empresa.nome_fantasia}"
+
+
+class UserPreference(models.Model):
+    THEME_LIGHT = 'light'
+    THEME_DARK = 'dark'
+    THEME_SYSTEM = 'system'
+
+    THEME_CHOICES = [
+        (THEME_LIGHT, 'Light'),
+        (THEME_DARK, 'Dark'),
+        (THEME_SYSTEM, 'System'),
+    ]
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
+    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default=THEME_SYSTEM)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferências de {getattr(self.user, 'email', str(self.user_id))}"
+    
+class PasswordResetCode(models.Model):
+    """
+    Modelo para armazenar códigos de recuperação de senha.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reset_codes")
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Código para {self.user.email}"
