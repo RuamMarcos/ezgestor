@@ -247,7 +247,10 @@ class AssinaturaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Assinatura
-        fields = ['id_assinatura', 'plano', 'status', 'data_proximo_pagamento'] 
+        fields = [
+            'id_assinatura', 'plano', 'status', 'data_proximo_pagamento',
+            'metodo_pagamento_padrao', 'cartao_final', 'cartao_bandeira', 'cartao_validade'
+        ]
 
 class PagamentoSerializer(serializers.ModelSerializer):
     

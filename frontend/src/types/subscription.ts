@@ -9,6 +9,10 @@ export interface IAssinatura {
   plano: IPlano;
   status: string; 
   data_proximo_pagamento: string;
+  metodo_pagamento_padrao: string | null;
+  cartao_final: string | null;
+  cartao_bandeira: string | null;
+  cartao_validade: string | null;
 }
 
 export interface IPagamento {
