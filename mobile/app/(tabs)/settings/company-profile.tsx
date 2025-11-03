@@ -7,13 +7,14 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
-import api from '@/services/api';
+import api from '@/utils/api';
 import {
   aplicarMascaraCep,
   aplicarMascaraCnpj,
@@ -39,8 +40,28 @@ interface CompanyData {
   logotipo: string;
 }
 
+type AllowedExtensions =
+  | 'bmp' | 'dib' | 'gif' | 'jfif' | 'jpe' | 'jpg' | 'jpeg'
+  | 'pbm' | 'pgm' | 'ppm' | 'pnm' | 'pfm' | 'png' | 'apng'
+  | 'avif' | 'avifs' | 'blp' | 'bufr' | 'cur' | 'pcx' | 'dcx'
+  | 'dds' | 'ps' | 'eps' | 'fit' | 'fits' | 'fli' | 'flc' | 'ftc'
+  | 'ftu' | 'gbr' | 'grib' | 'h5' | 'hdf' | 'jp2' | 'j2k' | 'jpc'
+  | 'jpf' | 'jpx' | 'j2c' | 'icns' | 'ico' | 'im' | 'iim' | 'mpg'
+  | 'mpeg' | 'tif' | 'tiff' | 'mpo' | 'msp' | 'palm' | 'pcd'
+  | 'pdf' | 'pxr' | 'psd' | 'qoi' | 'bw' | 'rgb' | 'rgba' | 'sgi'
+  | 'ras' | 'tga' | 'icb' | 'vda' | 'vst' | 'webp' | 'wmf' | 'emf'
+  | 'xbm' | 'xpm';
+
+interface SelectedLogo {
+  uri: string;
+  name: string;
+  type: string;
+  extension: AllowedExtensions;
+  file?: any; // File/Blob when running on web
+}
+
 interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
-  logotipo: { uri: string; name: string; type: string } | null;
+  logotipo: SelectedLogo | null;
 }
 
 export default function CompanyProfileScreen() {
@@ -158,15 +179,50 @@ export default function CompanyProfileScreen() {
     if (!result.canceled) {
       const file = result.assets[0];
       const filename = file.uri.split('/').pop() || 'photo.jpg';
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image/jpeg`;
+      const extensionMatch = filename.toLowerCase().match(/\.([a-z0-9]+)$/);
+      const extension = (extensionMatch ? extensionMatch[1] : 'jpg') as AllowedExtensions;
+      const allowedExtensions = new Set<AllowedExtensions>([
+        'bmp','dib','gif','jfif','jpe','jpg','jpeg','pbm','pgm','ppm','pnm','pfm','png','apng','avif','avifs','blp','bufr','cur','pcx','dcx','dds','ps','eps','fit','fits','fli','flc','ftc','ftu','gbr','grib','h5','hdf','jp2','j2k','jpc','jpf','jpx','j2c','icns','ico','im','iim','mpg','mpeg','tif','tiff','mpo','msp','palm','pcd','pdf','pxr','psd','qoi','bw','rgb','rgba','sgi','ras','tga','icb','vda','vst','webp','wmf','emf','xbm','xpm',
+      ]);
+      const isAllowed = allowedExtensions.has(extension);
+      if (!isAllowed) {
+        setToast({ message: `Extensão ${extension} não permitida.`, type: 'error' });
+        return;
+      }
+      const filenameWithExtension = extensionMatch ? filename : `${filename}.${extension}`;
+      const mimeType = extension === 'jpg' || extension === 'jpeg' || extension === 'jpe' ? 'image/jpeg'
+        : extension === 'png' || extension === 'apng' ? 'image/png'
+        : file.mimeType
+        || formData.logotipo?.type
+        || `image/${extension}`;
 
-      console.log('Imagem selecionada:', { uri: file.uri, name: filename, type });
+      // Expo returns file size in bytes when available
+  const fileSize = typeof file.fileSize === 'number' ? file.fileSize : undefined;
+      const maxBytes = 2 * 1024 * 1024; // 2MB limit to match web client
+      if (fileSize && fileSize > maxBytes) {
+        setToast({ message: 'O arquivo deve ter no máximo 2MB.', type: 'error' });
+        return;
+      }
+
+      if (!mimeType.startsWith('image/')) {
+        setToast({ message: 'Apenas arquivos de imagem são permitidos.', type: 'error' });
+        return;
+      }
+
+  const uploadUri = file.uri;
+
+  console.log('Imagem selecionada:', { uri: uploadUri, name: filenameWithExtension, mimeType, size: fileSize });
 
       setLogoPreview(file.uri);
       setFormData(prev => ({
         ...prev,
-        logotipo: { uri: file.uri, name: filename, type },
+        logotipo: {
+          uri: uploadUri,
+          name: filenameWithExtension,
+          type: mimeType,
+          extension,
+          file: (file as any).file ?? undefined,
+        },
       }));
     }
   };
@@ -197,15 +253,35 @@ export default function CompanyProfileScreen() {
     
     // Add image file if present
     if (formData.logotipo) {
-      // React Native FormData requires this specific format for file uploads
-      const fileData: any = {
-        uri: formData.logotipo.uri,
-        name: formData.logotipo.name,
-        type: formData.logotipo.type,
-      };
-      
-      console.log('Enviando arquivo:', fileData);
-      dataToSubmit.append('logotipo', fileData);
+      if (Platform.OS === 'web') {
+        try {
+          const candidate = formData.logotipo.file;
+          const isFile = typeof File !== 'undefined' && candidate instanceof File;
+          const isBlob = typeof Blob !== 'undefined' && candidate instanceof Blob;
+
+          if (candidate && (isFile || isBlob)) {
+            dataToSubmit.append('logotipo', candidate, formData.logotipo.name);
+          } else {
+            const response = await fetch(formData.logotipo.uri);
+            const blob = await response.blob();
+            dataToSubmit.append('logotipo', blob, formData.logotipo.name);
+          }
+        } catch (blobError) {
+          console.error('Falha ao converter a imagem para upload:', blobError);
+          setToast({ message: 'Não foi possível preparar a imagem para upload.', type: 'error' });
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        const fileData: any = {
+          uri: formData.logotipo.uri,
+          name: formData.logotipo.name,
+          type: formData.logotipo.type,
+        };
+
+        console.log('Enviando arquivo:', fileData);
+        dataToSubmit.append('logotipo', fileData, fileData.name);
+      }
     }
 
     try {
