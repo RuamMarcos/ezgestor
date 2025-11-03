@@ -10,3 +10,7 @@ export const getPaymentHistory = async (): Promise<IPagamento[]> => {
   const { data } = await api.get<IPagamento[]>('/accounts/payment/');
   return data;
 };
+
+export const updatePaymentMethod = async (payload: any): Promise<void> => {
+  await api.post('/accounts/update-payment-method/', payload);
+};

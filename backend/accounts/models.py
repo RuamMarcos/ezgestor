@@ -114,6 +114,10 @@ class Assinatura(models.Model):
     data_proximo_pagamento = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     meses_ativos = models.PositiveIntegerField()
+    metodo_pagamento_padrao = models.CharField(max_length=20, null=True, blank=True)
+    cartao_final = models.CharField(max_length=4, null=True, blank=True)
+    cartao_bandeira = models.CharField(max_length=20, null=True, blank=True)
+    cartao_validade = models.CharField(max_length=5, null=True, blank=True) # MM/YY
 
     def __str__(self):
         return f"{self.empresa.nome_fantasia} - {self.plano.get_nome_display()}"

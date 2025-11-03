@@ -13,37 +13,44 @@ import {
   CreditCardIcon,
   DocumentArrowDownIcon,
 } from '@heroicons/react/24/solid';
+import UpdatePaymentModal from '../components/subscription/UpdatePaymentModal'; // Importe o modal
 
 const SubscriptionPage = () => {
   const [assinatura, setAssinatura] = useState<IAssinatura | null>(null);
   const [pagamentos, setPagamentos] = useState<IPagamento[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false); // Estado para o modal
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [subData, payData] = await Promise.all([
+        getCurrentSubscription(),
+        getPaymentHistory(),
+      ]);
+      setAssinatura(subData);
+      setPagamentos(payData);
+    } catch (error: any) {
+      if (error.response?.status !== 404) {
+        toast.error(
+          error.response?.data?.detail ||
+            'Erro ao buscar dados da assinatura.'
+        );
+        console.error(error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [subData, payData] = await Promise.all([
-          getCurrentSubscription(),
-          getPaymentHistory(),
-        ]);
-        setAssinatura(subData);
-        setPagamentos(payData);
-      } catch (error: any) {
-        if (error.response?.status !== 404) {
-          toast.error(
-            error.response?.data?.detail ||
-              'Erro ao buscar dados da assinatura.'
-          );
-          console.error(error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
+
+  const handleSuccess = () => {
+    // Atualiza os dados da página após o sucesso
+    fetchData();
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -120,6 +127,7 @@ const SubscriptionPage = () => {
   }
 
   const lastPaymentMethod = pagamentos.length > 0 ? pagamentos[0].metodo : null;
+  const hasCard = assinatura.metodo_pagamento_padrao === 'cartao' && assinatura.cartao_final;
 
   return (
     <div className="space-y-8">
@@ -149,10 +157,15 @@ const SubscriptionPage = () => {
         {/* Card da Forma de Pagamento */}
         <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
           <p className="text-sm font-medium text-gray-500">Forma de Pagamento</p>
-          {lastPaymentMethod === 'cartao' ? (
+          {hasCard ? (
             <div className="flex items-center gap-3">
               <CreditCardIcon className="h-6 w-6 text-gray-400" />
-              <p className="font-semibold text-gray-700">Cartão de Crédito</p>
+              <div>
+                <p className="font-semibold text-gray-700">
+                  {assinatura.cartao_bandeira?.charAt(0).toUpperCase() + assinatura.cartao_bandeira!.slice(1)} final {assinatura.cartao_final}
+                </p>
+                <p className="text-sm text-gray-500">Expira em: {assinatura.cartao_validade}</p>
+              </div>
             </div>
           ) : (
             <p className="text-gray-600">Nenhum cartão de crédito cadastrado.</p>
@@ -160,6 +173,7 @@ const SubscriptionPage = () => {
           <div className="border-t border-gray-200 pt-4">
             <button
               type="button"
+              onClick={() => setIsUpdateModalOpen(true)} // Abre o modal
               className="text-sm font-medium text-indigo-600 hover:text-indigo-500 border border-indigo-600 rounded-md px-4 py-2 transition-colors"
             >
               Atualizar Dados
@@ -221,6 +235,13 @@ const SubscriptionPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Renderiza o modal */}
+      <UpdatePaymentModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 };

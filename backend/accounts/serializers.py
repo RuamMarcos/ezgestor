@@ -253,4 +253,12 @@ class PagamentoSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Pagamento
-        fields = ['id_pagamento', 'data_pagamento', 'valor', 'status']
+        fields = ['id_pagamento', 'data_pagamento', 'valor', 'status', 'metodo']
+
+
+class UpdatePaymentMethodSerializer(serializers.Serializer):
+    """Serializer para validar os dados do novo cartão."""
+    numero = serializers.CharField(max_length=19, required=True)
+    validade = serializers.CharField(max_length=5, required=True)
+    cvv = serializers.CharField(max_length=4, required=True)
+    nome = serializers.CharField(max_length=100, required=True)

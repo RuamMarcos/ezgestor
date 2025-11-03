@@ -19,10 +19,10 @@ from .serializers import (
     TeamMemberUpdateSerializer,
     UserPreferenceSerializer,
     EmpresaSerializer,
-    # Imports Adicionados
     PasswordResetRequestSerializer,
     PasswordResetValidateCodeSerializer,
-    PasswordResetConfirmSerializer
+    PasswordResetConfirmSerializer,
+    UpdatePaymentMethodSerializer, # 1. Importe o novo serializer
 )
 from .models import Empresa, Usuario, Plano, Assinatura, Pagamento, UserPreference, PasswordResetCode # Model Adicionado
 from .permissions import IsAdminUser
@@ -333,3 +333,34 @@ class PaymentHistoryView(generics.ListAPIView):
             return Pagamento.objects.filter(assinatura=assinatura).order_by('-data_pagamento')
         except Assinatura.DoesNotExist:
             return Pagamento.objects.none()
+
+
+class UpdatePaymentMethodView(APIView):
+    """
+    Atualiza o método de pagamento padrão para a assinatura.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    serializer_class = UpdatePaymentMethodSerializer # 2. Use o serializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            assinatura = Assinatura.objects.get(empresa=request.user.empresa)
+            validated_data = serializer.validated_data
+
+            # 3. Salva os dados no modelo
+            assinatura.metodo_pagamento_padrao = 'cartao'
+            assinatura.cartao_final = validated_data['numero'][-4:]
+            assinatura.cartao_validade = validated_data['validade']
+            assinatura.cartao_bandeira = 'visa' # Simulado
+            assinatura.save()
+
+            return Response({"status": "Método de pagamento atualizado com sucesso."}, status=status.HTTP_200_OK)
+        
+        except Assinatura.DoesNotExist:
+            return Response({"detail": "Nenhuma assinatura encontrada para esta empresa."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

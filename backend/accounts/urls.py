@@ -15,7 +15,7 @@ from .views import (
     TeamMemberListView,
     UserPreferenceView,
     EmpresaProfileView,
-    # Imports Adicionados
+    UpdatePaymentMethodView,
     PasswordResetRequestView,
     PasswordResetValidateCodeView,
     PasswordResetConfirmView
@@ -49,4 +49,5 @@ urlpatterns = [
 
     path('signature/', CurrentSubscriptionView.as_view(), name='current-subscription'),
     path('payment/', PaymentHistoryView.as_view(), name='payment-history'),
+    path('update-payment-method/', UpdatePaymentMethodView.as_view(), name='update-payment-method')
 ]
