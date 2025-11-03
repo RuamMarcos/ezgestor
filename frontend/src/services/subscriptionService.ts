@@ -12,5 +12,5 @@ export const getPaymentHistory = async (): Promise<IPagamento[]> => {
 };
 
 export const updatePaymentMethod = async (payload: any): Promise<void> => {
-  await api.post('/accounts/subscription/update-payment-method/', payload);
+  await api.post('/accounts/update-payment-method/', payload);
 };
