@@ -54,7 +54,7 @@ export const createProduct = async (productData: Product): Promise<Product> => {
         formData.append('imagem', blob, fileName);
       } else {
         // On native, append RN-style file descriptor
-        formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+  formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any, fileName);
       }
     }
 
@@ -84,7 +84,7 @@ export const updateProduct = async (productId: number, productData: Product): Pr
       const blob = await resp.blob();
       formData.append('imagem', blob, fileName);
     } else {
-      formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any);
+  formData.append('imagem', { uri: productData.imagem.uri, name: fileName, type: mimeType } as any, fileName);
     }
   }
 
