@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,61 +8,35 @@ import {
   RefreshControl,
   Button,
   TouchableOpacity,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { AdminRoute } from '@/components/AdminRoute';
-import { getLogs } from '@/services/LogService';
-import type { RawLog } from '@/types/logs';
-import { DashboardColors } from '@/constants/DashboardColors';
-import { styles } from '@/styles/settings/LogStyles';
-import { Picker } from '@react-native-picker/picker';
-import { getTeamMembers } from '@/services/TeamService';
-import type { TeamMember } from '@/services/TeamService';
-
-const LogItem = ({ item }: { item: RawLog }) => {
-  const formatTimestamp = (isoString: string) => {
-    try {
-      return new Date(isoString).toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch (e) {
-      return isoString;
-    }
-  };
-
-  return (
-    <View style={styles.logItemContainer}>
-      <Text style={styles.logDescription}>{item.description}</Text>
-      <View style={styles.logMetaContainer}>
-        <Text style={styles.logMetaText}>
-          Usuário: {item.user?.email || 'Sistema'}
-        </Text>
-        <Text style={styles.logMetaText}>
-          Ação: {item.action_type_display}
-        </Text>
-      </View>
-      <Text style={styles.logTimestamp}>
-        {formatTimestamp(item.action_time)}
-      </Text>
-    </View>
-  );
-};
+} from "react-native";
+import { useRouter } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AdminRoute } from "@/components/AdminRoute";
+import { getLogs } from "@/services/LogService";
+import type { RawLog } from "@/types/logs";
+import { DashboardColors } from "@/constants/DashboardColors";
+import { createLogStyles } from "@/styles/settings/LogStyles";
+import { Picker } from "@react-native-picker/picker";
+import { getTeamMembers } from "@/services/TeamService";
+import type { TeamMember } from "@/services/TeamService";
+import { useTheme } from "@/context/ThemeContext";
 
 const ACTION_TYPES = [
-  { key: 'CREATE', label: 'Criação' },
-  { key: 'UPDATE', label: 'Atualização' },
-  { key: 'DELETE', label: 'Deleção' },
-  { key: 'SOFT_DELETE', label: 'Desativação' },
-  { key: 'LOGIN', label: 'Login' },
+  { key: "CREATE", label: "Criação" },
+  { key: "UPDATE", label: "Atualização" },
+  { key: "DELETE", label: "Deleção" },
+  { key: "SOFT_DELETE", label: "Desativação" },
+  { key: "LOGIN", label: "Login" },
 ];
 
 export default function SystemLogsScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createLogStyles(colors, isDark),
+    [colors, isDark]
+  );
+
   const [logs, setLogs] = useState<RawLog[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -72,10 +46,43 @@ export default function SystemLogsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isFetchingUsers, setIsFetchingUsers] = useState(false);
-  const [selectedUser, setSelectedUser] = useState('');
-  const [selectedAction, setSelectedAction] = useState('');
-  const [appliedUser, setAppliedUser] = useState('');
-  const [appliedAction, setAppliedAction] = useState('');
+  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedAction, setSelectedAction] = useState("");
+  const [appliedUser, setAppliedUser] = useState("");
+  const [appliedAction, setAppliedAction] = useState("");
+
+  const LogItem = ({ item }: { item: RawLog }) => {
+    const formatTimestamp = (isoString: string) => {
+      try {
+        return new Date(isoString).toLocaleString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch (e) {
+        return isoString;
+      }
+    };
+
+    return (
+      <View style={styles.logItemContainer}>
+        <Text style={styles.logDescription}>{item.description}</Text>
+        <View style={styles.logMetaContainer}>
+          <Text style={styles.logMetaText}>
+            Usuário: {item.user?.email || "Sistema"}
+          </Text>
+          <Text style={styles.logMetaText}>
+            Ação: {item.action_type_display}
+          </Text>
+        </View>
+        <Text style={styles.logTimestamp}>
+          {formatTimestamp(item.action_time)}
+        </Text>
+      </View>
+    );
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -84,8 +91,8 @@ export default function SystemLogsScreen() {
         const members = await getTeamMembers();
         setTeamMembers(members);
       } catch (error) {
-        console.error('Erro ao buscar membros da equipe:', error);
-        setError('Não foi possível carregar a lista de usuários.');
+        console.error("Erro ao buscar membros da equipe:", error);
+        setError("Não foi possível carregar a lista de usuários.");
       } finally {
         setIsFetchingUsers(false);
       }
@@ -115,7 +122,7 @@ export default function SystemLogsScreen() {
         setHasNextPage(data.next !== null);
         setPage(currentPage + 1);
       } catch (err) {
-        setError('Falha ao carregar os logs.');
+        setError("Falha ao carregar os logs.");
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -142,17 +149,17 @@ export default function SystemLogsScreen() {
 
   const handleClearSearch = () => {
     setPage(1);
-    setSelectedUser('');
-    setSelectedAction('');
-    setAppliedUser('');
-    setAppliedAction('');
+    setSelectedUser("");
+    setSelectedAction("");
+    setAppliedUser("");
+    setAppliedAction("");
   };
 
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoading}>
-        <ActivityIndicator size="small" color={DashboardColors.blue} />
+        <ActivityIndicator size="small" color={colors.headerBlue} />
       </View>
     );
   };
@@ -203,7 +210,7 @@ export default function SystemLogsScreen() {
             title="Limpar"
             onPress={handleClearSearch}
             disabled={loading}
-            color={DashboardColors.grayText}
+            color={colors.grayText}
           />
         </View>
         <View style={styles.button}>
@@ -211,13 +218,12 @@ export default function SystemLogsScreen() {
             title="Pesquisar"
             onPress={handleSearchSubmit}
             disabled={loading}
-            color={DashboardColors.blue}
+            color={colors.headerBlue}
           />
         </View>
       </View>
     </View>
   );
-
 
   if (loading && !refreshing && logs.length === 0) {
     return (
@@ -232,13 +238,13 @@ export default function SystemLogsScreen() {
               <MaterialCommunityIcons
                 name="arrow-left"
                 size={24}
-                color={DashboardColors.headerBlue}
+                color={colors.headerBlue}
               />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Logs do Sistema</Text>
           </View>
           <View style={styles.centered}>
-            <ActivityIndicator size="large" color={DashboardColors.blue} />
+            <ActivityIndicator size="large" color={colors.headerBlue} />
           </View>
         </View>
       </AdminRoute>
@@ -258,14 +264,14 @@ export default function SystemLogsScreen() {
               <MaterialCommunityIcons
                 name="arrow-left"
                 size={24}
-                color={DashboardColors.headerBlue}
+                color={colors.headerBlue}
               />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Logs do Sistema</Text>
           </View>
           <View style={styles.centered}>
             {/* Renderiza o header mesmo em caso de erro para permitir novos filtros */}
-            {renderHeader()} 
+            {renderHeader()}
             <Text style={styles.errorText}>{error}</Text>
           </View>
         </View>
@@ -285,7 +291,7 @@ export default function SystemLogsScreen() {
             <MaterialCommunityIcons
               name="arrow-left"
               size={24}
-              color={DashboardColors.headerBlue}
+              color={colors.headerBlue}
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Logs do Sistema</Text>
@@ -308,7 +314,10 @@ export default function SystemLogsScreen() {
             <View style={styles.centered}>
               <Text style={styles.emptyText}>
                 Nenhum log encontrado
-                {appliedUser || appliedAction ? ' para os filtros aplicados' : ''}.
+                {appliedUser || appliedAction
+                  ? " para os filtros aplicados"
+                  : ""}
+                .
               </Text>
             </View>
           )}
@@ -316,7 +325,7 @@ export default function SystemLogsScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[DashboardColors.blue]}
+              colors={[colors.headerBlue]}
             />
           }
         />

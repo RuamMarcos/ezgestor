@@ -280,7 +280,7 @@ export default function CompanyProfileScreen() {
         };
 
         console.log('Enviando arquivo:', fileData);
-        dataToSubmit.append('logotipo', fileData, fileData.name);
+        dataToSubmit.append('logotipo', fileData);
       }
     }
 
