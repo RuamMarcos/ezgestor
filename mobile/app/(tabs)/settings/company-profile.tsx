@@ -451,11 +451,14 @@ export default function CompanyProfileScreen() {
 
     try {
       console.log("Enviando dados para o servidor...");
-      // Note: Don't set Content-Type manually for FormData in React Native
-      // Axios will set it automatically with the correct boundary
       const response = await api.patch(
         "/accounts/profile/empresa/",
-        dataToSubmit
+        dataToSubmit,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
       console.log("Resposta do servidor:", response.data);
       await refreshFromServer();
