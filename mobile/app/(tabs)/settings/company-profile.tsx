@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,20 +8,21 @@ import {
   Image,
   ActivityIndicator,
   Platform,
-} from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
-import api from '@/utils/api';
+} from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import api from "@/utils/api";
 import {
   aplicarMascaraCep,
   aplicarMascaraCnpj,
   aplicarMascaraTelefone,
-} from '@/utils/masks';
-import { resolveMediaUrl } from '@/utils/mediaUrl';
-import { createStyles } from '@/styles/settings/CompanyProfileStyles';
+  aplicarMascaraInscricaoEstadual,
+} from "@/utils/masks";
+import { resolveMediaUrl } from "@/utils/mediaUrl";
+import { createStyles } from "@/styles/settings/CompanyProfileStyles";
 
 interface CompanyData {
   id: number;
@@ -41,16 +42,76 @@ interface CompanyData {
 }
 
 type AllowedExtensions =
-  | 'bmp' | 'dib' | 'gif' | 'jfif' | 'jpe' | 'jpg' | 'jpeg'
-  | 'pbm' | 'pgm' | 'ppm' | 'pnm' | 'pfm' | 'png' | 'apng'
-  | 'avif' | 'avifs' | 'blp' | 'bufr' | 'cur' | 'pcx' | 'dcx'
-  | 'dds' | 'ps' | 'eps' | 'fit' | 'fits' | 'fli' | 'flc' | 'ftc'
-  | 'ftu' | 'gbr' | 'grib' | 'h5' | 'hdf' | 'jp2' | 'j2k' | 'jpc'
-  | 'jpf' | 'jpx' | 'j2c' | 'icns' | 'ico' | 'im' | 'iim' | 'mpg'
-  | 'mpeg' | 'tif' | 'tiff' | 'mpo' | 'msp' | 'palm' | 'pcd'
-  | 'pdf' | 'pxr' | 'psd' | 'qoi' | 'bw' | 'rgb' | 'rgba' | 'sgi'
-  | 'ras' | 'tga' | 'icb' | 'vda' | 'vst' | 'webp' | 'wmf' | 'emf'
-  | 'xbm' | 'xpm';
+  | "bmp"
+  | "dib"
+  | "gif"
+  | "jfif"
+  | "jpe"
+  | "jpg"
+  | "jpeg"
+  | "pbm"
+  | "pgm"
+  | "ppm"
+  | "pnm"
+  | "pfm"
+  | "png"
+  | "apng"
+  | "avif"
+  | "avifs"
+  | "blp"
+  | "bufr"
+  | "cur"
+  | "pcx"
+  | "dcx"
+  | "dds"
+  | "ps"
+  | "eps"
+  | "fit"
+  | "fits"
+  | "fli"
+  | "flc"
+  | "ftc"
+  | "ftu"
+  | "gbr"
+  | "grib"
+  | "h5"
+  | "hdf"
+  | "jp2"
+  | "j2k"
+  | "jpc"
+  | "jpf"
+  | "jpx"
+  | "j2c"
+  | "icns"
+  | "ico"
+  | "im"
+  | "iim"
+  | "mpg"
+  | "mpeg"
+  | "tif"
+  | "tiff"
+  | "mpo"
+  | "msp"
+  | "palm"
+  | "pcd"
+  | "pdf"
+  | "pxr"
+  | "psd"
+  | "qoi"
+  | "bw"
+  | "rgb"
+  | "rgba"
+  | "sgi"
+  | "ras"
+  | "tga"
+  | "icb"
+  | "vda"
+  | "vst"
+  | "webp"
+  | "wmf"
+  | "emf"
+  | "xbm"
+  | "xpm";
 
 interface SelectedLogo {
   uri: string;
@@ -60,7 +121,7 @@ interface SelectedLogo {
   file?: any; // File/Blob when running on web
 }
 
-interface ICompanyForm extends Omit<CompanyData, 'logotipo' | 'id'> {
+interface ICompanyForm extends Omit<CompanyData, "logotipo" | "id"> {
   logotipo: SelectedLogo | null;
 }
 
@@ -70,18 +131,18 @@ export default function CompanyProfileScreen() {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [formData, setFormData] = useState<ICompanyForm>({
-    nome_fantasia: '',
-    razao_social: '',
-    cnpj: '',
-    inscricao_estadual: '',
-    endereco: '',
-    cep: '',
-    bairro: '',
-    cidade: '',
-    estado: '',
-    pais: 'Brasil',
-    telefone: '',
-    email_principal: '',
+    nome_fantasia: "",
+    razao_social: "",
+    cnpj: "",
+    inscricao_estadual: "",
+    endereco: "",
+    cep: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    pais: "Brasil",
+    telefone: "",
+    email_principal: "",
     logotipo: null,
   });
 
@@ -89,7 +150,10 @@ export default function CompanyProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   useEffect(() => {
     if (toast) {
@@ -103,22 +167,24 @@ export default function CompanyProfileScreen() {
   useEffect(() => {
     const fetchCompanyData = async () => {
       try {
-        const response = await api.get('/accounts/profile/empresa/');
+        const response = await api.get("/accounts/profile/empresa/");
         const empresa: CompanyData = response.data;
 
         setFormData({
-          nome_fantasia: empresa.nome_fantasia || '',
-          razao_social: empresa.razao_social || '',
-          cnpj: aplicarMascaraCnpj(empresa.cnpj || ''),
-          inscricao_estadual: empresa.inscricao_estadual || '',
-          endereco: empresa.endereco || '',
-          cep: aplicarMascaraCep(empresa.cep || ''),
-          bairro: empresa.bairro || '',
-          cidade: empresa.cidade || '',
-          estado: empresa.estado || '',
-          pais: empresa.pais || 'Brasil',
-          telefone: aplicarMascaraTelefone(empresa.telefone || ''),
-          email_principal: user?.email || '',
+          nome_fantasia: empresa.nome_fantasia || "",
+          razao_social: empresa.razao_social || "",
+          cnpj: aplicarMascaraCnpj(empresa.cnpj || ""),
+          inscricao_estadual: aplicarMascaraInscricaoEstadual(
+            empresa.inscricao_estadual || ""
+          ),
+          endereco: empresa.endereco || "",
+          cep: aplicarMascaraCep(empresa.cep || ""),
+          bairro: empresa.bairro || "",
+          cidade: empresa.cidade || "",
+          estado: empresa.estado || "",
+          pais: empresa.pais || "Brasil",
+          telefone: aplicarMascaraTelefone(empresa.telefone || ""),
+          email_principal: user?.email || "",
           logotipo: null,
         });
 
@@ -126,8 +192,8 @@ export default function CompanyProfileScreen() {
           setLogoPreview(resolveMediaUrl(empresa.logotipo));
         }
       } catch (error) {
-        console.error('Erro ao carregar dados da empresa:', error);
-        setToast({ message: 'Falha ao carregar os dados.', type: 'error' });
+        console.error("Erro ao carregar dados da empresa:", error);
+        setToast({ message: "Falha ao carregar os dados.", type: "error" });
       } finally {
         setIsPageLoading(false);
       }
@@ -138,13 +204,15 @@ export default function CompanyProfileScreen() {
 
   const handleChange = (name: keyof ICompanyForm, value: string) => {
     let maskedValue = value;
-    if (name === 'cep') maskedValue = aplicarMascaraCep(value);
-    else if (name === 'telefone') maskedValue = aplicarMascaraTelefone(value);
-    else if (name === 'cnpj') maskedValue = aplicarMascaraCnpj(value);
+    if (name === "cep") maskedValue = aplicarMascaraCep(value);
+    else if (name === "telefone") maskedValue = aplicarMascaraTelefone(value);
+    else if (name === "cnpj") maskedValue = aplicarMascaraCnpj(value);
+    else if (name === "inscricao_estadual")
+      maskedValue = aplicarMascaraInscricaoEstadual(value);
 
-    setFormData(prev => ({ ...prev, [name]: maskedValue }));
+    setFormData((prev) => ({ ...prev, [name]: maskedValue }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -152,14 +220,14 @@ export default function CompanyProfileScreen() {
     label: string,
     name: keyof ICompanyForm,
     placeholder: string,
-    keyboardType: 'default' | 'numeric' | 'email-address' = 'default'
+    keyboardType: "default" | "numeric" | "email-address" = "default"
   ) => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         style={[styles.input, errors[name] ? styles.inputError : null]}
         value={formData[name] as string}
-        onChangeText={text => handleChange(name, text)}
+        onChangeText={(text) => handleChange(name, text)}
         placeholder={placeholder}
         keyboardType={keyboardType}
         placeholderTextColor={colors.grayText}
@@ -178,43 +246,132 @@ export default function CompanyProfileScreen() {
 
     if (!result.canceled) {
       const file = result.assets[0];
-      const filename = file.uri.split('/').pop() || 'photo.jpg';
+      const filename = file.uri.split("/").pop() || "photo.jpg";
       const extensionMatch = filename.toLowerCase().match(/\.([a-z0-9]+)$/);
-      const extension = (extensionMatch ? extensionMatch[1] : 'jpg') as AllowedExtensions;
+      const extension = (
+        extensionMatch ? extensionMatch[1] : "jpg"
+      ) as AllowedExtensions;
       const allowedExtensions = new Set<AllowedExtensions>([
-        'bmp','dib','gif','jfif','jpe','jpg','jpeg','pbm','pgm','ppm','pnm','pfm','png','apng','avif','avifs','blp','bufr','cur','pcx','dcx','dds','ps','eps','fit','fits','fli','flc','ftc','ftu','gbr','grib','h5','hdf','jp2','j2k','jpc','jpf','jpx','j2c','icns','ico','im','iim','mpg','mpeg','tif','tiff','mpo','msp','palm','pcd','pdf','pxr','psd','qoi','bw','rgb','rgba','sgi','ras','tga','icb','vda','vst','webp','wmf','emf','xbm','xpm',
+        "bmp",
+        "dib",
+        "gif",
+        "jfif",
+        "jpe",
+        "jpg",
+        "jpeg",
+        "pbm",
+        "pgm",
+        "ppm",
+        "pnm",
+        "pfm",
+        "png",
+        "apng",
+        "avif",
+        "avifs",
+        "blp",
+        "bufr",
+        "cur",
+        "pcx",
+        "dcx",
+        "dds",
+        "ps",
+        "eps",
+        "fit",
+        "fits",
+        "fli",
+        "flc",
+        "ftc",
+        "ftu",
+        "gbr",
+        "grib",
+        "h5",
+        "hdf",
+        "jp2",
+        "j2k",
+        "jpc",
+        "jpf",
+        "jpx",
+        "j2c",
+        "icns",
+        "ico",
+        "im",
+        "iim",
+        "mpg",
+        "mpeg",
+        "tif",
+        "tiff",
+        "mpo",
+        "msp",
+        "palm",
+        "pcd",
+        "pdf",
+        "pxr",
+        "psd",
+        "qoi",
+        "bw",
+        "rgb",
+        "rgba",
+        "sgi",
+        "ras",
+        "tga",
+        "icb",
+        "vda",
+        "vst",
+        "webp",
+        "wmf",
+        "emf",
+        "xbm",
+        "xpm",
       ]);
       const isAllowed = allowedExtensions.has(extension);
       if (!isAllowed) {
-        setToast({ message: `Extensão ${extension} não permitida.`, type: 'error' });
+        setToast({
+          message: `Extensão ${extension} não permitida.`,
+          type: "error",
+        });
         return;
       }
-      const filenameWithExtension = extensionMatch ? filename : `${filename}.${extension}`;
-      const mimeType = extension === 'jpg' || extension === 'jpeg' || extension === 'jpe' ? 'image/jpeg'
-        : extension === 'png' || extension === 'apng' ? 'image/png'
-        : file.mimeType
-        || formData.logotipo?.type
-        || `image/${extension}`;
+      const filenameWithExtension = extensionMatch
+        ? filename
+        : `${filename}.${extension}`;
+      const mimeType =
+        extension === "jpg" || extension === "jpeg" || extension === "jpe"
+          ? "image/jpeg"
+          : extension === "png" || extension === "apng"
+          ? "image/png"
+          : file.mimeType || formData.logotipo?.type || `image/${extension}`;
 
       // Expo returns file size in bytes when available
-  const fileSize = typeof file.fileSize === 'number' ? file.fileSize : undefined;
+      const fileSize =
+        typeof file.fileSize === "number" ? file.fileSize : undefined;
       const maxBytes = 2 * 1024 * 1024; // 2MB limit to match web client
       if (fileSize && fileSize > maxBytes) {
-        setToast({ message: 'O arquivo deve ter no máximo 2MB.', type: 'error' });
+        setToast({
+          message: "O arquivo deve ter no máximo 2MB.",
+          type: "error",
+        });
         return;
       }
 
-      if (!mimeType.startsWith('image/')) {
-        setToast({ message: 'Apenas arquivos de imagem são permitidos.', type: 'error' });
+      if (!mimeType.startsWith("image/")) {
+        setToast({
+          message: "Apenas arquivos de imagem são permitidos.",
+          type: "error",
+        });
         return;
       }
 
-  const uploadUri = file.uri;
+      const uploadUri = file.uri;
 
-  console.log('Imagem selecionada:', { uri: uploadUri, name: filenameWithExtension, mimeType, size: fileSize });
+      console.log("Imagem selecionada:", {
+        uri: uploadUri,
+        name: filenameWithExtension,
+        mimeType,
+        size: fileSize,
+      });
 
       setLogoPreview(file.uri);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         logotipo: {
           uri: uploadUri,
@@ -229,9 +386,12 @@ export default function CompanyProfileScreen() {
 
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
-    if (formData.cnpj && formData.cnpj.length < 18) newErrors.cnpj = 'CNPJ inválido.';
-    if (formData.cep && formData.cep.length < 9) newErrors.cep = 'CEP inválido.';
-    if (formData.telefone && formData.telefone.length < 15) newErrors.telefone = 'Telefone inválido.';
+    if (formData.cnpj && formData.cnpj.length < 18)
+      newErrors.cnpj = "CNPJ inválido.";
+    if (formData.cep && formData.cep.length < 9)
+      newErrors.cep = "CEP inválido.";
+    if (formData.telefone && formData.telefone.length < 15)
+      newErrors.telefone = "Telefone inválido.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -243,32 +403,37 @@ export default function CompanyProfileScreen() {
 
     // Add all form fields except logotipo
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'logotipo' && value) {
-        const unmaskedValue = ['cnpj', 'cep', 'telefone'].includes(key)
-          ? (value as string).replace(/\D/g, '')
+      if (key !== "logotipo" && value) {
+        const unmaskedValue = ["cnpj", "cep", "telefone"].includes(key)
+          ? (value as string).replace(/\D/g, "")
           : value;
         dataToSubmit.append(key, unmaskedValue as string);
       }
     });
-    
+
     // Add image file if present
     if (formData.logotipo) {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         try {
           const candidate = formData.logotipo.file;
-          const isFile = typeof File !== 'undefined' && candidate instanceof File;
-          const isBlob = typeof Blob !== 'undefined' && candidate instanceof Blob;
+          const isFile =
+            typeof File !== "undefined" && candidate instanceof File;
+          const isBlob =
+            typeof Blob !== "undefined" && candidate instanceof Blob;
 
           if (candidate && (isFile || isBlob)) {
-            dataToSubmit.append('logotipo', candidate, formData.logotipo.name);
+            dataToSubmit.append("logotipo", candidate, formData.logotipo.name);
           } else {
             const response = await fetch(formData.logotipo.uri);
             const blob = await response.blob();
-            dataToSubmit.append('logotipo', blob, formData.logotipo.name);
+            dataToSubmit.append("logotipo", blob, formData.logotipo.name);
           }
         } catch (blobError) {
-          console.error('Falha ao converter a imagem para upload:', blobError);
-          setToast({ message: 'Não foi possível preparar a imagem para upload.', type: 'error' });
+          console.error("Falha ao converter a imagem para upload:", blobError);
+          setToast({
+            message: "Não foi possível preparar a imagem para upload.",
+            type: "error",
+          });
           setIsLoading(false);
           return;
         }
@@ -279,28 +444,32 @@ export default function CompanyProfileScreen() {
           type: formData.logotipo.type,
         };
 
-        console.log('Enviando arquivo:', fileData);
-        dataToSubmit.append('logotipo', fileData);
+        console.log("Enviando arquivo:", fileData);
+        dataToSubmit.append("logotipo", fileData);
       }
     }
 
     try {
-      console.log('Enviando dados para o servidor...');
+      console.log("Enviando dados para o servidor...");
       // Note: Don't set Content-Type manually for FormData in React Native
       // Axios will set it automatically with the correct boundary
-      const response = await api.patch('/accounts/profile/empresa/', dataToSubmit);
-      console.log('Resposta do servidor:', response.data);
+      const response = await api.patch(
+        "/accounts/profile/empresa/",
+        dataToSubmit
+      );
+      console.log("Resposta do servidor:", response.data);
       await refreshFromServer();
-      setToast({ message: 'Dados da empresa atualizados!', type: 'success' });
+      setToast({ message: "Dados da empresa atualizados!", type: "success" });
       setErrors({});
     } catch (error: any) {
-      console.error('Erro ao atualizar dados:', error);
-      console.error('Status:', error.response?.status);
-      console.error('Detalhes do erro:', error.response?.data);
-      console.error('Headers da requisição:', error.config?.headers);
-      setToast({ 
-        message: error.response?.data?.message || 'Falha ao atualizar os dados.', 
-        type: 'error' 
+      console.error("Erro ao atualizar dados:", error);
+      console.error("Status:", error.response?.status);
+      console.error("Detalhes do erro:", error.response?.data);
+      console.error("Headers da requisição:", error.config?.headers);
+      setToast({
+        message:
+          error.response?.data?.message || "Falha ao atualizar os dados.",
+        type: "error",
       });
     } finally {
       setIsLoading(false);
@@ -318,8 +487,15 @@ export default function CompanyProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={colors.headerBlue} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={24}
+            color={colors.headerBlue}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil da Empresa</Text>
       </View>
@@ -329,29 +505,46 @@ export default function CompanyProfileScreen() {
           <Text style={styles.sectionTitle}>Identificação da Empresa</Text>
           <View style={styles.logoContainer}>
             <Image
-              source={logoPreview ? { uri: logoPreview } : require('@/assets/images/white-logo.png')}
+              source={
+                logoPreview
+                  ? { uri: logoPreview }
+                  : require("@/assets/images/white-logo.png")
+              }
               style={styles.logo}
             />
-            <TouchableOpacity style={styles.logoButton} onPress={handleImagePick}>
+            <TouchableOpacity
+              style={styles.logoButton}
+              onPress={handleImagePick}
+            >
               <Text style={styles.logoButtonText}>Alterar Logo</Text>
             </TouchableOpacity>
           </View>
-          {renderInput('Nome Fantasia', 'nome_fantasia', 'Nome da sua empresa')}
-          {renderInput('Razão Social', 'razao_social', 'Razão social completa')}
-          {renderInput('CNPJ', 'cnpj', '00.000.000/0000-00', 'numeric')}
-          {renderInput('Inscrição Estadual/Municipal', 'inscricao_estadual', 'Número da inscrição', 'numeric')}
+          {renderInput("Nome Fantasia", "nome_fantasia", "Nome da sua empresa")}
+          {renderInput("Razão Social", "razao_social", "Razão social completa")}
+          {renderInput("CNPJ", "cnpj", "00.000.000/0000-00", "numeric")}
+          {renderInput(
+            "Inscrição Estadual/Municipal",
+            "inscricao_estadual",
+            "Número da inscrição",
+            "numeric"
+          )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Endereço e Contato</Text>
-          {renderInput('CEP', 'cep', '00000-000', 'numeric')}
-          {renderInput('Endereço', 'endereco', 'Rua, número e complemento')}
-          {renderInput('Bairro', 'bairro', 'Bairro')}
-          {renderInput('Cidade', 'cidade', 'Cidade')}
-          {renderInput('Estado', 'estado', 'Estado')}
-          {renderInput('País', 'pais', 'País')}
-          {renderInput('Telefone', 'telefone', '(00) 00000-0000', 'numeric')}
-          {renderInput('E-mail Principal', 'email_principal', 'contato@suaempresa.com', 'email-address')}
+          {renderInput("CEP", "cep", "00000-000", "numeric")}
+          {renderInput("Endereço", "endereco", "Rua, número e complemento")}
+          {renderInput("Bairro", "bairro", "Bairro")}
+          {renderInput("Cidade", "cidade", "Cidade")}
+          {renderInput("Estado", "estado", "Estado")}
+          {renderInput("País", "pais", "País")}
+          {renderInput("Telefone", "telefone", "(00) 00000-0000", "numeric")}
+          {renderInput(
+            "E-mail Principal",
+            "email_principal",
+            "contato@suaempresa.com",
+            "email-address"
+          )}
         </View>
 
         <TouchableOpacity
@@ -360,7 +553,7 @@ export default function CompanyProfileScreen() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color={isDark ? colors.background : '#FFFFFF'} />
+            <ActivityIndicator color={isDark ? colors.background : "#FFFFFF"} />
           ) : (
             <Text style={styles.saveButtonText}>Salvar Alterações</Text>
           )}
@@ -368,7 +561,12 @@ export default function CompanyProfileScreen() {
       </ScrollView>
 
       {toast && (
-        <View style={[styles.toastContainer, toast.type === 'success' ? styles.toastSuccess : styles.toastError]}>
+        <View
+          style={[
+            styles.toastContainer,
+            toast.type === "success" ? styles.toastSuccess : styles.toastError,
+          ]}
+        >
           <Text style={styles.toastText}>{toast.message}</Text>
         </View>
       )}

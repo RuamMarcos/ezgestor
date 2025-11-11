@@ -1,29 +1,29 @@
-import { StyleSheet } from 'react-native';
-import { AppColors } from '@/constants/Colors';
+import { StyleSheet } from "react-native";
+import type { ThemeColors } from "@/context/ThemeContext";
 
-export const createStyles = (colors: AppColors, isDark: boolean) => {
+export const createStyles = (colors: ThemeColors, isDark: boolean) => {
   return StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
     modalContainer: {
-      width: '90%',
-      backgroundColor: colors.background,
+      width: "90%",
+      backgroundColor: colors.card,
       borderRadius: 12,
       padding: 24,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
+      shadowOpacity: isDark ? 0.5 : 0.25,
       shadowRadius: 4,
       elevation: 5,
     },
     modalTitle: {
       fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
+      fontWeight: "bold",
+      color: colors.darkText,
       marginBottom: 16,
     },
     inputGroup: {
@@ -35,17 +35,17 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
       marginBottom: 8,
     },
     input: {
-      backgroundColor: isDark ? colors.darkGray : '#FFFFFF',
+      backgroundColor: colors.lightGray,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 8,
       padding: 12,
       fontSize: 16,
-      color: colors.text,
+      color: colors.darkText,
     },
     row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      justifyContent: "space-between",
     },
     inputWrapper: {
       flex: 1,
@@ -54,14 +54,14 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
       width: 16,
     },
     errorText: {
-      color: colors.danger,
+      color: "#DC2626",
       fontSize: 14,
       marginTop: 8,
-      textAlign: 'center',
+      textAlign: "center",
     },
     buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
+      flexDirection: "row",
+      justifyContent: "flex-end",
       marginTop: 24,
     },
     button: {
@@ -71,7 +71,7 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
       marginLeft: 12,
     },
     cancelButton: {
-      backgroundColor: colors.border,
+      backgroundColor: colors.lightGray,
     },
     saveButton: {
       backgroundColor: colors.headerBlue,
@@ -82,13 +82,13 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     },
     buttonText: {
       fontSize: 16,
-      fontWeight: 'bold',
-      color: isDark ? colors.text : '#FFFFFF',
+      fontWeight: "bold",
+      color: "#FFFFFF",
     },
     cancelButtonText: {
       fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.text,
+      fontWeight: "bold",
+      color: colors.darkText,
     },
   });
 };

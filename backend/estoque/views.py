@@ -146,6 +146,14 @@ class ProdutoQuickUpdateView(views.APIView):
         # Recarrega o objeto do banco para obter o valor atualizado
         produto.refresh_from_db()
 
+        # Adição do Log (com descrição customizada):
+        log_action(
+            request.user, 
+            'UPDATE', 
+            produto,
+            custom_description=f"Usuário '{request.user.username}' adicionou {quantidade} un. ao estoque de '{produto.nome}' via entrada rápida (código: {codigo.strip()}). Novo total: {produto.quantidade_estoque}."
+        )
+
         # Criar lançamento financeiro automático de saída (reabastecimento)
         # Usa preco_custo; se inexistente ou zero, não cria lançamento
         # Usa preco_custo quando disponível e positivo; senão, cai para preco_venda

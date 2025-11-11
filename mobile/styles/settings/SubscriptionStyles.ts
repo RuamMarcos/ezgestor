@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { AppColors } from '@/constants/Colors';
+import type { ThemeColors } from '@/context/ThemeContext';
 
-export const createStyles = (colors: AppColors, isDark: boolean) => {
+export const createStyles = (colors: ThemeColors, isDark: boolean) => {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -22,7 +22,7 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     headerTitle: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.darkText,
     },
     centered: {
       flex: 1,
@@ -46,14 +46,14 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
       alignItems: 'center',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
+      shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 2,
       elevation: 3,
     },
     noSubTitle: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.darkText,
     },
     noSubText: {
       fontSize: 14,
@@ -81,7 +81,7 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
       marginBottom: 16,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
+      shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 2,
       elevation: 3,
     },
@@ -95,7 +95,7 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     planoNome: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.darkText,
     },
     planoPreco: {
       fontSize: 28,
@@ -105,7 +105,7 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     },
     proximaFatura: {
       fontSize: 14,
-      color: colors.text,
+      color: colors.darkText,
       marginTop: 8,
     },
     faturaData: {
@@ -137,12 +137,12 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     },
     paymentText: {
       fontSize: 16,
-      color: colors.text,
+      color: colors.darkText,
     },
     paymentInfo: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.darkText,
     },
     paymentDetails: {
       fontSize: 14,
@@ -152,7 +152,7 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     historyTitle: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.darkText,
       marginBottom: 12,
     },
     paymentRow: {
@@ -172,11 +172,11 @@ export const createStyles = (colors: AppColors, isDark: boolean) => {
     headerText: {
       fontSize: 14,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.darkText,
     },
     cell: {
       fontSize: 14,
-      color: colors.text,
+      color: colors.darkText,
     },
     colDate: { flex: 2 },
     colValue: { flex: 2, textAlign: 'left' },
