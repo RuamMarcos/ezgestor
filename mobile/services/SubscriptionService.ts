@@ -1,13 +1,13 @@
-import api from './api';
-import type { IAssinatura, IPagamento } from '../types/subscription';
+import api from "../utils/api";
+import type { IAssinatura, IPagamento } from "../types/subscription";
 
 export const getCurrentSubscription = async (): Promise<IAssinatura> => {
-  const { data } = await api.get<IAssinatura>('/accounts/signature/');
+  const { data } = await api.get<IAssinatura>("/accounts/signature/");
   return data;
 };
 
 export const getPaymentHistory = async (): Promise<IPagamento[]> => {
-  const { data } = await api.get<IPagamento[]>('/accounts/payment/');
+  const { data } = await api.get<IPagamento[]>("/accounts/payment/");
   return data;
 };
 
@@ -27,5 +27,5 @@ export const updatePaymentMethod = async (
   //   validade: payload.validade, // O backend espera MM/AA
   //   cvv: payload.cvv,
   // };
-  await api.post('/accounts/update-payment-method/', payload);
+  await api.post("/accounts/update-payment-method/", payload);
 };

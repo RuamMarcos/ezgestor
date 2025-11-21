@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   Modal,
   View,
@@ -8,15 +8,15 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Keyboard,
-} from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
-import { createStyles } from '@/styles/settings/UpdatePaymentModalStyles';
-import { updatePaymentMethod } from '@/services/SubscriptionService';
+} from "react-native";
+import { useTheme } from "@/context/ThemeContext";
+import { createStyles } from "@/styles/settings/UpdatePaymentModalStyles";
+import { updatePaymentMethod } from "@/services/SubscriptionService";
 import {
   aplicarMascaraCartao,
   aplicarMascaraValidade,
   aplicarMascaraCvv,
-} from '@/utils/masks'; // Reutilizando as máscaras que você já tem
+} from "@/utils/masks"; // Reutilizando as máscaras que você já tem
 
 interface UpdatePaymentModalProps {
   isOpen: boolean;
@@ -33,32 +33,33 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const [dadosCartao, setDadosCartao] = useState({
-    numero: '',
-    validade: '',
-    cvv: '',
-    nome: '',
+    numero: "",
+    validade: "",
+    cvv: "",
+    nome: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (name: string, value: string) => {
     let valorFormatado = value;
-    if (name === 'numero') valorFormatado = aplicarMascaraCartao(value);
-    else if (name === 'validade') valorFormatado = aplicarMascaraValidade(value);
-    else if (name === 'cvv') valorFormatado = aplicarMascaraCvv(value);
+    if (name === "numero") valorFormatado = aplicarMascaraCartao(value);
+    else if (name === "validade")
+      valorFormatado = aplicarMascaraValidade(value);
+    else if (name === "cvv") valorFormatado = aplicarMascaraCvv(value);
     setDadosCartao((prev) => ({ ...prev, [name]: valorFormatado }));
   };
 
   const handleSubmit = async () => {
     Keyboard.dismiss();
-    setError('');
+    setError("");
     if (
       !dadosCartao.numero ||
       !dadosCartao.validade ||
       !dadosCartao.cvv ||
       !dadosCartao.nome
     ) {
-      setError('Todos os campos do cartão são obrigatórios.');
+      setError("Todos os campos do cartão são obrigatórios.");
       return;
     }
 
@@ -71,7 +72,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
     } catch (err: any) {
       const errorMsg =
         err.response?.data?.detail ||
-        'Falha ao atualizar o método de pagamento.';
+        "Falha ao atualizar o método de pagamento.";
       setError(errorMsg);
       // toast.error(errorMsg);
     } finally {
@@ -81,8 +82,8 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
 
   const handleClose = () => {
     // Resetar estado ao fechar
-    setDadosCartao({ numero: '', validade: '', cvv: '', nome: '' });
-    setError('');
+    setDadosCartao({ numero: "", validade: "", cvv: "", nome: "" });
+    setError("");
     setLoading(false);
     onClose();
   };
@@ -107,7 +108,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
                   placeholderTextColor={colors.grayText}
                   keyboardType="numeric"
                   value={dadosCartao.numero}
-                  onChangeText={(v) => handleChange('numero', v)}
+                  onChangeText={(v) => handleChange("numero", v)}
                 />
               </View>
 
@@ -120,7 +121,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
                     placeholderTextColor={colors.grayText}
                     keyboardType="numeric"
                     value={dadosCartao.validade}
-                    onChangeText={(v) => handleChange('validade', v)}
+                    onChangeText={(v) => handleChange("validade", v)}
                   />
                 </View>
                 <View style={styles.gap} />
@@ -132,7 +133,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
                     placeholderTextColor={colors.grayText}
                     keyboardType="numeric"
                     value={dadosCartao.cvv}
-                    onChangeText={(v) => handleChange('cvv', v)}
+                    onChangeText={(v) => handleChange("cvv", v)}
                   />
                 </View>
               </View>
@@ -144,7 +145,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
                   placeholder="Como está no cartão"
                   placeholderTextColor={colors.grayText}
                   value={dadosCartao.nome}
-                  onChangeText={(v) => handleChange('nome', v)}
+                  onChangeText={(v) => handleChange("nome", v)}
                 />
               </View>
 
@@ -165,9 +166,7 @@ const UpdatePaymentModal: React.FC<UpdatePaymentModalProps> = ({
                   disabled={loading}
                 >
                   {loading ? (
-                    <ActivityIndicator
-                      color={isDark ? colors.text : '#FFFFFF'}
-                    />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
                     <Text style={styles.buttonText}>Salvar</Text>
                   )}

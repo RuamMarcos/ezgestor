@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,17 +6,16 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-} from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme } from '@/context/ThemeContext';
+} from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter, useFocusEffect } from "expo-router";
+import { useTheme } from "@/context/ThemeContext";
 import {
   getCurrentSubscription,
   getPaymentHistory,
-} from '@/services/SubscriptionService';
-import type { IAssinatura, IPagamento } from '@/types/subscription';
-import { createStyles } from '@/styles/settings/SubscriptionStyles';
-import UpdatePaymentModal from '@/components/settings/UpdatePaymentModal';
+} from "@/services/SubscriptionService";
+import type { IAssinatura, IPagamento } from "@/types/subscription";
+import { createStyles } from "@/styles/settings/SubscriptionStyles";
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -26,13 +25,12 @@ export default function SubscriptionScreen() {
   const [assinatura, setAssinatura] = useState<IAssinatura | null>(null);
   const [pagamentos, setPagamentos] = useState<IPagamento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
       const [subData, payData] = await Promise.all([
         getCurrentSubscription(),
         getPaymentHistory(),
@@ -41,8 +39,8 @@ export default function SubscriptionScreen() {
       setPagamentos(payData);
     } catch (err: any) {
       if (err.response?.status !== 404) {
-        console.error('Erro ao buscar dados da assinatura:', err);
-        setError('Erro ao buscar dados da assinatura.');
+        console.error("Erro ao buscar dados da assinatura:", err);
+        setError("Erro ao buscar dados da assinatura.");
       }
     } finally {
       setLoading(false);
@@ -55,21 +53,17 @@ export default function SubscriptionScreen() {
     }, [])
   );
 
-  const handleSuccess = () => {
-    fetchData();
-  };
-
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      timeZone: 'UTC',
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      timeZone: "UTC",
     });
   };
 
   const formatCurrency = (value: string | number) => {
-    const numberValue = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    const numberValue = typeof value === "string" ? parseFloat(value) : value;
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(numberValue);
   };
 
@@ -77,30 +71,31 @@ export default function SubscriptionScreen() {
     const statusLower = status.toLowerCase();
     let style = styles.statusOutro;
     let textStyle = styles.textOutro;
-    let icon: 'check-circle' | 'clock-outline' | 'alert-circle' = 'alert-circle';
+    let icon: "check-circle" | "clock-outline" | "alert-circle" =
+      "alert-circle";
 
     if (
-      statusLower === 'ativa' ||
-      statusLower === 'aprovado' ||
-      statusLower === 'confirmado' ||
-      statusLower === 'pago'
+      statusLower === "ativa" ||
+      statusLower === "aprovado" ||
+      statusLower === "confirmado" ||
+      statusLower === "pago"
     ) {
       style = styles.statusAtiva;
       textStyle = styles.textAtiva;
-      icon = 'check-circle';
-    } else if (statusLower === 'pendente') {
+      icon = "check-circle";
+    } else if (statusLower === "pendente") {
       style = styles.statusPendente;
       textStyle = styles.textPendente;
-      icon = 'clock-outline';
+      icon = "clock-outline";
     } else if (
-      statusLower === 'recusado' ||
-      statusLower === 'inativa' ||
-      statusLower === 'cancelada' ||
-      statusLower === 'inadimplente'
+      statusLower === "recusado" ||
+      statusLower === "inativa" ||
+      statusLower === "cancelada" ||
+      statusLower === "inadimplente"
     ) {
       style = styles.statusRecusado;
       textStyle = styles.textRecusado;
-      icon = 'alert-circle';
+      icon = "alert-circle";
     }
 
     return (
@@ -115,7 +110,9 @@ export default function SubscriptionScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.headerBlue} />
-        <Text style={styles.loadingText}>Carregando dados da assinatura...</Text>
+        <Text style={styles.loadingText}>
+          Carregando dados da assinatura...
+        </Text>
       </View>
     );
   }
@@ -144,7 +141,7 @@ export default function SubscriptionScreen() {
             </Text>
             <TouchableOpacity
               style={styles.plansButton}
-              onPress={() => router.push('/(auth)/plans')}
+              onPress={() => router.push("/(auth)/plans")}
             >
               <Text style={styles.plansButtonText}>Ver Planos</Text>
             </TouchableOpacity>
@@ -153,10 +150,6 @@ export default function SubscriptionScreen() {
       </View>
     );
   }
-
-  const hasCard =
-    assinatura.metodo_pagamento_padrao === 'cartao' &&
-    assinatura.cartao_final;
 
   return (
     <View style={styles.container}>
@@ -183,7 +176,7 @@ export default function SubscriptionScreen() {
             {formatCurrency(assinatura.plano.preco_mensal)} / mês
           </Text>
           <Text style={styles.proximaFatura}>
-            Sua próxima fatura será em:{' '}
+            Sua próxima fatura será em:{" "}
             <Text style={styles.faturaData}>
               {formatDate(assinatura.data_proximo_pagamento)}
             </Text>
@@ -191,7 +184,7 @@ export default function SubscriptionScreen() {
           <View style={styles.divider} />
           <TouchableOpacity
             style={styles.changePlanButton}
-            onPress={() => router.push('/(auth)/plans')}
+            onPress={() => router.push("/(auth)/plans")}
           >
             <Text style={styles.changePlanButtonText}>Alterar Plano</Text>
           </TouchableOpacity>
@@ -200,38 +193,25 @@ export default function SubscriptionScreen() {
         {/* Card da Forma de Pagamento */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Forma de Pagamento</Text>
-          {hasCard ? (
-            <View style={styles.paymentMethodContainer}>
-              <MaterialCommunityIcons
-                name="credit-card"
-                size={24}
-                color={colors.grayText}
-              />
-              <View>
-                <Text style={styles.paymentInfo}>
-                  {`${
-                    assinatura.cartao_bandeira
-                      ?.charAt(0)
-                      .toUpperCase() + assinatura.cartao_bandeira!.slice(1)
-                  } final ${assinatura.cartao_final}`}
-                </Text>
-                <Text style={styles.paymentDetails}>
-                  Expira em: {assinatura.cartao_validade}
-                </Text>
-              </View>
+          <View style={styles.paymentMethodContainer}>
+            <MaterialCommunityIcons
+              name="credit-card"
+              size={24}
+              color={colors.grayText}
+            />
+            <View>
+              <Text style={styles.paymentInfo}>
+                {assinatura.metodo_pagamento_padrao === "cartao"
+                  ? "Cartão de Crédito"
+                  : assinatura.metodo_pagamento_padrao === "boleto"
+                  ? "Boleto Bancário"
+                  : "Pix"}
+              </Text>
+              <Text style={styles.paymentDetails}>
+                Método de pagamento padrão
+              </Text>
             </View>
-          ) : (
-            <Text style={styles.paymentText}>
-              Nenhum cartão de crédito cadastrado.
-            </Text>
-          )}
-          <View style={styles.divider} />
-          <TouchableOpacity
-            style={styles.changePlanButton}
-            onPress={() => setIsUpdateModalOpen(true)}
-          >
-            <Text style={styles.changePlanButtonText}>Atualizar Dados</Text>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Histórico de Pagamentos */}
@@ -246,10 +226,7 @@ export default function SubscriptionScreen() {
           {/* Linhas da Tabela */}
           {pagamentos.length > 0 ? (
             pagamentos.map((pagamento) => (
-              <View
-                key={pagamento.id_pagamento}
-                style={styles.paymentRow}
-              >
+              <View key={pagamento.id_pagamento} style={styles.paymentRow}>
                 <Text style={[styles.cell, styles.colDate]}>
                   {formatDate(pagamento.data_pagamento)}
                 </Text>
@@ -263,32 +240,13 @@ export default function SubscriptionScreen() {
             ))
           ) : (
             <View style={styles.centered}>
-              <Text style={styles.loadingText}>Nenhum pagamento encontrado.</Text>
+              <Text style={styles.loadingText}>
+                Nenhum pagamento encontrado.
+              </Text>
             </View>
           )}
-          
-           {/* Exemplo de item de fatura com botão de download desabilitado */}
-           {pagamentos.length > 0 && (
-              <View style={[styles.paymentRow, { borderBottomWidth: 0 }]}>
-                <Text style={[styles.cell, styles.colDate]}></Text>
-                <Text style={[styles.cell, styles.colValue]}></Text>
-                <View style={styles.colStatus}>
-                  <TouchableOpacity style={[styles.pdfButton, styles.pdfButtonDisabled]} disabled>
-                    <MaterialCommunityIcons name="file-download-outline" size={16} color={colors.grayText} />
-                    <Text style={[styles.pdfText, { color: colors.grayText }]}>Baixar PDF</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-           )}
         </View>
       </ScrollView>
-
-      {/* Renderiza o modal */}
-      <UpdatePaymentModal
-        isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
-        onSuccess={handleSuccess}
-      />
     </View>
   );
 }

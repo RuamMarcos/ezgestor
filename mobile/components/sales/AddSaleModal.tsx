@@ -220,7 +220,7 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.darkText }]}>Nova Venda</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>✕</Text>
+                <Text style={[styles.closeButtonText, { color: colors.darkText }]}>✕</Text>
               </TouchableOpacity>
             </View>
 
@@ -248,27 +248,36 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                   </TouchableOpacity>
                 </View>
               ) : (
-                <View style={styles.pickerContainer}>
+                <View style={[styles.pickerContainer, { borderColor: colors.border, backgroundColor: colors.card }]}>
                   <TextInput
-                    style={{ paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderColor: '#f0f0f0' }}
+                    style={{
+                      paddingHorizontal: 12,
+                      paddingVertical: 10,
+                      borderBottomWidth: 1,
+                      borderColor: colors.border,
+                      backgroundColor: colors.lightGray,
+                      color: colors.darkText,
+                    }}
                     placeholder="Buscar por nome ou código..."
+                    placeholderTextColor={colors.grayText}
                     value={productSearch}
                     onChangeText={setProductSearch}
                   />
                   {!hasQuery ? (
                     <View style={{ padding: 16 }}>
-                      <Text style={styles.helperText}>Digite para buscar produtos...</Text>
+                      <Text style={[styles.helperText, { color: colors.grayText }]}>Digite para buscar produtos...</Text>
                     </View>
                   ) : (
                     <ScrollView style={styles.productList}>
                       <TouchableOpacity
                         style={[
                           styles.productOption,
-                          selectedProductId === null && styles.selectedProductOption
+                          { backgroundColor: colors.card },
+                          selectedProductId === null && { backgroundColor: colors.lightGray }
                         ]}
                         onPress={() => setSelectedProductId(null)}
                       >
-                        <Text style={styles.productOptionText}>
+                        <Text style={[styles.productOptionText, { color: colors.darkText }]}>
                           {filteredProducts.length === 0 ? 'Nenhum produto encontrado' : 'Selecione um produto'}
                         </Text>
                       </TouchableOpacity>
@@ -277,11 +286,12 @@ export default function AddSaleModal({ visible, onClose, onSaleAdded }: AddSaleM
                           key={product.id_produto}
                           style={[
                             styles.productOption,
-                            selectedProductId === product.id_produto && styles.selectedProductOption
+                            { backgroundColor: colors.card },
+                            selectedProductId === product.id_produto && { backgroundColor: colors.lightGray }
                           ]}
                           onPress={() => setSelectedProductId(product.id_produto)}
                         >
-                          <Text style={styles.productOptionText}>
+                          <Text style={[styles.productOptionText, { color: colors.darkText }]}>
                             {product.nome} - {formatCurrency(product.preco_venda)} (Est: {toNumber(product.quantidade_estoque)})
                           </Text>
                         </TouchableOpacity>
