@@ -199,20 +199,20 @@ const CompanyProfilePage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-800">Perfil da Empresa</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">Perfil da Empresa</h2>
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           Gerencie as informações da sua empresa.
         </p>
       </div>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {/* Seção de Identificação da Empresa */}
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">
+        <div className="p-4 sm:p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
             Identificação da Empresa
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Coluna do Logotipo */}
             <div className="flex flex-col items-center space-y-4">
               <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed">
@@ -318,11 +318,11 @@ const CompanyProfilePage = () => {
         </div>
 
         {/* Seção de Endereço e Contato */}
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">
+        <div className="p-4 sm:p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
             Endereço e Contato
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Coluna 1 */}
             <div className="space-y-4">
               <div>

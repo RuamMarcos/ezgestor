@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 
 function DashboardLayout() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900 p-2 md:p-4">
       <div className="w-full mx-auto flex flex-col flex-1">
         <Header />
         

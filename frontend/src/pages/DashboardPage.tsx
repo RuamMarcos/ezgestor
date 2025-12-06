@@ -232,15 +232,15 @@ function DashboardPage() {
   const [isNfeModalOpen, setIsNfeModalOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm">
       
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Geral</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6">Dashboard Geral</h2>
 
       {error && (
-        <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">{error}</div>
+        <div className="mb-4 p-3 rounded bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm">{error}</div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <StatCard 
           title="Receita Mensal" 
           value={loading ? '—' : formatCurrency(data.monthlyRevenue)}
@@ -264,10 +264,10 @@ function DashboardPage() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Vendas dos Últimos 7 Dias</h3>
+      <div className="bg-white dark:bg-gray-700 rounded-2xl p-4 sm:p-6 mb-6 border border-gray-200 dark:border-gray-600">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Vendas dos Últimos 7 Dias</h3>
         
-        <div className="h-64">
+        <div className="h-48 sm:h-64 mb-4">
           {chartError ? (
             <div className="text-center text-red-500">{chartError}</div>
           ) : (
@@ -276,14 +276,14 @@ function DashboardPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 relative z-10">
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-colors shadow-lg text-sm sm:text-base"
         >
           Nova Venda
         </button>
-        <button onClick={openReportModal} disabled={downloading} className={`bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg ${downloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+        <button onClick={openReportModal} disabled={downloading} className={`bg-green-500 hover:bg-green-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-colors shadow-lg text-sm sm:text-base ${downloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
           {downloading ? 'Gerando…' : 'Gerar Relatório(s)'}
         </button>
       {reportModalOpen && (
@@ -374,22 +374,22 @@ function DashboardPage() {
         </button>
       </div>
 
-      <div className="mt-8 bg-white rounded-2xl p-6 hidden lg:block border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Vendas Recentes</h3>
+      <div className="mt-6 sm:mt-8 bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Vendas Recentes</h3>
         <div className="space-y-3">
           {loading && (
-            <div className="py-6 text-center text-gray-500">Carregando...</div>
+            <div className="py-6 text-center text-gray-500 dark:text-gray-400">Carregando...</div>
           )}
           {!loading && data.recentSales.length === 0 && (
-            <div className="py-6 text-center text-gray-500">Sem vendas recentes.</div>
+            <div className="py-6 text-center text-gray-500 dark:text-gray-400">Sem vendas recentes.</div>
           )}
           {!loading && data.recentSales.map((sale: any) => (
-            <div key={sale.id} className="flex justify-between items-center py-3 px-4 bg-white rounded-lg border border-gray-200">
-              <div>
-                <p className="font-semibold text-gray-800">{sale.clientName}</p>
-                <p className="text-sm text-gray-600">{sale.description}</p>
+            <div key={sale.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 py-3 px-3 sm:px-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base truncate">{sale.clientName}</p>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">{sale.description}</p>
               </div>
-              <p className="font-semibold text-gray-800">{formatCurrency(Number(sale.value || 0))}</p>
+              <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base flex-shrink-0">{formatCurrency(Number(sale.value || 0))}</p>
             </div>
           ))}
         </div>

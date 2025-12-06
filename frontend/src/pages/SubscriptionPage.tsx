@@ -128,31 +128,31 @@ const SubscriptionPage = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-800">Minha Assinatura</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">Minha Assinatura</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Card do Plano Atual */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md space-y-4">
-          <p className="text-sm font-medium text-gray-500">Seu Plano Atual</p>
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md space-y-3 sm:space-y-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Seu Plano Atual</p>
           <div>
-            <p className="text-xl font-bold text-gray-800">
+            <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">
               {assinatura.plano.nome}
             </p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
               {formatCurrency(assinatura.plano.preco_mensal)} / mês
             </p>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Sua próxima fatura será em:{" "}
             <span className="font-semibold">
               {formatDate(assinatura.data_proximo_pagamento)}
             </span>
           </p>
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <Link
               to="/plans"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-500 border border-indigo-600 rounded-md px-4 py-2 transition-colors"
+              className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 border border-indigo-600 dark:border-indigo-400 rounded-md px-4 py-2 transition-colors"
             >
               Alterar Plano
             </Link>
@@ -160,21 +160,21 @@ const SubscriptionPage = () => {
         </div>
 
         {/* Card da Forma de Pagamento */}
-        <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
-          <p className="text-sm font-medium text-gray-500">
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md space-y-3 sm:space-y-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Forma de Pagamento
           </p>
           <div className="flex items-center gap-3">
-            <CreditCardIcon className="h-6 w-6 text-gray-400" />
+            <CreditCardIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             <div>
-              <p className="font-semibold text-gray-700">
+              <p className="font-semibold text-gray-700 dark:text-gray-200">
                 {assinatura.metodo_pagamento_padrao === "cartao"
                   ? "Cartão de Crédito"
                   : assinatura.metodo_pagamento_padrao === "boleto"
                   ? "Boleto Bancário"
                   : "Pix"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Método de pagamento padrão
               </p>
             </div>
@@ -183,49 +183,51 @@ const SubscriptionPage = () => {
       </div>
 
       {/* Histórico de Pagamentos */}
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="p-6">
-          <h3 className="text-xl font-semibold leading-6 text-gray-900">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <div className="p-4 sm:p-6">
+          <h3 className="text-lg sm:text-xl font-semibold leading-6 text-gray-900 dark:text-gray-100">
             Suas Faturas Anteriores
           </h3>
         </div>
-        <div className="flow-root">
+        
+        {/* Tabela para Desktop */}
+        <div className="hidden sm:block flow-root">
           <div className="overflow-x-auto">
             <div className="inline-block min-w-full align-middle">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th
                       scope="col"
-                      className="py-3.5 pl-6 pr-3 text-left text-sm font-semibold text-gray-900"
+                      className="py-3.5 pl-6 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
                     >
                       Data
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
                     >
                       Valor
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
                     >
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                   {pagamentos.length > 0 ? (
                     pagamentos.map((pagamento) => (
                       <tr key={pagamento.id_pagamento}>
-                        <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm text-gray-500">
+                        <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(pagamento.data_pagamento)}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {formatCurrency(pagamento.valor)}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {getStatusChip(pagamento.status)}
                         </td>
                       </tr>
@@ -234,7 +236,7 @@ const SubscriptionPage = () => {
                     <tr>
                       <td
                         colSpan={3}
-                        className="py-8 text-center text-sm text-gray-500"
+                        className="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
                       >
                         Nenhum pagamento encontrado.
                       </td>
@@ -244,6 +246,29 @@ const SubscriptionPage = () => {
               </table>
             </div>
           </div>
+        </div>
+
+        {/* Cards para Mobile */}
+        <div className="sm:hidden p-4 space-y-3">
+          {pagamentos.length > 0 ? (
+            pagamentos.map((pagamento) => (
+              <div key={pagamento.id_pagamento} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {formatDate(pagamento.data_pagamento)}
+                  </span>
+                  {getStatusChip(pagamento.status)}
+                </div>
+                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {formatCurrency(pagamento.valor)}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+              Nenhum pagamento encontrado.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -108,22 +108,22 @@ const LogsPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 xl:p-8">
-      <h1 className="text-3xl font-bold mb-4 text-gray-800">Logs do Sistema</h1>
-      <p className="mb-6 text-gray-600">
+    <div className="container mx-auto p-2 sm:p-6 xl:p-8">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4 text-gray-800 dark:text-gray-100">Logs do Sistema</h1>
+      <p className="mb-4 sm:mb-6 text-sm sm:text-base text-gray-600 dark:text-gray-400">
         Acompanhe as atividades recentes dos funcionários no sistema.
       </p>
 
       {/* Formulário de Busca com <select> */}
-      <div className="mb-6 bg-white shadow-sm rounded-lg p-4">
+      <div className="mb-4 sm:mb-6 bg-white dark:bg-gray-800 shadow-sm rounded-lg p-3 sm:p-4">
         <form
           onSubmit={handleSearchSubmit}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-end"
         >
-          <div className="md:col-span-1">
+          <div>
             <label
               htmlFor="searchUser"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Filtrar por Usuário
             </label>
@@ -132,7 +132,7 @@ const LogsPage: React.FC = () => {
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
               disabled={isFetchingUsers || isLoading}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white dark:bg-gray-700 dark:text-gray-200"
             >
               <option value="">Todos os Usuários</option>
               {teamMembers.map((member) => (
@@ -142,10 +142,10 @@ const LogsPage: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="md:col-span-1">
+          <div>
             <label
               htmlFor="searchAction"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Filtrar por Ação
             </label>
@@ -154,7 +154,7 @@ const LogsPage: React.FC = () => {
               value={selectedAction}
               onChange={(e) => setSelectedAction(e.target.value)}
               disabled={isLoading}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white dark:bg-gray-700 dark:text-gray-200"
             >
               <option value="">Todas as Ações</option>
               {ACTION_TYPES.map((action) => (
@@ -164,7 +164,7 @@ const LogsPage: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="md:col-span-1 flex space-x-2">
+          <div className="sm:col-span-2 lg:col-span-1 flex flex-col sm:flex-row gap-2">
             <button
               type="submit"
               disabled={isLoading}
@@ -177,7 +177,7 @@ const LogsPage: React.FC = () => {
               type="button"
               onClick={handleClearSearch}
               disabled={isLoading}
-              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               Limpar
             </button>
@@ -186,14 +186,14 @@ const LogsPage: React.FC = () => {
       </div>
 
       {isLoading && (
-        <div className="text-center p-10">
-          <p>Carregando logs...</p>
+        <div className="text-center p-6 sm:p-10">
+          <p className="text-gray-600 dark:text-gray-400">Carregando logs...</p>
         </div>
       )}
 
       {!isLoading && logs.length === 0 && (
-        <div className="text-center p-10 bg-gray-50 rounded-lg">
-          <p>
+        <div className="text-center p-6 sm:p-10 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <p className="text-gray-600 dark:text-gray-400">
             Nenhum log encontrado
             {appliedUser || appliedAction ? ' para os filtros aplicados' : ''}.
           </p>
@@ -202,49 +202,50 @@ const LogsPage: React.FC = () => {
 
       {!isLoading && logs.length > 0 && (
         <>
-          <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          {/* Tabela para Desktop */}
+          <div className="hidden md:block bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                   >
                     Data/Hora
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                   >
                     Usuário
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                   >
                     Ação
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                   >
                     Detalhes
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                       {formatTimestamp(log.timestamp)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                       {log.user}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                       {log.action_type}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-md truncate">
                       {log.details}
                     </td>
                   </tr>
@@ -253,9 +254,31 @@ const LogsPage: React.FC = () => {
             </table>
           </div>
 
-          <div className="flex items-center justify-between mt-6">
+          {/* Cards para Mobile */}
+          <div className="md:hidden space-y-3">
+            {logs.map((log) => (
+              <div key={log.id} className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatTimestamp(log.timestamp)}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-400">
+                    {log.action_type}
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                  {log.user}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                  {log.details}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 sm:mt-6">
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
                 Mostrando{' '}
                 <span className="font-medium">
                   {(currentPage - 1) * ITEMS_PER_PAGE + 1}
@@ -267,22 +290,22 @@ const LogsPage: React.FC = () => {
                 de <span className="font-medium">{count}</span> resultados
               </p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex justify-center sm:justify-end gap-2">
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1 || isLoading}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
-                <ChevronLeftIcon className="h-5 w-5 mr-1" />
-                Anterior
+                <ChevronLeftIcon className="h-5 w-5 sm:mr-1" />
+                <span className="hidden sm:inline">Anterior</span>
               </button>
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages || isLoading}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
-                Próximo
-                <ChevronRightIcon className="h-5 w-5 ml-1" />
+                <span className="hidden sm:inline">Próximo</span>
+                <ChevronRightIcon className="h-5 w-5 sm:ml-1" />
               </button>
             </div>
           </div>
